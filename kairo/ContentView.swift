@@ -1,8 +1,18 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isLoading = true
+    
     var body: some View {
-        TodayView()
+        ZStack {
+            if isLoading {
+                LaunchScreenView(isLoading: $isLoading)
+            } else {
+                MainTabView()
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.5), value: isLoading)
     }
 }
 
