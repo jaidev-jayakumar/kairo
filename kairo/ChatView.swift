@@ -2,93 +2,84 @@ import SwiftUI
 
 struct ChatView: View {
     @State private var messages: [ChatMessage] = [
-        ChatMessage(text: "Welcome, cosmic seeker. What guidance do you need today?", isUser: false)
+        ChatMessage(text: "Ask the cosmos.", isUser: false)
     ]
     @State private var inputText = ""
     @State private var isTyping = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Cosmic Oracle")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.white)
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Minimal header
+                VStack(spacing: 8) {
+                    Text("COSMIC ORACLE")
+                        .font(.system(size: 11, weight: .medium))
+                        .tracking(2)
+                        .foregroundColor(.white.opacity(0.4))
                     
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
-                        
-                        Text("Online")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
+                    Rectangle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(height: 1)
+                        .frame(maxWidth: 100)
                 }
-                
-                Spacer()
-                
-                Image(systemName: "sparkles")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white.opacity(0.6))
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(Color.white.opacity(0.05))
+                .padding(.top, 40)
+                .padding(.bottom, 20)
             
-            // Messages
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing: 16) {
-                        ForEach(messages) { message in
-                            ChatBubble(message: message)
-                                .id(message.id)
+                // Messages
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 32) {
+                            ForEach(messages) { message in
+                                CosmicMessage(message: message)
+                                    .id(message.id)
+                            }
+                            
+                            if isTyping {
+                                OracleTyping()
+                            }
                         }
-                        
-                        if isTyping {
-                            TypingIndicator()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 20)
+                        .padding(.vertical, 40)
+                        .padding(.horizontal, 30)
+                    }
+                    .onChange(of: messages.count) { _ in
+                        withAnimation {
+                            proxy.scrollTo(messages.last?.id, anchor: .bottom)
                         }
                     }
-                    .padding(.vertical, 20)
                 }
-                .onChange(of: messages.count) { _ in
-                    withAnimation {
-                        proxy.scrollTo(messages.last?.id, anchor: .bottom)
-                    }
-                }
-            }
             
-            // Input area
-            HStack(spacing: 12) {
-                TextField("Ask the cosmos...", text: $inputText)
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white.opacity(0.05))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                            )
-                    )
-                
-                Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(inputText.isEmpty ? .white.opacity(0.3) : .white)
+                // Input area
+                VStack(spacing: 16) {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(height: 1)
+                    
+                    HStack(spacing: 16) {
+                        TextField("", text: $inputText)
+                            .placeholder(when: inputText.isEmpty) {
+                                Text("Ask your question")
+                                    .foregroundColor(.white.opacity(0.3))
+                            }
+                            .font(.system(size: 16, weight: .light))
+                            .foregroundColor(.white)
+                            .accentColor(.white)
+                        
+                        Button(action: sendMessage) {
+                            Text("ASK")
+                                .font(.system(size: 12, weight: .medium))
+                                .tracking(1)
+                                .foregroundColor(inputText.isEmpty ? .white.opacity(0.2) : .white.opacity(0.8))
+                        }
+                        .disabled(inputText.isEmpty)
+                    }
+                    .padding(.horizontal, 30)
+                    .padding(.bottom, 20)
                 }
-                .disabled(inputText.isEmpty)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(Color.black)
         }
-        .background(Color.black)
     }
     
     func sendMessage() {
@@ -110,13 +101,13 @@ struct ChatView: View {
     
     func generateCosmicResponse(to question: String) -> String {
         let responses = [
-            "The stars align in your favor. Trust your intuition as Mercury guides your path forward.",
-            "A period of transformation approaches. Embrace the change that the universe offers.",
-            "Your energy resonates with Venus today. Love and creativity flow through you.",
-            "The moon's influence suggests reflection. Look within for the answers you seek.",
-            "Jupiter's expansion touches your life. New opportunities await those who dare."
+            "The question you ask is not the question you need answered. Saturn's rings remind us that boundaries create beauty.",
+            "Your higher self already knows. The delay is in your willingness to listen.",
+            "This pattern will repeat until you choose differently. Venus retrograde taught us this.",
+            "What feels like resistance is actually redirection. Trust the cosmic timing.",
+            "The answer lives in the space between your fear and your desire."
         ]
-        return responses.randomElement() ?? "The cosmos whispers secrets to those who listen."
+        return responses.randomElement() ?? "The universe speaks in synchronicities. Pay attention."
     }
 }
 
@@ -127,63 +118,83 @@ struct ChatMessage: Identifiable {
     let timestamp = Date()
 }
 
-struct ChatBubble: View {
+struct CosmicMessage: View {
     let message: ChatMessage
     
     var body: some View {
-        HStack {
-            if message.isUser { Spacer() }
-            
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
-                Text(message.text)
-                    .font(.system(size: 15))
-                    .foregroundColor(message.isUser ? .black : .white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(message.isUser ? Color.white : Color.white.opacity(0.1))
-                    )
-                
-                Text(message.timestamp.formatted(.dateTime.hour().minute()))
-                    .font(.system(size: 11))
-                    .foregroundColor(.white.opacity(0.4))
+        VStack(alignment: .leading, spacing: 16) {
+            if message.isUser {
+                // User question
+                VStack(alignment: .trailing, spacing: 8) {
+                    Text("YOU ASKED")
+                        .font(.system(size: 10, weight: .medium))
+                        .tracking(1.5)
+                        .foregroundColor(.white.opacity(0.4))
+                    
+                    Text(message.text)
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(.white.opacity(0.9))
+                        .multilineTextAlignment(.trailing)
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            } else {
+                // Oracle response
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(Color.white.opacity(0.3))
+                            .frame(width: 3, height: 3)
+                        
+                        Text("ORACLE")
+                            .font(.system(size: 10, weight: .medium))
+                            .tracking(1.5)
+                            .foregroundColor(.white.opacity(0.4))
+                    }
+                    
+                    Text(message.text)
+                        .font(.system(size: 16, weight: .light))
+                        .foregroundColor(.white.opacity(0.85))
+                        .lineSpacing(8)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .frame(maxWidth: 280, alignment: message.isUser ? .trailing : .leading)
-            
-            if !message.isUser { Spacer() }
         }
-        .padding(.horizontal, 20)
     }
 }
 
-struct TypingIndicator: View {
-    @State private var animationAmount = 0.0
+struct OracleTyping: View {
+    @State private var opacity: Double = 0.3
     
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(0..<3) { index in
-                Circle()
-                    .fill(Color.white.opacity(0.6))
-                    .frame(width: 8, height: 8)
-                    .scaleEffect(animationAmount)
-                    .opacity(animationAmount)
-                    .animation(
-                        .easeInOut(duration: 0.6)
-                        .repeatForever(autoreverses: true)
-                        .delay(Double(index) * 0.2),
-                        value: animationAmount
-                    )
+        HStack(spacing: 8) {
+            Circle()
+                .fill(Color.white.opacity(0.3))
+                .frame(width: 3, height: 3)
+            
+            Text("ORACLE IS CONSULTING THE COSMOS")
+                .font(.system(size: 10, weight: .medium))
+                .tracking(1.5)
+                .foregroundColor(.white.opacity(opacity))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                opacity = 0.6
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.1))
-        )
-        .onAppear {
-            animationAmount = 1.0
+    }
+}
+
+// Placeholder modifier extension
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content) -> some View {
+
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
         }
     }
 }

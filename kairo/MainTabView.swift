@@ -62,18 +62,29 @@ struct TabBarButton: View {
     let isSelected: Bool
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
+            if isSelected {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 4, height: 4)
+                    .transition(.scale.combined(with: .opacity))
+            } else {
+                Circle()
+                    .fill(Color.clear)
+                    .frame(width: 4, height: 4)
+            }
+            
             Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(isSelected ? .white : .white.opacity(0.4))
+                .font(.system(size: isSelected ? 22 : 20, weight: isSelected ? .medium : .regular))
+                .foregroundColor(isSelected ? .white : .white.opacity(0.3))
             
             Text(title)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(isSelected ? .white : .white.opacity(0.4))
+                .font(.system(size: 10, weight: isSelected ? .medium : .regular))
+                .foregroundColor(isSelected ? .white.opacity(0.8) : .white.opacity(0.3))
+                .opacity(isSelected ? 1 : 0.7)
         }
         .frame(maxWidth: .infinity)
-        .scaleEffect(isSelected ? 1.1 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isSelected)
     }
 }
 

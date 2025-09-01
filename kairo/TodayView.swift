@@ -2,171 +2,256 @@ import SwiftUI
 
 struct TodayView: View {
     @State private var showContent = false
-    @State private var selectedCategory: AstroCategory? = nil
+    @State private var selectedInsight: CosmicInsight? = nil
+    @State private var constellationPhase: CGFloat = 0
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
-                // Date Header
-                DateHeaderView()
-                    .opacity(showContent ? 1 : 0)
-                    .animation(.easeOut(duration: 0.6), value: showContent)
-                
-                // Daily Insight Card
-                DailyInsightCard()
-                    .opacity(showContent ? 1 : 0)
-                    .offset(y: showContent ? 0 : 20)
-                    .animation(.easeOut(duration: 0.8).delay(0.2), value: showContent)
-                
-                // Categories Row
-                CategoriesRowView(selectedCategory: $selectedCategory)
-                    .opacity(showContent ? 1 : 0)
-                    .offset(y: showContent ? 0 : 20)
-                    .animation(.easeOut(duration: 0.8).delay(0.4), value: showContent)
-                
-                // Navigation Button
-                NavigationLinkButton()
-                    .opacity(showContent ? 1 : 0)
-                    .animation(.easeOut(duration: 0.8).delay(0.6), value: showContent)
+        ZStack {
+            // Background with subtle animation
+            Color.black
+                .ignoresSafeArea()
+            
+            // Constellation lines in background
+            ConstellationBackground(phase: constellationPhase)
+                .opacity(0.15)
+            
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 0) {
+                    // Philosophical question header
+                    PhilosophicalHeader()
+                        .padding(.top, 60)
+                        .opacity(showContent ? 1 : 0)
+                        .animation(.easeOut(duration: 1.2), value: showContent)
+                    
+                    // Main cosmic insight
+                    MainCosmicMessage()
+                        .padding(.top, 80)
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 30)
+                        .animation(.easeOut(duration: 1.0).delay(0.3), value: showContent)
+                    
+                    // Energy manifestations
+                    EnergyManifestations()
+                        .padding(.top, 60)
+                        .opacity(showContent ? 1 : 0)
+                        .animation(.easeOut(duration: 1.0).delay(0.6), value: showContent)
+                    
+                    // Cosmic timing
+                    CosmicTiming()
+                        .padding(.top, 80)
+                        .opacity(showContent ? 1 : 0)
+                        .animation(.easeOut(duration: 1.0).delay(0.9), value: showContent)
+                    
+                    Spacer(minLength: 120)
+                }
+                .padding(.horizontal, 30)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 32)
         }
-        .background(Color.black)
         .onAppear {
             withAnimation {
                 showContent = true
             }
+            withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
+                constellationPhase = 1
+            }
         }
     }
 }
 
-// MARK: - Date Header
-struct DateHeaderView: View {
-    let today = Date()
-    
+// MARK: - Philosophical Header
+struct PhilosophicalHeader: View {
     var body: some View {
-        VStack(spacing: 4) {
-            Text(today.formatted(.dateTime.weekday(.wide)))
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.white.opacity(0.6))
-                .tracking(1.5)
-                .textCase(.uppercase)
+        VStack(spacing: 8) {
+            Text("TODAY YOU ASKED")
+                .font(.system(size: 11, weight: .medium))
+                .tracking(2)
+                .foregroundColor(.white.opacity(0.4))
             
-            Text(today.formatted(.dateTime.day().month(.wide)))
-                .font(.system(size: 28, weight: .light))
+            Text("What truth am I avoiding?")
+                .font(.system(size: 24, weight: .light))
                 .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-// MARK: - Daily Insight Card
-struct DailyInsightCard: View {
+// MARK: - Main Cosmic Message
+struct MainCosmicMessage: View {
     var body: some View {
-        AstroCard {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Image(systemName: "moon.stars")
-                        .font(.system(size: 18))
-                        .foregroundColor(.white.opacity(0.8))
-                    
-                    Text("Today's Cosmic Weather")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
+        VStack(spacing: 40) {
+            // Planet alignment visual
+            ZStack {
+                Circle()
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    .frame(width: 120, height: 120)
+                
+                ForEach(0..<3) { index in
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: index == 1 ? 12 : 6, height: index == 1 ? 12 : 6)
+                        .offset(x: cos(CGFloat(index) * 2 * .pi / 3) * 50,
+                               y: sin(CGFloat(index) * 2 * .pi / 3) * 50)
                 }
                 
-                Text("Mercury's dance with Neptune creates a veil of mystery. Trust your intuition over logic today. The answers you seek are found in the spaces between words.")
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(.white.opacity(0.75))
-                    .lineSpacing(6)
+                // Connection lines
+                Path { path in
+                    path.move(to: CGPoint(x: 50, y: 0))
+                    path.addLine(to: CGPoint(x: -25, y: 43))
+                    path.addLine(to: CGPoint(x: -25, y: -43))
+                    path.closeSubpath()
+                }
+                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+            }
+            
+            VStack(spacing: 24) {
+                Text("MERCURY OPPOSES NEPTUNE")
+                    .font(.system(size: 13, weight: .medium))
+                    .tracking(1.5)
+                    .foregroundColor(.white.opacity(0.7))
+                
+                Text("The veil between reality and illusion thins. Your unconscious speaks in symbols today. That recurring thought isn't random—it's a message from the part of you that already knows the answer.")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundColor(.white.opacity(0.85))
+                    .lineHeight(1.6)
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 }
 
-// MARK: - Categories Row
-struct CategoriesRowView: View {
-    @Binding var selectedCategory: AstroCategory?
-    
-    let categories = [
-        AstroCategory(icon: "heart.fill", title: "Love", color: Color(red: 1.0, green: 0.4, blue: 0.4)),
-        AstroCategory(icon: "briefcase.fill", title: "Work", color: Color(red: 0.4, green: 0.8, blue: 0.4)),
-        AstroCategory(icon: "bolt.fill", title: "Energy", color: Color(red: 1.0, green: 0.8, blue: 0.2))
+// MARK: - Energy Manifestations
+struct EnergyManifestations: View {
+    let manifestations = [
+        ("Clarity arrives through confusion", "flame"),
+        ("Dreams carry more weight than facts", "moon.zzz"),
+        ("Your body knows before your mind", "figure.mind.and.body")
     ]
     
     var body: some View {
-        HStack(spacing: 12) {
-            ForEach(categories) { category in
-                CategoryCard(category: category, isSelected: selectedCategory?.id == category.id)
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            selectedCategory = selectedCategory?.id == category.id ? nil : category
-                        }
-                    }
+        VStack(spacing: 20) {
+            ForEach(manifestations, id: \.0) { text, icon in
+                HStack(spacing: 16) {
+                    Image(systemName: icon)
+                        .font(.system(size: 16))
+                        .foregroundColor(.white.opacity(0.4))
+                        .frame(width: 24)
+                    
+                    Text(text)
+                        .font(.system(size: 15, weight: .light))
+                        .foregroundColor(.white.opacity(0.8))
+                    
+                    Spacer()
+                }
+                .padding(.vertical, 4)
             }
         }
     }
 }
 
-struct CategoryCard: View {
-    let category: AstroCategory
-    let isSelected: Bool
+// MARK: - Cosmic Timing
+struct CosmicTiming: View {
+    var body: some View {
+        VStack(spacing: 32) {
+            // Divider line
+            Rectangle()
+                .fill(Color.white.opacity(0.1))
+                .frame(height: 1)
+                .frame(maxWidth: 200)
+            
+            VStack(spacing: 16) {
+                Text("PEAK INTUITION")
+                    .font(.system(size: 11, weight: .medium))
+                    .tracking(2)
+                    .foregroundColor(.white.opacity(0.4))
+                
+                Text("3:17 PM")
+                    .font(.system(size: 32, weight: .ultraLight))
+                    .foregroundColor(.white)
+                
+                Text("Trust what emerges in silence")
+                    .font(.system(size: 14, weight: .light))
+                    .foregroundColor(.white.opacity(0.6))
+            }
+        }
+    }
+}
+
+// MARK: - Constellation Background
+struct ConstellationBackground: View {
+    let phase: CGFloat
     
     var body: some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle()
-                    .fill(isSelected ? category.color.opacity(0.2) : Color.white.opacity(0.05))
-                    .frame(width: 56, height: 56)
+        GeometryReader { geometry in
+            Canvas { context, size in
+                let points = generateConstellationPoints(in: size)
                 
-                Image(systemName: category.icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(isSelected ? category.color : .white.opacity(0.6))
+                // Draw connections
+                for i in 0..<points.count {
+                    for j in (i+1)..<points.count {
+                        let distance = hypot(points[i].x - points[j].x, points[i].y - points[j].y)
+                        if distance < 150 {
+                            var path = Path()
+                            path.move(to: points[i])
+                            path.addLine(to: points[j])
+                            
+                            let opacity = 0.1 * (1.0 - distance / 150.0)
+                            context.stroke(
+                                path,
+                                with: .color(.white.opacity(opacity)),
+                                lineWidth: 0.5
+                            )
+                        }
+                    }
+                }
+                
+                // Draw points
+                for point in points {
+                    context.fill(
+                        Circle().path(in: CGRect(x: point.x - 1, y: point.y - 1, width: 2, height: 2)),
+                        with: .color(.white.opacity(0.3))
+                    )
+                }
             }
-            
-            Text(category.title)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white.opacity(isSelected ? 0.9 : 0.6))
         }
-        .frame(maxWidth: .infinity)
-        .scaleEffect(isSelected ? 1.05 : 1.0)
     }
-}
-
-// MARK: - Navigation Button
-struct NavigationLinkButton: View {
-    var body: some View {
-        HStack {
-            Text("See Week")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.black)
-            
-            Image(systemName: "arrow.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.black)
+    
+    func generateConstellationPoints(in size: CGSize) -> [CGPoint] {
+        var points: [CGPoint] = []
+        for i in 0..<12 {
+            let x = CGFloat.random(in: 0...size.width)
+            let y = CGFloat.random(in: 0...size.height)
+            points.append(CGPoint(x: x, y: y))
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 14)
-        .background(
-            Capsule()
-                .fill(Color.white)
-        )
-        .shadow(color: .white.opacity(0.2), radius: 10, x: 0, y: 0)
-        .padding(.top, 20)
+        return points
     }
 }
 
 // MARK: - Models
-struct AstroCategory: Identifiable {
+struct CosmicInsight: Identifiable {
     let id = UUID()
-    let icon: String
     let title: String
-    let color: Color
+    let message: String
+    let planetAlignment: String
 }
 
-// MARK: - Preview
+// MARK: - Line Height Extension
+extension View {
+    func lineHeight(_ height: CGFloat) -> some View {
+        self.modifier(LineHeightModifier(height: height))
+    }
+}
+
+struct LineHeightModifier: ViewModifier {
+    let height: CGFloat
+    
+    func body(content: Content) -> some View {
+        content
+            .lineSpacing(height * 8)
+    }
+}
+
 #Preview {
     TodayView()
 }
