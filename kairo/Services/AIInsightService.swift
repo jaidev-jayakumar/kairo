@@ -4,13 +4,25 @@ import Foundation
 class AIInsightService: ObservableObject {
     static let shared = AIInsightService()
     
-    private let apiKey = "***REMOVED***"
+    private let apiKey: String
     private let baseURL = "https://api.anthropic.com/v1/messages"
     
     private var urlSession: URLSession
     private var cache: NSCache<NSString, NSString>
     
     private init() {
+        // Load API key from APIKeys.plist (not committed to git)
+        if let path = Bundle.main.path(forResource: "APIKeys", ofType: "plist"),
+           let plist = NSDictionary(contentsOfFile: path),
+           let key = plist["CLAUDE_API_KEY"] as? String {
+            self.apiKey = key
+        } else {
+            // Fallback for development - TODO: Create APIKeys.plist with your key
+            self.apiKey = ""
+            print("⚠️ Warning: Please create APIKeys.plist with CLAUDE_API_KEY to enable AI features.")
+            print("📋 Instructions: Create kairo/APIKeys.plist and add your Claude API key")
+        }
+        
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
