@@ -112,6 +112,7 @@
 			);
 			name = kairo;
 			packageProductDependencies = (
+				C2908021CA6547BE00B36E22 /* SwissEphemeris */,
 			);
 			productName = kairo;
 			productReference = C2907FF52E6547BC00B36E22 /* kairo.app */;
@@ -196,6 +197,9 @@
 			mainGroup = C2907FEC2E6547BC00B36E22;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			packageReferences = (
+				C2908020CA6547BE00B36E22 /* XCRemoteSwiftPackageReference "SwissEphemeris" */,
+			);
 			productRefGroup = C2907FF62E6547BC00B36E22 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -558,6 +562,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C2908020CA6547BE00B36E22 /* XCRemoteSwiftPackageReference "SwissEphemeris" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vsmithers1087/SwissEphemeris";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.99;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C2908021CA6547BE00B36E22 /* SwissEphemeris */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C2908020CA6547BE00B36E22 /* XCRemoteSwiftPackageReference "SwissEphemeris" */;
+			productName = SwissEphemeris;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C2907FED2E6547BC00B36E22 /* Project object */;
 }
