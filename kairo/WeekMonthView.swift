@@ -91,24 +91,82 @@ struct WeekMonthView: View {
         let sunSign = chart.sunSign
         let moonSign = chart.moonSign
         
-        // Generate Co-Star style weekly insights
-        let weeklyInsights = [
+        // Generate DETERMINISTIC weekly insight based on user's chart and current week
+        let weekOfYear = Calendar.current.component(.weekOfYear, from: Date())
+        let year = Calendar.current.component(.year, from: Date())
+        
+        // Create a deterministic seed from user's chart + current week
+        let chartSeed = sunSign.rawValue.hashValue ^ moonSign.rawValue.hashValue
+        let timeSeed = weekOfYear ^ year
+        let combinedSeed = chartSeed ^ timeSeed
+        
+        // Use current moon sign for primary insight direction
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let currentMoonSign = moonTransit.position.sign
+            
+            // Get deterministic weekly insight based on Moon-Sun relationship
+            let aspectAngle = abs(moonTransit.longitude - chart.sun.longitude)
+            let normalizedAspect = aspectAngle > 180 ? 360 - aspectAngle : aspectAngle
+            
+            return generateWeeklyAspectInsight(
+                natalSun: sunSign,
+                natalMoon: moonSign,
+                transitMoon: currentMoonSign,
+                aspectDegrees: normalizedAspect,
+                weekSeed: combinedSeed
+            )
+        }
+        
+        // Fallback when no moon transit - use deterministic selection
+        let baseInsights = [
             "This week asks you to stop apologizing for taking up space.",
-            "The version of yourself you're becoming is already here - you just need to let them out.",
-            "This week, your biggest breakthrough comes disguised as your biggest breakdown.",
+            "The version of yourself you're becoming is already here - you just need to let them out.", 
             "You've been waiting for permission to be yourself. Consider this your sign.",
-            "This week teaches you the difference between what you want and what you actually need.",
-            "The resistance you're feeling isn't a stop sign - it's a muscle you need to build.",
-            "This week, your intuition gets louder than your anxiety. Finally.",
-            "You're not falling behind - you're taking a different path. Trust the detour.",
-            "This week shows you that vulnerability and strength aren't opposites.",
-            "The person you were last week couldn't handle what's coming next. Good thing you're evolving.",
+            "This week teaches you the difference between what you want and what you actually need."
         ]
         
-        // Add sign-specific insights
-        let signSpecificInsights = getWeeklyInsightsForSign(sunSign: sunSign, moonSign: moonSign, transits: transits)
+        let index = abs(combinedSeed) % baseInsights.count
+        return baseInsights[index]
+    }
+    
+    private func generateWeeklyAspectInsight(natalSun: ZodiacSign, natalMoon: ZodiacSign, transitMoon: ZodiacSign, aspectDegrees: Double, weekSeed: Int) -> String {
         
-        return (weeklyInsights + signSpecificInsights).randomElement() ?? "This week, trust the process even when you can't see the outcome."
+        // Generate different insights based on actual astrological aspects
+        switch aspectDegrees {
+        case 0...8: // Conjunction
+            return "This week, your \(natalSun.rawValue) identity and current emotional climate are perfectly aligned. Trust this inner unity to guide your decisions."
+            
+        case 52...68: // Sextile
+            return "A subtle opportunity presents itself this week. Your \(natalSun.rawValue) instincts and the current \(transitMoon.rawValue) energy are offering you a chance to grow."
+            
+        case 82...98: // Square  
+            return "This week brings creative tension between your \(natalSun.rawValue) nature and current emotional needs. This friction is actually pushing you toward integration."
+            
+        case 112...128: // Trine
+            return "This week flows naturally for you. Your \(natalSun.rawValue) energy and current \(transitMoon.rawValue) influences are working in perfect harmony."
+            
+        case 172...188: // Opposition
+            return "This week asks you to balance two sides of yourself. Your \(natalSun.rawValue) nature and current emotional climate want different things - honor both."
+            
+        default: // No major aspect
+            return generateWeeklyMoonTransitInsight(natalSun: natalSun, natalMoon: natalMoon, transitMoon: transitMoon, weekSeed: weekSeed)
+        }
+    }
+    
+    private func generateWeeklyMoonTransitInsight(natalSun: ZodiacSign, natalMoon: ZodiacSign, transitMoon: ZodiacSign, weekSeed: Int) -> String {
+        
+        if transitMoon == natalSun {
+            return "This week amplifies your core \(natalSun.rawValue) identity. You're feeling more like yourself than usual - lean into this energy."
+        } else if transitMoon == natalMoon {
+            return "This week heightens your emotional patterns as a \(natalMoon.rawValue) Moon. Pay attention to what your feelings are trying to tell you."
+        } else {
+            // Use week seed to deterministically pick insight based on element relationship
+            if transitMoon.element == natalSun.element {
+                return "This week's \(transitMoon.rawValue) energy supports your natural \(natalSun.rawValue) qualities. It's a good time to express your authentic self."
+            } else {
+                return "This week's \(transitMoon.rawValue) energy offers a different perspective to your \(natalSun.rawValue) nature. Stay open to new ways of being."
+            }
+        }
     }
     
     

@@ -203,7 +203,7 @@ class AstrologyService {
     }
     
     func generateDailyInsightSync(for chart: BirthChart) -> String {
-        // Synchronous fallback with Co-Star style insights
+        // Generate accurate, deterministic insights based on actual astrological transits
         let transits = calculateCurrentTransits()
         let sunSign = chart.sunSign
         let moonSign = chart.moonSign
@@ -211,21 +211,61 @@ class AstrologyService {
         if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
             let currentMoonSign = moonTransit.position.sign
             
-            // Generate Co-Star style insights based on current moon and natal chart
-            let insights = generateCoStarStyleInsights(sunSign: sunSign, moonSign: moonSign, currentMoon: currentMoonSign)
-            return insights.randomElement() ?? "You're exactly where you need to be, even when it doesn't feel like it."
+            // Calculate deterministic insight based on actual aspect between Moon and Sun
+            let aspectAngle = abs(moonTransit.longitude - chart.sun.longitude)
+            let normalizedAspect = aspectAngle > 180 ? 360 - aspectAngle : aspectAngle
+            
+            // Generate insight based on actual astrological relationship
+            return generateAspectBasedInsight(
+                natalSun: sunSign,
+                natalMoon: moonSign,
+                transitMoon: currentMoonSign,
+                aspectDegrees: normalizedAspect
+            )
         }
         
-        // Fallback insights when no moon transit available
-        let fallbackInsights = [
-            "Your instincts are trying to tell you something important today.",
-            "The gap between who you are and who you think you should be is closing.",
-            "Today you realize that waiting for permission was just another form of procrastination.",
-            "What you're avoiding has been avoiding you too. Time to meet in the middle.",
-            "Your past self would be proud of how far you've come, even when progress feels invisible."
+        // When no moon transit available, use deterministic natal insight
+        return generateDeterministicNatalInsight(sunSign: sunSign, moonSign: moonSign)
+    }
+    
+    private func generateAspectBasedInsight(natalSun: ZodiacSign, natalMoon: ZodiacSign, transitMoon: ZodiacSign, aspectDegrees: Double) -> String {
+        // Generate deterministic insight based on actual aspect degrees
+        switch aspectDegrees {
+        case 0...8: // Conjunction
+            return "Your emotions and identity are perfectly aligned today. Your \(natalSun.rawValue) nature and current \(transitMoon.rawValue) feelings are working as one. Trust this inner unity."
+            
+        case 52...68: // Sextile  
+            return "A subtle opportunity is available today. Your \(natalSun.rawValue) instincts and current \(transitMoon.rawValue) emotional climate are offering you a chance to blend your strengths. Pay attention to gentle nudges."
+            
+        case 82...98: // Square
+            return "There's creative tension between your \(natalSun.rawValue) identity and current \(transitMoon.rawValue) emotions. This friction is actually pushing you to integrate different parts of yourself."
+            
+        case 112...128: // Trine
+            return "Today flows naturally for you. Your \(natalSun.rawValue) energy and \(transitMoon.rawValue) emotions are in perfect harmony, making everything feel effortless."
+            
+        case 172...188: // Opposition
+            return "Today asks you to balance two sides of yourself. Your \(natalSun.rawValue) nature wants one thing while your emotions crave another. The key is honoring both."
+            
+        default: // No major aspect
+            let moonInfluence = getMoonSignDailyInfluence(transitMoon)
+            let personalResponse = getPersonalResponseToMoon(natalSun, natalMoon, transitMoon)
+            return "The Moon in \(transitMoon.rawValue) \(moonInfluence). For you as a \(natalSun.rawValue) with \(natalMoon.rawValue) Moon, \(personalResponse)."
+        }
+    }
+    
+    private func generateDeterministicNatalInsight(sunSign: ZodiacSign, moonSign: ZodiacSign) -> String {
+        // When no transits available, use day of month to deterministically select insight
+        let dayNumber = Calendar.current.component(.day, from: Date())
+        let insights = [
+            "Your \(sunSign.rawValue) nature and \(moonSign.rawValue) emotions create a unique blend that's especially highlighted today.",
+            "The tension between your \(sunSign.rawValue) identity and \(moonSign.rawValue) feelings is actually your greatest source of creativity.",
+            "Today highlights the beautiful complexity of being a \(sunSign.rawValue) with a \(moonSign.rawValue) emotional nature.",
+            "Your \(sunSign.rawValue) drive combined with \(moonSign.rawValue) intuition gives you a special kind of wisdom today."
         ]
         
-        return fallbackInsights.randomElement() ?? "Trust yourself more. Your gut knows."
+        // Use day of month to deterministically select insight (not random!)
+        let index = (dayNumber - 1) % insights.count
+        return insights[index]
     }
     
     private func generateCoStarStyleInsights(sunSign: ZodiacSign, moonSign: ZodiacSign, currentMoon: ZodiacSign) -> [String] {
@@ -342,4 +382,38 @@ class AstrologyService {
         let transits = calculateCurrentTransits()
         return await AIInsightService.shared.generateWeeklyInsight(for: chart, transits: transits)
     }
+    
+    // MARK: - Astrological Helper Functions
+    
+    private func getMoonSignDailyInfluence(_ sign: ZodiacSign) -> String {
+        switch sign {
+        case .aries: return "brings impulsive energy and the urge for new beginnings"
+        case .taurus: return "encourages slowing down and appreciating simple pleasures"
+        case .gemini: return "sparks curiosity and the need for mental stimulation"
+        case .cancer: return "heightens emotions and the desire for security"
+        case .leo: return "amplifies creativity and the need for recognition"
+        case .virgo: return "focuses attention on details and improvement"
+        case .libra: return "emphasizes relationships and the search for balance"
+        case .scorpio: return "intensifies emotions and the desire for transformation"
+        case .sagittarius: return "inspires adventure and philosophical thinking"
+        case .capricorn: return "brings focus to goals and long-term planning"
+        case .aquarius: return "encourages innovation and humanitarian thinking"
+        case .pisces: return "enhances intuition and emotional sensitivity"
+        }
+    }
+    
+    private func getPersonalResponseToMoon(_ natalSun: ZodiacSign, _ natalMoon: ZodiacSign, _ transitMoon: ZodiacSign) -> String {
+        if transitMoon == natalSun {
+            return "this energy feels natural and amplifies your core identity"
+        } else if transitMoon == natalMoon {
+            return "you're feeling extra emotional and in tune with your inner world"
+        } else if transitMoon.element == natalSun.element {
+            return "this energy supports and enhances your natural \(natalSun.rawValue) qualities"
+        } else if transitMoon.element == natalMoon.element {
+            return "your emotional patterns are heightened and familiar"
+        } else {
+            return "this brings a different flavor to your usual emotional experience"
+        }
+    }
+    
 }

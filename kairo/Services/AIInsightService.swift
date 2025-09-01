@@ -245,7 +245,11 @@ private extension AIInsightService {
             let currentMoonSign = moonTransit.position.sign
             
             // Use the same Co-Star style insights from AstrologyService
-            return generateCoStarStyleInsights(sunSign: sunSign, moonSign: moonSign, currentMoon: currentMoonSign).randomElement() ?? getCoStarStyleDefault()
+            let insights = generateCoStarStyleInsights(sunSign: sunSign, moonSign: moonSign, currentMoon: currentMoonSign)
+            let dayOfMonth = Calendar.current.component(.day, from: Date())
+            let chartSeed = sunSign.rawValue.hashValue ^ moonSign.rawValue.hashValue ^ currentMoonSign.rawValue.hashValue
+            let index = abs(dayOfMonth ^ chartSeed) % insights.count
+            return insights.isEmpty ? getCoStarStyleDefault() : insights[index]
         }
         
         // Fallback insights when no moon transit available
@@ -257,7 +261,10 @@ private extension AIInsightService {
             "Your past self would be proud of how far you've come, even when progress feels invisible."
         ]
         
-        return fallbackInsights.randomElement() ?? "Trust yourself more. Your gut knows."
+        let dayOfMonth = Calendar.current.component(.day, from: Date())
+        let chartSeed = sunSign.rawValue.hashValue ^ moonSign.rawValue.hashValue
+        let index = abs(dayOfMonth ^ chartSeed) % fallbackInsights.count
+        return fallbackInsights[index]
     }
     
     private func generateCoStarStyleInsights(sunSign: ZodiacSign, moonSign: ZodiacSign, currentMoon: ZodiacSign) -> [String] {
@@ -376,7 +383,9 @@ private extension AIInsightService {
             "The gap between who you are and who you think you should be is closing.",
             "What you're avoiding has been avoiding you too. Time to meet in the middle."
         ]
-        return defaults.randomElement() ?? "Trust yourself more. Your gut knows."
+        let dayOfMonth = Calendar.current.component(.day, from: Date())
+        let index = dayOfMonth % defaults.count
+        return defaults[index]
     }
     
     func createFallbackWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
@@ -394,7 +403,9 @@ private extension AIInsightService {
             "The person you were last week couldn't handle what's coming next. Good thing you're evolving."
         ]
         
-        return weeklyInsights.randomElement() ?? "This week, trust the process even when you can't see the outcome."
+        let weekOfYear = Calendar.current.component(.weekOfYear, from: Date())
+        let index = weekOfYear % weeklyInsights.count
+        return weeklyInsights[index]
     }
     
     func createFallbackChatResponse(question: String, chart: BirthChart) -> String {
@@ -417,7 +428,10 @@ private extension AIInsightService {
                 "Your \(sunSign.rawValue) nature wants to figure this out, while your \(moonSign.rawValue) emotions are feeling something important. Both are right. The answer is probably somewhere in the middle.",
                 "Sometimes when we're confused, it's because we're ready for something new. You're a \(sunSign.rawValue) - \(getSunReadinessMessage(sunSign)). Trust the process."
             ]
-            return responses.randomElement() ?? "Trust yourself. You've got good instincts, even when things feel unclear."
+            let questionHash = question.hashValue
+            let chartSeed = sunSign.rawValue.hashValue ^ moonSign.rawValue.hashValue
+            let index = abs(questionHash ^ chartSeed) % responses.count
+            return responses[index]
         }
     }
     
