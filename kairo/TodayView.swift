@@ -4,6 +4,9 @@ struct TodayView: View {
     @State private var showContent = false
     @State private var selectedInsight: CosmicInsight? = nil
     @State private var constellationPhase: CGFloat = 0
+    @State private var dailyInsight: String = ""
+    @State private var currentTransits: [CelestialBody] = []
+    @State private var userBirthData: BirthData? = nil
     
     var body: some View {
         ZStack {
@@ -24,7 +27,7 @@ struct TodayView: View {
                         .animation(.easeOut(duration: 1.2), value: showContent)
                     
                     // Main cosmic insight
-                    MainCosmicMessage()
+                    MainCosmicMessage(dailyInsight: dailyInsight, currentTransits: currentTransits)
                         .padding(.top, 80)
                         .opacity(showContent ? 1 : 0)
                         .offset(y: showContent ? 0 : 30)
@@ -54,6 +57,16 @@ struct TodayView: View {
             withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
                 constellationPhase = 1
             }
+            
+            // Load user birth data
+            userBirthData = UserDataManager.shared.getBirthData()
+            
+            // Calculate daily insight
+            if let birthData = userBirthData,
+               let chart = SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData) {
+                dailyInsight = SimplifiedAstrologyService.shared.generateDailyInsight(for: chart)
+                currentTransits = SimplifiedAstrologyService.shared.calculateCurrentTransits()
+            }
         }
     }
 }
@@ -78,6 +91,9 @@ struct PhilosophicalHeader: View {
 
 // MARK: - Main Cosmic Message
 struct MainCosmicMessage: View {
+    let dailyInsight: String
+    let currentTransits: [CelestialBody]
+    
     var body: some View {
         VStack(spacing: 40) {
             // Planet alignment visual
@@ -105,12 +121,12 @@ struct MainCosmicMessage: View {
             }
             
             VStack(spacing: 24) {
-                Text("MERCURY OPPOSES NEPTUNE")
+                Text(getCurrentTransitTitle())
                     .font(.system(size: 13, weight: .medium))
                     .tracking(1.5)
                     .foregroundColor(.white.opacity(0.7))
                 
-                Text("The veil between reality and illusion thins. Your unconscious speaks in symbols today. That recurring thought isn't random—it's a message from the part of you that already knows the answer.")
+                Text(dailyInsight.isEmpty ? "The cosmos is calculating your guidance..." : dailyInsight)
                     .font(.system(size: 16, weight: .light))
                     .foregroundColor(.white.opacity(0.85))
                     .lineHeight(1.6)
@@ -118,6 +134,15 @@ struct MainCosmicMessage: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+    
+    func getCurrentTransitTitle() -> String {
+        guard let moon = currentTransits.first(where: { $0.name == "Moon" }) else {
+            return "COSMIC ALIGNMENT IN PROGRESS"
+        }
+        
+        let moonSign = moon.position.sign
+        return "MOON IN \(moonSign.rawValue.uppercased())"
     }
 }
 
@@ -219,7 +244,7 @@ struct ConstellationBackground: View {
     
     func generateConstellationPoints(in size: CGSize) -> [CGPoint] {
         var points: [CGPoint] = []
-        for i in 0..<12 {
+        for _ in 0..<12 {
             let x = CGFloat.random(in: 0...size.width)
             let y = CGFloat.random(in: 0...size.height)
             points.append(CGPoint(x: x, y: y))
@@ -242,6 +267,7 @@ extension View {
         self.modifier(LineHeightModifier(height: height))
     }
 }
+
 
 struct LineHeightModifier: ViewModifier {
     let height: CGFloat

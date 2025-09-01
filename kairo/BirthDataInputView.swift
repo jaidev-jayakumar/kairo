@@ -1,0 +1,183 @@
+import SwiftUI
+import CoreLocation
+
+struct BirthDataInputView: View {
+    @State private var birthDate = Date()
+    @State private var birthTime = Date()
+    @State private var locationString = "San Francisco, CA"
+    @State private var isGeocoding = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    
+    @Environment(\.dismiss) var dismiss
+    
+    var onSave: (BirthData) -> Void
+    
+    var body: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .font(.system(size: 16))
+                    .foregroundColor(.white.opacity(0.7))
+                    
+                    Spacer()
+                    
+                    Text("Birth Details")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Button("Save") {
+                        saveBirthData()
+                    }
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .disabled(isGeocoding)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                
+                Rectangle()
+                    .fill(Color.white.opacity(0.1))
+                    .frame(height: 1)
+                
+                ScrollView {
+                    VStack(spacing: 40) {
+                        // Birth Date
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("BIRTH DATE")
+                                .font(.system(size: 11, weight: .medium))
+                                .tracking(1.5)
+                                .foregroundColor(.white.opacity(0.4))
+                            
+                            DatePicker("", selection: $birthDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                                .colorScheme(.dark)
+                                .accentColor(.white)
+                        }
+                        
+                        // Birth Time
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("BIRTH TIME")
+                                .font(.system(size: 11, weight: .medium))
+                                .tracking(1.5)
+                                .foregroundColor(.white.opacity(0.4))
+                            
+                            DatePicker("", selection: $birthTime, displayedComponents: .hourAndMinute)
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                                .colorScheme(.dark)
+                                .accentColor(.white)
+                        }
+                        
+                        // Birth Location
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("BIRTH LOCATION")
+                                .font(.system(size: 11, weight: .medium))
+                                .tracking(1.5)
+                                .foregroundColor(.white.opacity(0.4))
+                            
+                            HStack {
+                                TextField("City, Country", text: $locationString)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .textFieldStyle(.plain)
+                                    .submitLabel(.done)
+                                
+                                if isGeocoding {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .scaleEffect(0.8)
+                                }
+                            }
+                            .padding()
+                            .background(Color.white.opacity(0.05))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        
+                        // Info text
+                        Text("Your birth data is used to calculate your unique astrological chart. This information is stored locally on your device.")
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.4))
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 20)
+                    }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 40)
+                }
+            }
+        }
+        .alert("Error", isPresented: $showingAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+    
+    private func saveBirthData() {
+        isGeocoding = true
+        
+        // Geocode the location
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(locationString) { placemarks, error in
+            isGeocoding = false
+            
+            if let error = error {
+                alertMessage = "Could not find location: \(error.localizedDescription)"
+                showingAlert = true
+                return
+            }
+            
+            guard let placemark = placemarks?.first,
+                  let location = placemark.location else {
+                alertMessage = "Could not find coordinates for this location"
+                showingAlert = true
+                return
+            }
+            
+            // Combine date and time
+            let calendar = Calendar.current
+            let dateComponents = calendar.dateComponents([.year, .month, .day], from: birthDate)
+            let timeComponents = calendar.dateComponents([.hour, .minute], from: birthTime)
+            
+            guard let combinedDate = calendar.date(from: DateComponents(
+                year: dateComponents.year,
+                month: dateComponents.month,
+                day: dateComponents.day,
+                hour: timeComponents.hour,
+                minute: timeComponents.minute
+            )) else {
+                alertMessage = "Invalid date or time"
+                showingAlert = true
+                return
+            }
+            
+            let birthData = BirthData(
+                date: combinedDate,
+                latitude: location.coordinate.latitude,
+                longitude: location.coordinate.longitude
+            )
+            
+            onSave(birthData)
+            dismiss()
+        }
+    }
+}
+
+#Preview {
+    BirthDataInputView { birthData in
+        print("Birth data saved: \(birthData)")
+    }
+}

@@ -3,13 +3,16 @@ import SwiftUI
 struct BirthChartView: View {
     @State private var rotationAngle: Double = 0
     @State private var selectedPlanet: Planet? = nil
+    @State private var birthChart: BirthChart? = nil
+    @State private var userBirthData: BirthData? = nil
     
-    let planets = [
-        Planet(name: "Sun", symbol: "☉", sign: "Leo", degree: "23°", color: Color.yellow),
-        Planet(name: "Moon", symbol: "☽", sign: "Cancer", degree: "15°", color: Color.white),
-        Planet(name: "Mercury", symbol: "☿", sign: "Virgo", degree: "7°", color: Color.orange),
-        Planet(name: "Venus", symbol: "♀", sign: "Libra", degree: "29°", color: Color.pink),
-        Planet(name: "Mars", symbol: "♂", sign: "Aries", degree: "11°", color: Color.red),
+    // Sample planets for visual display
+    let planets: [Planet] = [
+        Planet(name: "Sun", symbol: "☉", sign: "Aries", degree: "15°", color: .yellow),
+        Planet(name: "Moon", symbol: "☽", sign: "Cancer", degree: "22°", color: .gray),
+        Planet(name: "Mercury", symbol: "☿", sign: "Gemini", degree: "8°", color: .cyan),
+        Planet(name: "Venus", symbol: "♀", sign: "Taurus", degree: "3°", color: .pink),
+        Planet(name: "Mars", symbol: "♂", sign: "Scorpio", degree: "27°", color: .red)
     ]
     
     var body: some View {
@@ -72,33 +75,69 @@ struct BirthChartView: View {
                     }
                 }
                 
-                // Planet details
-                if let planet = selectedPlanet {
-                    AstroCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text(planet.symbol)
-                                    .font(.system(size: 24))
-                                    .foregroundColor(planet.color)
+                // Chart Info
+                if let chart = birthChart {
+                    VStack(spacing: 20) {
+                        // Big Three
+                        AstroCard {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("YOUR BIG THREE")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .tracking(1.5)
+                                    .foregroundColor(.white.opacity(0.6))
                                 
-                                Text(planet.name)
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                                
-                                Text("\(planet.sign) \(planet.degree)")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white.opacity(0.7))
+                                VStack(spacing: 12) {
+                                    HStack {
+                                        Text("☉ Sun")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white.opacity(0.8))
+                                        Spacer()
+                                        Text(chart.sun.formattedPosition)
+                                            .font(.system(size: 16, weight: .light))
+                                            .foregroundColor(.white)
+                                    }
+                                    
+                                    HStack {
+                                        Text("☽ Moon")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white.opacity(0.8))
+                                        Spacer()
+                                        Text(chart.moon.formattedPosition)
+                                            .font(.system(size: 16, weight: .light))
+                                            .foregroundColor(.white)
+                                    }
+                                    
+                                    HStack {
+                                        Text("↑ Rising")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white.opacity(0.8))
+                                        Spacer()
+                                        Text(chart.formattedAscendant)
+                                            .font(.system(size: 16, weight: .light))
+                                            .foregroundColor(.white)
+                                    }
+                                }
                             }
-                            
-                            Text(planet.interpretation)
-                                .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.75))
-                                .lineSpacing(4)
+                        }
+                        
+                        // Planets
+                        AstroCard {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("PLANETARY POSITIONS")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .tracking(1.5)
+                                    .foregroundColor(.white.opacity(0.6))
+                                
+                                VStack(spacing: 10) {
+                                    PlanetRow(celestialBody: chart.mercury)
+                                    PlanetRow(celestialBody: chart.venus)
+                                    PlanetRow(celestialBody: chart.mars)
+                                    PlanetRow(celestialBody: chart.jupiter)
+                                    PlanetRow(celestialBody: chart.saturn)
+                                }
+                            }
                         }
                     }
-                    .transition(.scale.combined(with: .opacity))
                 }
                 
                 // Aspects
@@ -117,6 +156,30 @@ struct BirthChartView: View {
             .padding(.bottom, 100)
         }
         .background(Color.black)
+        .onAppear {
+            // Load user birth data and calculate chart
+            userBirthData = UserDataManager.shared.getBirthData()
+            if let birthData = userBirthData {
+                birthChart = SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
+            }
+        }
+    }
+}
+
+// MARK: - Planet Row
+struct PlanetRow: View {
+    let celestialBody: CelestialBody
+    
+    var body: some View {
+        HStack {
+            Text("\(celestialBody.symbol) \(celestialBody.name)")
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.7))
+            Spacer()
+            Text(celestialBody.formattedPosition)
+                .font(.system(size: 14, weight: .light))
+                .foregroundColor(.white.opacity(0.9))
+        }
     }
 }
 
@@ -183,29 +246,6 @@ struct ZodiacSegment: View {
     }
 }
 
-enum AspectType {
-    case conjunction, trine, square, opposition, sextile
-    
-    var color: Color {
-        switch self {
-        case .conjunction: return .white
-        case .trine: return .green
-        case .square: return .red
-        case .opposition: return .orange
-        case .sextile: return .blue
-        }
-    }
-    
-    var symbol: String {
-        switch self {
-        case .conjunction: return "☌"
-        case .trine: return "△"
-        case .square: return "□"
-        case .opposition: return "☍"
-        case .sextile: return "⚹"
-        }
-    }
-}
 
 struct AspectRow: View {
     let aspect: String

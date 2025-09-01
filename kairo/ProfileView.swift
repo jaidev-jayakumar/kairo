@@ -4,6 +4,8 @@ struct ProfileView: View {
     @State private var notificationsEnabled = true
     @State private var dailyHoroscopeTime = Date()
     @State private var showEditProfile = false
+    @State private var userBirthData: BirthData? = nil
+    @State private var birthChart: BirthChart? = nil
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -30,30 +32,32 @@ struct ProfileView: View {
                                 )
                                 .frame(width: 80, height: 80)
                             
-                            Text("AS")
+                            Text(getInitials())
                                 .font(.system(size: 24, weight: .medium))
                                 .foregroundColor(.white)
                         }
                         
                         VStack(spacing: 8) {
-                            Text("Alex Smith")
+                            Text(getInitials())
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(.white)
                             
-                            Text("February 20, 1995 • 3:45 PM")
+                            Text(formatBirthDate())
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.6))
                             
-                            Text("San Francisco, CA")
+                            Text("Location")
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.6))
                         }
                         
                         // Zodiac summary
-                        HStack(spacing: 20) {
-                            ZodiacInfo(label: "Sun", sign: "Pisces", symbol: "♓")
-                            ZodiacInfo(label: "Moon", sign: "Cancer", symbol: "♋")
-                            ZodiacInfo(label: "Rising", sign: "Scorpio", symbol: "♏")
+                        if let chart = birthChart {
+                            HStack(spacing: 20) {
+                                ZodiacInfo(label: "Sun", sign: chart.sunSign.rawValue, symbol: chart.sun.symbol)
+                                ZodiacInfo(label: "Moon", sign: chart.moonSign.rawValue, symbol: chart.moon.symbol)
+                                ZodiacInfo(label: "Rising", sign: chart.risingSign.rawValue, symbol: chart.risingSign.symbol)
+                            }
                         }
                         
                         Button(action: { showEditProfile = true }) {
@@ -142,6 +146,37 @@ struct ProfileView: View {
             .padding(.bottom, 100)
         }
         .background(Color.black)
+        .onAppear {
+            loadUserData()
+        }
+        .sheet(isPresented: $showEditProfile) {
+            BirthDataInputView { birthData in
+                UserDataManager.shared.saveBirthData(birthData)
+                loadUserData()
+            }
+        }
+    }
+    
+    private func loadUserData() {
+        userBirthData = UserDataManager.shared.getBirthData()
+        if let birthData = userBirthData {
+            birthChart = SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
+        }
+    }
+    
+    private func getInitials() -> String {
+        // In a real app, this would come from user's name
+        return "ME"
+    }
+    
+    private func formatBirthDate() -> String {
+        guard let birthData = userBirthData else {
+            return "No birth data"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy • h:mm a"
+        return formatter.string(from: birthData.date)
     }
 }
 
