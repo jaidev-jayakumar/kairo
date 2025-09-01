@@ -239,43 +239,162 @@ private extension AIInsightService {
     func createFallbackDailyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
         let sunSign = chart.sunSign
         let moonSign = chart.moonSign
-        let ascendantSign = chart.ascendantSign
         
-        // Get current moon transit for daily energy
+        // Generate Co-Star style daily insights
         if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
             let currentMoonSign = moonTransit.position.sign
             
-            let dailyInsights = [
-                "The Moon is in \(currentMoonSign.rawValue) today, which means \(getPlainEnglishMoonMessage(currentMoonSign)). Since you're a \(sunSign.rawValue) with a \(moonSign.rawValue) moon, \(getPersonalizedDailyMessage(sun: sunSign, moon: moonSign, currentMoon: currentMoonSign))",
-                
-                "Today feels like \(getDailyMoodMessage(currentMoonSign)). Your \(sunSign.rawValue) side wants \(getSunDriveMessage(sunSign)), while your emotional \(moonSign.rawValue) nature is \(getMoonMoodMessage(moonSign)). \(getDailyAdviceMessage(sun: sunSign, moon: moonSign))",
-                
-                "You might notice \(getDailyExperienceMessage(currentMoonSign)) today. That's because the Moon is moving through \(currentMoonSign.rawValue). For someone like you (\(sunSign.rawValue) sun, \(moonSign.rawValue) moon), this means \(getPersonalDailyGuidance(sun: sunSign, moon: moonSign, currentMoon: currentMoonSign))",
-                
-                "Today's energy: \(getDailyEnergyDescription(currentMoonSign)). You might feel more \(getCurrentMoodInfluence(currentMoonSign)) than usual. As a \(sunSign.rawValue), \(getSunResponseToMoon(sun: sunSign, currentMoon: currentMoonSign))"
-            ]
-            
-            return dailyInsights.randomElement() ?? getSimpleDefaultMessage()
+            // Use the same Co-Star style insights from AstrologyService
+            return generateCoStarStyleInsights(sunSign: sunSign, moonSign: moonSign, currentMoon: currentMoonSign).randomElement() ?? getCoStarStyleDefault()
         }
         
-        return getSimpleDefaultMessage()
+        // Fallback insights when no moon transit available
+        let fallbackInsights = [
+            "Your instincts are trying to tell you something important today.",
+            "The gap between who you are and who you think you should be is closing.",
+            "Today you realize that waiting for permission was just another form of procrastination.",
+            "What you're avoiding has been avoiding you too. Time to meet in the middle.",
+            "Your past self would be proud of how far you've come, even when progress feels invisible."
+        ]
+        
+        return fallbackInsights.randomElement() ?? "Trust yourself more. Your gut knows."
+    }
+    
+    private func generateCoStarStyleInsights(sunSign: ZodiacSign, moonSign: ZodiacSign, currentMoon: ZodiacSign) -> [String] {
+        var insights: [String] = []
+        
+        // Moon-sign specific insights
+        switch currentMoon {
+        case .aries:
+            insights.append("Your impatience today is actually intuition in disguise.")
+            insights.append("The thing you want to start right now? That's your soul talking.")
+            insights.append("Anger is just passion wearing a disguise. What's it really about?")
+            
+        case .taurus:
+            insights.append("Slow down. Your body is trying to teach your brain something.")
+            insights.append("Today's craving for comfort isn't weakness - it's wisdom.")
+            insights.append("The pleasure you're denying yourself is probably exactly what you need.")
+            
+        case .gemini:
+            insights.append("That conversation you keep avoiding? It's time.")
+            insights.append("Your scattered thoughts are actually connecting dots you couldn't see before.")
+            insights.append("Stop explaining yourself to people who are determined to misunderstand you.")
+            
+        case .cancer:
+            insights.append("Vulnerability isn't weakness when it's a choice.")
+            insights.append("That feeling of homesickness? You're missing a version of yourself.")
+            insights.append("Your sensitivity is picking up on something everyone else is missing.")
+            
+        case .leo:
+            insights.append("The spotlight you crave is already on you - you just can't see it yet.")
+            insights.append("Your need to be seen conflicts with your fear of being truly known.")
+            insights.append("Today you realize that confidence isn't the absence of doubt - it's dancing with it.")
+            
+        case .virgo:
+            insights.append("Perfectionism is just fear wearing a productive mask.")
+            insights.append("The thing you're nitpicking isn't really the problem.")
+            insights.append("Sometimes 'good enough' is actually perfect timing.")
+            
+        case .libra:
+            insights.append("Your people-pleasing is really self-preservation in disguise.")
+            insights.append("The decision you're avoiding is already made - you just need to admit it.")
+            insights.append("Balance isn't about being in the middle - it's about knowing when to tip the scales.")
+            
+        case .scorpio:
+            insights.append("What you think is paranoia is actually pattern recognition.")
+            insights.append("The intensity you're feeling isn't too much - the world is just too small.")
+            insights.append("That thing you're hiding? Everyone already knows. The secret is how you feel about it.")
+            
+        case .sagittarius:
+            insights.append("Your restlessness is your compass pointing toward growth.")
+            insights.append("The truth you're avoiding is the adventure you've been looking for.")
+            insights.append("Freedom isn't about having no commitments - it's about choosing the right ones.")
+            
+        case .capricorn:
+            insights.append("Your ambition is really just love wearing a business suit.")
+            insights.append("The goal you're chasing is actually chasing you back.")
+            insights.append("Sometimes the mountain climbs you more than you climb it.")
+            
+        case .aquarius:
+            insights.append("Your need to be different conflicts with your need to belong.")
+            insights.append("The revolution you're planning starts with the person in the mirror.")
+            insights.append("Your weirdness is actually your superpower in disguise.")
+            
+        case .pisces:
+            insights.append("Your emotions aren't drowning you - they're teaching you to swim.")
+            insights.append("That dream you had? It wasn't random.")
+            insights.append("Your empathy is a gift, not a burden - but boundaries are still necessary.")
+        }
+        
+        // Add some sun-moon combination insights
+        if sunSign.element != moonSign.element {
+            insights.append("The tension between your \(sunSign.rawValue) self and \(moonSign.rawValue) feelings is actually creating something new.")
+            insights.append("Your head says \(getSunDesire(sunSign)), but your heart needs \(getMoonNeed(moonSign)). Both are right.")
+        }
+        
+        return insights
+    }
+    
+    private func getSunDesire(_ sign: ZodiacSign) -> String {
+        switch sign {
+        case .aries: return "action"
+        case .taurus: return "stability"
+        case .gemini: return "variety"
+        case .cancer: return "security"
+        case .leo: return "recognition"
+        case .virgo: return "perfection"
+        case .libra: return "harmony"
+        case .scorpio: return "truth"
+        case .sagittarius: return "freedom"
+        case .capricorn: return "success"
+        case .aquarius: return "innovation"
+        case .pisces: return "connection"
+        }
+    }
+    
+    private func getMoonNeed(_ sign: ZodiacSign) -> String {
+        switch sign {
+        case .aries: return "excitement"
+        case .taurus: return "comfort"
+        case .gemini: return "stimulation"
+        case .cancer: return "nurturing"
+        case .leo: return "appreciation"
+        case .virgo: return "order"
+        case .libra: return "peace"
+        case .scorpio: return "depth"
+        case .sagittarius: return "adventure"
+        case .capricorn: return "structure"
+        case .aquarius: return "independence"
+        case .pisces: return "understanding"
+        }
+    }
+    
+    private func getCoStarStyleDefault() -> String {
+        let defaults = [
+            "You're exactly where you need to be, even when it doesn't feel like it.",
+            "Your instincts are trying to tell you something important today.",
+            "The gap between who you are and who you think you should be is closing.",
+            "What you're avoiding has been avoiding you too. Time to meet in the middle."
+        ]
+        return defaults.randomElement() ?? "Trust yourself more. Your gut knows."
     }
     
     func createFallbackWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        let sunSign = chart.sunSign
-        let moonSign = chart.moonSign
-        
-        let weeklyThemes = [
-            "This week is all about listening to your feelings. You're a \(sunSign.rawValue), so you naturally \(getSunWeeklyTendency(sunSign)). But your \(moonSign.rawValue) emotional side needs \(getMoonWeeklyNeed(moonSign)). Try to balance both.",
-            
-            "You might feel like you're changing this week, and that's good. Sometimes what we think is our 'personality' is just old habits. As a \(sunSign.rawValue) with \(moonSign.rawValue) emotions, \(getWeeklyGrowthMessage(sun: sunSign, moon: moonSign))",
-            
-            "This week, pay attention to the difference between what you want (\(sunSign.rawValue) energy) and what you need emotionally (\(moonSign.rawValue) side). \(getWeeklyBalanceAdvice(sun: sunSign, moon: moonSign))",
-            
-            "You know that feeling when your head and heart want different things? This week is about making friends with that tension. Your \(sunSign.rawValue) nature and \(moonSign.rawValue) emotions can actually work together really well."
+        // Generate Co-Star style weekly insights
+        let weeklyInsights = [
+            "This week asks you to stop apologizing for taking up space.",
+            "The version of yourself you're becoming is already here - you just need to let them out.",
+            "This week, your biggest breakthrough comes disguised as your biggest breakdown.",
+            "You've been waiting for permission to be yourself. Consider this your sign.",
+            "This week teaches you the difference between what you want and what you actually need.",
+            "The resistance you're feeling isn't a stop sign - it's a muscle you need to build.",
+            "This week, your intuition gets louder than your anxiety. Finally.",
+            "You're not falling behind - you're taking a different path. Trust the detour.",
+            "This week shows you that vulnerability and strength aren't opposites.",
+            "The person you were last week couldn't handle what's coming next. Good thing you're evolving."
         ]
         
-        return weeklyThemes.randomElement() ?? "This week is about finding balance between who you are and how you feel."
+        return weeklyInsights.randomElement() ?? "This week, trust the process even when you can't see the outcome."
     }
     
     func createFallbackChatResponse(question: String, chart: BirthChart) -> String {
@@ -302,202 +421,6 @@ private extension AIInsightService {
         }
     }
     
-    // MARK: - Plain English Message Generators
-    
-    private func getPlainEnglishMoonMessage(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "people tend to feel more impulsive and ready for action"
-        case .taurus: return "everyone's craving comfort, good food, and chill vibes"
-        case .gemini: return "conversations flow easily and everyone's curious about everything"
-        case .cancer: return "emotions run deep and people want to feel safe and nurtured"
-        case .leo: return "everyone's feeling a bit more dramatic and wants to shine"
-        case .virgo: return "people feel like organizing and getting things done perfectly"
-        case .libra: return "harmony and beauty matter more, and decisions feel harder"
-        case .scorpio: return "emotions get intense and people want real, honest connections"
-        case .sagittarius: return "everyone's craving adventure and freedom"
-        case .capricorn: return "people feel serious and want to build something lasting"
-        case .aquarius: return "everyone's thinking outside the box and wanting independence"
-        case .pisces: return "emotions flow freely and empathy is heightened"
-        }
-    }
-    
-    private func getPersonalizedDailyMessage(sun: ZodiacSign, moon: ZodiacSign, currentMoon: ZodiacSign) -> String {
-        switch currentMoon {
-        case .aries: return "you might feel extra fired up to take action"
-        case .taurus: return "you probably want to slow down and enjoy simple pleasures"
-        case .gemini: return "your mind is buzzing with ideas and you want to talk them through"
-        case .cancer: return "you're feeling more sensitive and want emotional comfort"
-        case .leo: return "you want to be seen and appreciated for who you really are"
-        case .virgo: return "you feel like getting organized and fixing what's not working"
-        case .libra: return "you're focused on relationships and making things fair"
-        case .scorpio: return "you want deeper connections and real conversations"
-        case .sagittarius: return "you're craving something new and exciting"
-        case .capricorn: return "you feel motivated to work toward your bigger goals"
-        case .aquarius: return "you want to break free from whatever's feeling limiting"
-        case .pisces: return "your intuition is extra strong and you're feeling everything deeply"
-        }
-    }
-    
-    private func getDailyMoodMessage(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "a 'let's do this right now' kind of day"
-        case .taurus: return "a slow, cozy, comfort-focused day"
-        case .gemini: return "a chatty, curious, 'tell me everything' day"
-        case .cancer: return "a feelings-heavy, 'I need my people' day"
-        case .leo: return "a 'notice me and tell me I'm awesome' day"
-        case .virgo: return "a 'let me fix and organize everything' day"
-        case .libra: return "a 'why can't we all just get along' day"
-        case .scorpio: return "an intense, 'let's go deep or go home' day"
-        case .sagittarius: return "a 'I need adventure and new experiences' day"
-        case .capricorn: return "a serious, 'time to get things done' day"
-        case .aquarius: return "an 'I'm thinking differently today' day"
-        case .pisces: return "a dreamy, emotional, 'feeling everything' day"
-        }
-    }
-    
-    private func getSunDriveMessage(_ sunSign: ZodiacSign) -> String {
-        switch sunSign {
-        case .aries: return "to jump into action and lead the way"
-        case .taurus: return "to take things slow and build something solid"
-        case .gemini: return "to learn, share, and connect with people"
-        case .cancer: return "to protect and nurture the people you care about"
-        case .leo: return "to be creative and get appreciation for your talents"
-        case .virgo: return "to help, improve things, and get the details right"
-        case .libra: return "to bring harmony and make everyone happy"
-        case .scorpio: return "to get to the truth and transform things deeply"
-        case .sagittarius: return "to explore, learn, and experience new things"
-        case .capricorn: return "to achieve your goals and build lasting success"
-        case .aquarius: return "to innovate and make the world a better place"
-        case .pisces: return "to help others and follow your intuition"
-        }
-    }
-    
-    private func getMoonMoodMessage(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "feeling restless and wanting quick emotional responses"
-        case .taurus: return "needing stability and comfort to feel secure"
-        case .gemini: return "wanting to talk through your feelings with someone"
-        case .cancer: return "extra sensitive and needing emotional safety"
-        case .leo: return "needing recognition and wanting your feelings to be appreciated"
-        case .virgo: return "analyzing your emotions and wanting to fix what's wrong"
-        case .libra: return "seeking emotional balance and harmony in relationships"
-        case .scorpio: return "feeling everything intensely and wanting deep connections"
-        case .sagittarius: return "feeling emotionally restless and craving freedom"
-        case .capricorn: return "building walls around your feelings to stay in control"
-        case .aquarius: return "stepping back emotionally to understand what's happening"
-        case .pisces: return "absorbing everyone else's emotions like a sponge"
-        }
-    }
-    
-    private func getSimpleDefaultMessage() -> String {
-        let messages = [
-            "Today's a good day to pay attention to both what you want and what you need emotionally.",
-            "Sometimes the best guidance is just trusting your gut and taking things one step at a time.",
-            "You're exactly where you need to be, even if it doesn't feel like it right now.",
-            "Today might feel a little different, and that's actually a good sign. Change is coming.",
-            "Trust yourself more. Your instincts are usually right, even when you doubt them."
-        ]
-        return messages.randomElement() ?? "You've got good instincts. Trust them today."
-    }
-    
-    // Additional helper functions for new simplified content
-    private func getDailyAdviceMessage(sun: ZodiacSign, moon: ZodiacSign) -> String {
-        return "The key is finding a middle ground between the two."
-    }
-    
-    private func getDailyExperienceMessage(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "things moving faster than usual"
-        case .taurus: return "a need to slow down and appreciate simple things"
-        case .gemini: return "your mind jumping from topic to topic"
-        case .cancer: return "emotions feeling stronger than normal"
-        case .leo: return "a desire to be in the spotlight"
-        case .virgo: return "an urge to organize and perfect things"
-        case .libra: return "wanting everything to be fair and balanced"
-        case .scorpio: return "intensity in your interactions"
-        case .sagittarius: return "restlessness and wanderlust"
-        case .capricorn: return "focus on long-term goals"
-        case .aquarius: return "thinking outside the box"
-        case .pisces: return "heightened intuition and empathy"
-        }
-    }
-    
-    private func getPersonalDailyGuidance(sun: ZodiacSign, moon: ZodiacSign, currentMoon: ZodiacSign) -> String {
-        return "it's a good time to balance your natural \(sun.rawValue) energy with what you're feeling emotionally."
-    }
-    
-    private func getDailyEnergyDescription(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "Fast-paced and action-oriented"
-        case .taurus: return "Steady and comfort-seeking"
-        case .gemini: return "Chatty and curious"
-        case .cancer: return "Emotional and nurturing"
-        case .leo: return "Dramatic and attention-seeking"
-        case .virgo: return "Detail-focused and helpful"
-        case .libra: return "Harmony-seeking and indecisive"
-        case .scorpio: return "Intense and transformative"
-        case .sagittarius: return "Adventurous and freedom-loving"
-        case .capricorn: return "Goal-oriented and serious"
-        case .aquarius: return "Independent and innovative"
-        case .pisces: return "Dreamy and emotionally sensitive"
-        }
-    }
-    
-    private func getCurrentMoodInfluence(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "impatient"
-        case .taurus: return "chill"
-        case .gemini: return "talkative"
-        case .cancer: return "emotional"
-        case .leo: return "dramatic"
-        case .virgo: return "picky"
-        case .libra: return "indecisive"
-        case .scorpio: return "intense"
-        case .sagittarius: return "restless"
-        case .capricorn: return "serious"
-        case .aquarius: return "detached"
-        case .pisces: return "sensitive"
-        }
-    }
-    
-    private func getSunResponseToMoon(sun: ZodiacSign, currentMoon: ZodiacSign) -> String {
-        return "this energy might feel either natural or challenging, depending on how it meshes with your personality."
-    }
-    
-    // Weekly insight helpers
-    private func getSunWeeklyTendency(_ sunSign: ZodiacSign) -> String {
-        switch sunSign {
-        case .aries: return "want to charge ahead and make things happen"
-        case .taurus: return "prefer to take your time and do things properly"
-        case .gemini: return "want to learn and communicate with everyone"
-        case .cancer: return "focus on family and emotional security"
-        case .leo: return "want to be creative and get recognition"
-        case .virgo: return "want to help others and perfect systems"
-        case .libra: return "seek harmony and avoid conflict"
-        case .scorpio: return "go deep and transform things completely"
-        case .sagittarius: return "seek adventure and new experiences"
-        case .capricorn: return "work toward your long-term goals"
-        case .aquarius: return "think independently and innovate"
-        case .pisces: return "follow your intuition and help others"
-        }
-    }
-    
-    private func getMoonWeeklyNeed(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "quick emotional satisfaction and excitement"
-        case .taurus: return "emotional stability and comfort"
-        case .gemini: return "variety and mental stimulation"
-        case .cancer: return "safety, nurturing, and emotional connection"
-        case .leo: return "appreciation and recognition for your feelings"
-        case .virgo: return "order and the ability to help others"
-        case .libra: return "harmony and balanced relationships"
-        case .scorpio: return "deep, authentic emotional connections"
-        case .sagittarius: return "emotional freedom and new experiences"
-        case .capricorn: return "structure and emotional control"
-        case .aquarius: return "independence and intellectual understanding"
-        case .pisces: return "compassion, creativity, and spiritual connection"
-        }
-    }
     
     private func getWeeklyGrowthMessage(sun: ZodiacSign, moon: ZodiacSign) -> String {
         return "you're learning to balance what you want to do with what you actually need emotionally."

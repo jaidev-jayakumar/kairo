@@ -89,75 +89,171 @@ struct WeekMonthView: View {
     
     private func generateWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
         let sunSign = chart.sunSign
+        let moonSign = chart.moonSign
         
-        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
-            let moonSign = moonTransit.position.sign
-            return "This week, the Moon's journey through \(moonSign.rawValue) highlights your \(getMoonFocus(for: moonSign)). As a \(sunSign.rawValue), you're called to \(getWeeklyTheme(for: sunSign)). Trust the rhythm of your authentic expression."
-        }
+        // Generate Co-Star style weekly insights
+        let weeklyInsights = [
+            "This week asks you to stop apologizing for taking up space.",
+            "The version of yourself you're becoming is already here - you just need to let them out.",
+            "This week, your biggest breakthrough comes disguised as your biggest breakdown.",
+            "You've been waiting for permission to be yourself. Consider this your sign.",
+            "This week teaches you the difference between what you want and what you actually need.",
+            "The resistance you're feeling isn't a stop sign - it's a muscle you need to build.",
+            "This week, your intuition gets louder than your anxiety. Finally.",
+            "You're not falling behind - you're taking a different path. Trust the detour.",
+            "This week shows you that vulnerability and strength aren't opposites.",
+            "The person you were last week couldn't handle what's coming next. Good thing you're evolving.",
+        ]
         
-        return "This week invites you to embody your \(sunSign.rawValue) essence more fully. The cosmos supports your journey toward authentic self-expression."
+        // Add sign-specific insights
+        let signSpecificInsights = getWeeklyInsightsForSign(sunSign: sunSign, moonSign: moonSign, transits: transits)
+        
+        return (weeklyInsights + signSpecificInsights).randomElement() ?? "This week, trust the process even when you can't see the outcome."
     }
     
-    private func getMoonFocus(for sign: ZodiacSign) -> String {
-        switch sign {
-        case .aries: return "need for independence and new beginnings"
-        case .taurus: return "desire for stability and sensual pleasures"
-        case .gemini: return "curiosity and need for mental stimulation"
-        case .cancer: return "emotional needs and desire for security"
-        case .leo: return "creative expression and need for recognition"
-        case .virgo: return "attention to detail and desire for improvement"
-        case .libra: return "relationships and need for harmony"
-        case .scorpio: return "transformation and emotional depth"
-        case .sagittarius: return "expansion and philosophical exploration"
-        case .capricorn: return "ambition and practical achievements"
-        case .aquarius: return "innovation and humanitarian concerns"
-        case .pisces: return "intuition and spiritual connection"
-        }
-    }
     
-    private func getWeeklyTheme(for sign: ZodiacSign) -> String {
-        switch sign {
-        case .aries: return "initiate bold new projects"
-        case .taurus: return "build lasting foundations"
-        case .gemini: return "explore diverse interests"
-        case .cancer: return "nurture yourself and others"
-        case .leo: return "shine your unique light"
-        case .virgo: return "refine and perfect your craft"
-        case .libra: return "create harmony in relationships"
-        case .scorpio: return "embrace transformative experiences"
-        case .sagittarius: return "expand your horizons"
-        case .capricorn: return "pursue meaningful goals"
-        case .aquarius: return "innovate and inspire change"
-        case .pisces: return "trust your intuitive wisdom"
+    private func getWeeklyInsightsForSign(sunSign: ZodiacSign, moonSign: ZodiacSign, transits: [CelestialBody]) -> [String] {
+        var insights: [String] = []
+        
+        // Sun sign specific weekly insights
+        switch sunSign {
+        case .aries:
+            insights.append("This week, your impatience is actually your superpower in disguise.")
+            insights.append("The project you've been putting off? Your future self is waiting for you to start it.")
+            
+        case .taurus:
+            insights.append("This week teaches you that comfort zones are only comfortable until they become cages.")
+            insights.append("Your stubbornness this week is actually your values trying to protect you.")
+            
+        case .gemini:
+            insights.append("This week, your scattered energy is actually you gathering intel for something bigger.")
+            insights.append("That conversation you've been avoiding contains the answer you've been seeking.")
+            
+        case .cancer:
+            insights.append("This week, your sensitivity picks up on what everyone else is missing.")
+            insights.append("The home you're trying to create exists first in your heart, then in the world.")
+            
+        case .leo:
+            insights.append("This week, the spotlight you crave is already on you - you just need to step into it.")
+            insights.append("Your need for recognition this week is really your soul asking to be seen authentically.")
+            
+        case .virgo:
+            insights.append("This week shows you that perfectionism is just fear wearing a productivity mask.")
+            insights.append("The details you're obsessing over matter less than the courage to begin.")
+            
+        case .libra:
+            insights.append("This week, your people-pleasing reveals where you've been abandoning yourself.")
+            insights.append("The balance you seek isn't about making everyone happy - it's about choosing your battles.")
+            
+        case .scorpio:
+            insights.append("This week, what you think is paranoia is actually pattern recognition.")
+            insights.append("The transformation you fear is the one you've been unconsciously choosing all along.")
+            
+        case .sagittarius:
+            insights.append("This week, your restlessness is your compass pointing toward unexplored territory.")
+            insights.append("The adventure you're seeking is hidden in the routine you're trying to escape.")
+            
+        case .capricorn:
+            insights.append("This week teaches you that ambition without self-compassion is just elaborate self-harm.")
+            insights.append("The mountain you're climbing is also climbing you. Let it change you.")
+            
+        case .aquarius:
+            insights.append("This week, your need to be different conflicts with your need to belong. Both are valid.")
+            insights.append("The revolution you want to see in the world starts with the one in your mirror.")
+            
+        case .pisces:
+            insights.append("This week, your empathy shows you truths that logic can't reach.")
+            insights.append("The dream you had isn't just a dream - it's your subconscious working through something real.")
         }
+        
+        return insights
     }
     
     private func getWeeklyThemes() -> [String] {
         guard let chart = userBirthChart else {
-            return ["Loading themes...", "Calculating influences...", "Preparing insights..."]
+            return ["Preparing your cosmic insights...", "Aligning with your birth chart...", "Calculating your weekly themes..."]
         }
         
         let sunSign = chart.sunSign
         let moonSign = chart.moonSign
         
-        // Generate themes based on user's chart and current transits
-        var themes: [String] = []
+        // Generate relatable, Co-Star style themes
+        let universalThemes = [
+            "Stop explaining yourself to people who are determined to misunderstand you",
+            "Your intuition is louder than your anxiety this week",
+            "The thing you're avoiding is the thing that will set you free",
+            "Your past self would be proud of how far you've come",
+            "Trust the process even when you can't see the outcome",
+            "Your sensitivity is a superpower, not a weakness",
+            "The person you're becoming is worth the discomfort",
+            "Your boundaries are love letters to your future self"
+        ]
         
-        // Theme based on sun sign
-        themes.append("Embrace your \(sunSign.rawValue) nature")
+        // Add sign-specific themes
+        let signSpecificThemes = [
+            getThemeForSun(sunSign),
+            getThemeForMoon(moonSign),
+            getThemeForCurrentEnergy()
+        ]
         
-        // Theme based on moon sign
-        themes.append("Honor your \(moonSign.rawValue) emotional needs")
-        
-        // Theme based on current transits
+        let allThemes = universalThemes + signSpecificThemes
+        return Array(allThemes.shuffled().prefix(3))
+    }
+    
+    private func getThemeForSun(_ sunSign: ZodiacSign) -> String {
+        switch sunSign {
+        case .aries: return "Your impatience is just excitement with nowhere to go"
+        case .taurus: return "Comfort zones are only comfortable until they become cages"
+        case .gemini: return "Your scattered thoughts are connecting dots others can't see"
+        case .cancer: return "Creating home in your heart before anywhere else"
+        case .leo: return "The spotlight is already on you - step into it"
+        case .virgo: return "Good enough is actually perfect timing"
+        case .libra: return "Peace isn't about avoiding conflict - it's about choosing your battles"
+        case .scorpio: return "Your intensity isn't too much - the world is just too small"
+        case .sagittarius: return "The adventure you seek is hiding in your daily routine"
+        case .capricorn: return "Ambition without self-compassion is just elaborate self-harm"
+        case .aquarius: return "Your weirdness is your superpower in disguise"
+        case .pisces: return "Your emotions are teaching you to swim, not drowning you"
+        }
+    }
+    
+    private func getThemeForMoon(_ moonSign: ZodiacSign) -> String {
+        switch moonSign {
+        case .aries: return "Honor your need for emotional independence"
+        case .taurus: return "Your craving for comfort is actually wisdom"
+        case .gemini: return "Process your feelings by talking them through"
+        case .cancer: return "Vulnerability is strength when it's a choice"
+        case .leo: return "Your emotions deserve an audience - start with yourself"
+        case .virgo: return "Stop trying to fix your feelings and start listening to them"
+        case .libra: return "You can't keep the peace by abandoning yourself"
+        case .scorpio: return "Feel everything deeply - that's where your power lives"
+        case .sagittarius: return "Your emotional restlessness is pointing toward growth"
+        case .capricorn: return "Structure your feelings without suppressing them"
+        case .aquarius: return "Your emotional detachment is self-protection, not indifference"
+        case .pisces: return "Your empathy needs boundaries to stay a gift"
+        }
+    }
+    
+    private func getThemeForCurrentEnergy() -> String {
         if let moonTransit = currentTransits.first(where: { $0.name == "Moon" }) {
             let transitSign = moonTransit.position.sign
-            themes.append("Navigate \(transitSign.rawValue) lunar energy")
-        } else {
-            themes.append("Trust cosmic timing")
+            switch transitSign {
+            case .aries: return "Act on your impulses - they're smarter than you think"
+            case .taurus: return "Slow down and savor the moment you're in"
+            case .gemini: return "Have the conversations you've been avoiding"
+            case .cancer: return "Trust your emotional instincts over logic"
+            case .leo: return "Let yourself be seen exactly as you are"
+            case .virgo: return "The details matter, but don't lose sight of the bigger picture"
+            case .libra: return "Seek harmony without sacrificing authenticity"
+            case .scorpio: return "Go deeper - surface level won't satisfy you"
+            case .sagittarius: return "Expand your perspective beyond what feels safe"
+            case .capricorn: return "Build something that will outlast your doubts"
+            case .aquarius: return "Break the rules that were never serving you anyway"
+            case .pisces: return "Trust the feelings you can't quite explain"
+            }
         }
         
-        return themes
+        return "The universe is conspiring to help you, not against you"
     }
 }
 
