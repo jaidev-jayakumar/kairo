@@ -29,7 +29,7 @@ struct TestAstrologyView: View {
             longitude: -122.4194
         )
         
-        if let chart = SimplifiedAstrologyService.shared.calculateBirthChart(for: testBirthData) {
+        if let chart = AstrologyService.shared.calculateBirthChart(for: testBirthData) {
             testResult = """
             ✅ Success!
             Sun: \(chart.sun.formattedPosition)

@@ -160,7 +160,7 @@ struct ProfileView: View {
     private func loadUserData() {
         userBirthData = UserDataManager.shared.getBirthData()
         if let birthData = userBirthData {
-            birthChart = SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
+            birthChart = AstrologyService.shared.calculateBirthChart(for: birthData)
         }
     }
     

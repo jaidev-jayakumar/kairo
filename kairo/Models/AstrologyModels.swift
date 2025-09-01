@@ -102,6 +102,15 @@ struct CelestialBody {
         let pos = position
         return "\(pos.sign.symbol) \(pos.degree)°\(String(format: "%02d", pos.minute))'"
     }
+    
+    var signName: String {
+        position.sign.rawValue
+    }
+    
+    var formattedDegree: String {
+        let pos = position
+        return "\(pos.degree)°\(String(format: "%02d", pos.minute))'"
+    }
 }
 
 // MARK: - House

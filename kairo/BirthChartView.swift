@@ -6,23 +6,53 @@ struct BirthChartView: View {
     @State private var birthChart: BirthChart? = nil
     @State private var userBirthData: BirthData? = nil
     
-    // Sample planets for visual display
-    let planets: [Planet] = [
-        Planet(name: "Sun", symbol: "☉", sign: "Aries", degree: "15°", color: .yellow),
-        Planet(name: "Moon", symbol: "☽", sign: "Cancer", degree: "22°", color: .gray),
-        Planet(name: "Mercury", symbol: "☿", sign: "Gemini", degree: "8°", color: .cyan),
-        Planet(name: "Venus", symbol: "♀", sign: "Taurus", degree: "3°", color: .pink),
-        Planet(name: "Mars", symbol: "♂", sign: "Scorpio", degree: "27°", color: .red)
-    ]
+    // Calculate display planets from real birth chart data
+    var displayPlanets: [Planet] {
+        guard let chart = birthChart else {
+            // Fallback data while loading
+            return [
+                Planet(name: "Loading...", symbol: "⏳", sign: "...", degree: "...", color: .gray)
+            ]
+        }
+        
+        return [
+            Planet(name: "Sun", symbol: "☉", sign: chart.sun.signName, degree: chart.sun.formattedDegree, color: .yellow),
+            Planet(name: "Moon", symbol: "☽", sign: chart.moon.signName, degree: chart.moon.formattedDegree, color: .gray),
+            Planet(name: "Mercury", symbol: "☿", sign: chart.mercury.signName, degree: chart.mercury.formattedDegree, color: .cyan),
+            Planet(name: "Venus", symbol: "♀", sign: chart.venus.signName, degree: chart.venus.formattedDegree, color: .pink),
+            Planet(name: "Mars", symbol: "♂", sign: chart.mars.signName, degree: chart.mars.formattedDegree, color: .red),
+            Planet(name: "Jupiter", symbol: "♃", sign: chart.jupiter.signName, degree: chart.jupiter.formattedDegree, color: .orange),
+            Planet(name: "Saturn", symbol: "♄", sign: chart.saturn.signName, degree: chart.saturn.formattedDegree, color: .brown),
+            Planet(name: "Uranus", symbol: "♅", sign: chart.uranus.signName, degree: chart.uranus.formattedDegree, color: .blue),
+            Planet(name: "Neptune", symbol: "♆", sign: chart.neptune.signName, degree: chart.neptune.formattedDegree, color: .teal),
+            Planet(name: "Pluto", symbol: "♇", sign: chart.pluto.signName, degree: chart.pluto.formattedDegree, color: .purple)
+        ]
+    }
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
                 // Header
-                Text("Birth Chart")
-                    .font(.system(size: 28, weight: .light))
-                    .foregroundColor(.white)
-                    .padding(.top, 20)
+                VStack(spacing: 8) {
+                    Text("Birth Chart")
+                        .font(.system(size: 28, weight: .light))
+                        .foregroundColor(.white)
+                    
+                    // SwissEphemeris indicator
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                            .font(.system(size: 10))
+                        Text("Powered by Swiss Ephemeris")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.yellow.opacity(0.8))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(.yellow.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .padding(.top, 20)
                 
                 // Chart wheel
                 ZStack {
@@ -57,7 +87,7 @@ struct BirthChartView: View {
                         )
                     
                     // Planet positions
-                    ForEach(planets) { planet in
+                    ForEach(displayPlanets) { planet in
                         PlanetView(planet: planet, isSelected: selectedPlanet?.id == planet.id)
                             .offset(x: cos(planet.angle) * 120, y: sin(planet.angle) * 120)
                             .onTapGesture {
@@ -160,7 +190,7 @@ struct BirthChartView: View {
             // Load user birth data and calculate chart
             userBirthData = UserDataManager.shared.getBirthData()
             if let birthData = userBirthData {
-                birthChart = SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
+                birthChart = AstrologyService.shared.calculateBirthChart(for: birthData)
             }
         }
     }

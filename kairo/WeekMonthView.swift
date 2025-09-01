@@ -3,6 +3,9 @@ import SwiftUI
 struct WeekMonthView: View {
     @State private var selectedTimeframe: TimeFrame = .week
     @State private var selectedDate = Date()
+    @State private var currentTransits: [CelestialBody] = []
+    @State private var userBirthChart: BirthChart?
+    @State private var weeklyInsight = ""
     
     enum TimeFrame {
         case week, month
@@ -48,7 +51,7 @@ struct WeekMonthView: View {
                 .padding(.top, 20)
                 
                 if selectedTimeframe == .week {
-                    WeekView()
+                    WeekView(weeklyInsight: weeklyInsight, weeklyThemes: getWeeklyThemes())
                 } else {
                     MonthView()
                 }
@@ -57,12 +60,112 @@ struct WeekMonthView: View {
             .padding(.bottom, 100)
         }
         .background(Color.black)
+        .onAppear {
+            loadAstrologicalData()
+        }
+    }
+    
+    private func loadAstrologicalData() {
+        // Load current transits
+        currentTransits = AstrologyService.shared.calculateCurrentTransits()
+        
+        // Load user birth chart
+        if let birthData = UserDataManager.shared.getBirthData() {
+            userBirthChart = AstrologyService.shared.calculateBirthChart(for: birthData)
+            if let chart = userBirthChart {
+                // Start with basic insight for immediate display
+                weeklyInsight = generateWeeklyInsight(chart: chart, transits: currentTransits)
+                
+                // Then fetch AI-powered weekly insight
+                Task {
+                    let aiWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart)
+                    DispatchQueue.main.async {
+                        self.weeklyInsight = aiWeeklyInsight
+                    }
+                }
+            }
+        }
+    }
+    
+    private func generateWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
+        let sunSign = chart.sunSign
+        
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let moonSign = moonTransit.position.sign
+            return "This week, the Moon's journey through \(moonSign.rawValue) highlights your \(getMoonFocus(for: moonSign)). As a \(sunSign.rawValue), you're called to \(getWeeklyTheme(for: sunSign)). Trust the rhythm of your authentic expression."
+        }
+        
+        return "This week invites you to embody your \(sunSign.rawValue) essence more fully. The cosmos supports your journey toward authentic self-expression."
+    }
+    
+    private func getMoonFocus(for sign: ZodiacSign) -> String {
+        switch sign {
+        case .aries: return "need for independence and new beginnings"
+        case .taurus: return "desire for stability and sensual pleasures"
+        case .gemini: return "curiosity and need for mental stimulation"
+        case .cancer: return "emotional needs and desire for security"
+        case .leo: return "creative expression and need for recognition"
+        case .virgo: return "attention to detail and desire for improvement"
+        case .libra: return "relationships and need for harmony"
+        case .scorpio: return "transformation and emotional depth"
+        case .sagittarius: return "expansion and philosophical exploration"
+        case .capricorn: return "ambition and practical achievements"
+        case .aquarius: return "innovation and humanitarian concerns"
+        case .pisces: return "intuition and spiritual connection"
+        }
+    }
+    
+    private func getWeeklyTheme(for sign: ZodiacSign) -> String {
+        switch sign {
+        case .aries: return "initiate bold new projects"
+        case .taurus: return "build lasting foundations"
+        case .gemini: return "explore diverse interests"
+        case .cancer: return "nurture yourself and others"
+        case .leo: return "shine your unique light"
+        case .virgo: return "refine and perfect your craft"
+        case .libra: return "create harmony in relationships"
+        case .scorpio: return "embrace transformative experiences"
+        case .sagittarius: return "expand your horizons"
+        case .capricorn: return "pursue meaningful goals"
+        case .aquarius: return "innovate and inspire change"
+        case .pisces: return "trust your intuitive wisdom"
+        }
+    }
+    
+    private func getWeeklyThemes() -> [String] {
+        guard let chart = userBirthChart else {
+            return ["Loading themes...", "Calculating influences...", "Preparing insights..."]
+        }
+        
+        let sunSign = chart.sunSign
+        let moonSign = chart.moonSign
+        
+        // Generate themes based on user's chart and current transits
+        var themes: [String] = []
+        
+        // Theme based on sun sign
+        themes.append("Embrace your \(sunSign.rawValue) nature")
+        
+        // Theme based on moon sign
+        themes.append("Honor your \(moonSign.rawValue) emotional needs")
+        
+        // Theme based on current transits
+        if let moonTransit = currentTransits.first(where: { $0.name == "Moon" }) {
+            let transitSign = moonTransit.position.sign
+            themes.append("Navigate \(transitSign.rawValue) lunar energy")
+        } else {
+            themes.append("Trust cosmic timing")
+        }
+        
+        return themes
     }
 }
 
 struct WeekView: View {
     let weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     @State private var selectedDay = 3 // Thursday
+    let weeklyInsight: String
+    let weeklyThemes: [String]
     
     var body: some View {
         VStack(spacing: 24) {
@@ -94,11 +197,11 @@ struct WeekView: View {
             // Daily insight
             AstroCard {
                 VStack(alignment: .leading, spacing: 16) {
-                    Label("Thursday's Energy", systemImage: "waveform")
+                    Label("Today's Energy", systemImage: "waveform")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white.opacity(0.9))
                     
-                    Text("Venus enters your house of transformation. Deep connections await, but only if you're willing to be vulnerable. The cosmos rewards authenticity today.")
+                    Text(weeklyInsight.isEmpty ? "The cosmos is aligning your personalized insights..." : weeklyInsight)
                         .font(.system(size: 15))
                         .foregroundColor(.white.opacity(0.75))
                         .lineSpacing(6)
@@ -111,7 +214,7 @@ struct WeekView: View {
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.white.opacity(0.9))
                 
-                ForEach(["Release old patterns", "Embrace new beginnings", "Trust your intuition"], id: \.self) { theme in
+                ForEach(weeklyThemes, id: \.self) { theme in
                     HStack {
                         Circle()
                             .fill(Color.white.opacity(0.3))

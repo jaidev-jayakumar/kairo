@@ -63,9 +63,18 @@ struct TodayView: View {
             
             // Calculate daily insight
             if let birthData = userBirthData,
-               let chart = SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData) {
-                dailyInsight = SimplifiedAstrologyService.shared.generateDailyInsight(for: chart)
-                currentTransits = SimplifiedAstrologyService.shared.calculateCurrentTransits()
+               let chart = AstrologyService.shared.calculateBirthChart(for: birthData) {
+                // Start with sync fallback for immediate display
+                dailyInsight = AstrologyService.shared.generateDailyInsightSync(for: chart)
+                currentTransits = AstrologyService.shared.calculateCurrentTransits()
+                
+                // Then fetch AI-powered insight
+                Task {
+                    let aiInsight = await AstrologyService.shared.generateDailyInsight(for: chart)
+                    DispatchQueue.main.async {
+                        self.dailyInsight = aiInsight
+                    }
+                }
             }
         }
     }
@@ -96,6 +105,20 @@ struct MainCosmicMessage: View {
     
     var body: some View {
         VStack(spacing: 40) {
+            // Swiss Ephemeris indicator
+            HStack(spacing: 4) {
+                Image(systemName: "star.circle.fill")
+                    .foregroundColor(.yellow)
+                    .font(.system(size: 10))
+                Text("Real-time Swiss Ephemeris")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 3)
+            .background(.yellow.opacity(0.1))
+            .cornerRadius(8)
+            
             // Planet alignment visual
             ZStack {
                 Circle()

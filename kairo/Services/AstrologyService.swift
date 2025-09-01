@@ -7,11 +7,12 @@ class AstrologyService {
     private init() {
         // Initialize Swiss Ephemeris with default path
         // The package will use its internal ephemeris data
+        JPLFileManager.setEphemerisPath()
     }
     
     // MARK: - Birth Chart Calculation
     func calculateBirthChart(for birthData: BirthData) -> BirthChart? {
-        // Calculate planets
+        print("🌟 Using SwissEphemeris for professional birth chart calculation")
         // Calculate planets using SwissEphemeris
         guard let sun = calculatePlanet(.sun, date: birthData.date),
               let moon = calculatePlanet(.moon, date: birthData.date),
@@ -23,59 +24,83 @@ class AstrologyService {
               let uranus = calculatePlanet(.uranus, date: birthData.date),
               let neptune = calculatePlanet(.neptune, date: birthData.date),
               let pluto = calculatePlanet(.pluto, date: birthData.date) else {
-            return nil
+            // Fallback to simplified service if SwissEphemeris fails
+            print("SwissEphemeris calculation failed, falling back to simplified service")
+            return SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
         }
         
         // Calculate houses
-        let houseCusps = HouseCusps(
-            date: birthData.date,
-            latitude: birthData.latitude,
-            longitude: birthData.longitude,
-            houseSystem: .placidus
-        )
-        
-        let houses = (1...12).map { houseNumber in
-            House(number: houseNumber, cusp: getHouseCusp(houseCusps, house: houseNumber))
+        do {
+            let houseCusps = try HouseCusps(
+                date: birthData.date,
+                latitude: birthData.latitude,
+                longitude: birthData.longitude,
+                houseSystem: .placidus
+            )
+            
+            let houses = (1...12).map { houseNumber in
+                House(number: houseNumber, cusp: getHouseCusp(houseCusps, house: houseNumber))
+            }
+            
+            print("✅ SwissEphemeris calculation completed successfully!")
+            return BirthChart(
+                birthData: birthData,
+                sun: sun,
+                moon: moon,
+                mercury: mercury,
+                venus: venus,
+                mars: mars,
+                jupiter: jupiter,
+                saturn: saturn,
+                uranus: uranus,
+                neptune: neptune,
+                pluto: pluto,
+                ascendant: getAscendant(houseCusps),
+                midheaven: getMidheaven(houseCusps),
+                houses: houses
+            )
+        } catch {
+            print("House calculation failed: \(error)")
+            // Fallback to simplified service
+            return SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
         }
-        
-        return BirthChart(
-            birthData: birthData,
-            sun: sun,
-            moon: moon,
-            mercury: mercury,
-            venus: venus,
-            mars: mars,
-            jupiter: jupiter,
-            saturn: saturn,
-            uranus: uranus,
-            neptune: neptune,
-            pluto: pluto,
-            ascendant: getAscendant(houseCusps),
-            midheaven: getMidheaven(houseCusps),
-            houses: houses
-        )
     }
     
     // MARK: - Planet Calculation
-    private func calculatePlanet(_ planet: Planet, date: Date) -> CelestialBody? {
-        let coordinate = Coordinate<Planet>(body: planet, date: date)
-        
-        return CelestialBody(
-            name: planet.formatted.replacingOccurrences(of: planet.symbol + " ", with: ""),
-            symbol: planet.symbol,
-            longitude: coordinate.longitude,
-            latitude: coordinate.latitude,
-            distance: coordinate.distance,
-            speedLongitude: coordinate.speedLongitude
-        )
+    private func calculatePlanet(_ planet: SwissEphemeris.Planet, date: Date) -> CelestialBody? {
+        do {
+            let coordinate = try Coordinate<SwissEphemeris.Planet>(body: planet, date: date)
+            
+            return CelestialBody(
+                name: planetName(planet),
+                symbol: planetSymbol(planet),
+                longitude: coordinate.longitude,
+                latitude: coordinate.latitude,
+                distance: coordinate.distance,
+                speedLongitude: coordinate.speedLongitude
+            )
+        } catch {
+            print("Error calculating planet \(planet): \(error)")
+            return nil
+        }
     }
     
     // MARK: - Transit Calculations
     func calculateCurrentTransits() -> [CelestialBody] {
+        print("🌍 Using SwissEphemeris for current planetary transits")
         let now = Date()
-        let planets: [Planet] = [.sun, .moon, .mercury, .venus, .mars, .jupiter, .saturn, .uranus, .neptune, .pluto]
+        let planets: [SwissEphemeris.Planet] = [.sun, .moon, .mercury, .venus, .mars, .jupiter, .saturn, .uranus, .neptune, .pluto]
         
-        return planets.compactMap { calculatePlanet($0, date: now) }
+        let transits = planets.compactMap { calculatePlanet($0, date: now) }
+        
+        // If SwissEphemeris fails, fallback to simplified service
+        if transits.isEmpty {
+            print("SwissEphemeris transit calculation failed, falling back to simplified service")
+            return SimplifiedAstrologyService.shared.calculateCurrentTransits()
+        }
+        
+        print("✅ SwissEphemeris transit calculations completed successfully!")
+        return transits
     }
     
     // MARK: - Aspect Calculations
@@ -138,16 +163,53 @@ class AstrologyService {
         return houseCusps.midHeaven.tropical.value
     }
     
-    // MARK: - Daily Horoscope
-    func generateDailyInsight(for chart: BirthChart) -> String {
+    // MARK: - Helper Methods
+    private func planetName(_ planet: SwissEphemeris.Planet) -> String {
+        switch planet {
+        case .sun: return "Sun"
+        case .moon: return "Moon"
+        case .mercury: return "Mercury"
+        case .venus: return "Venus"
+        case .mars: return "Mars"
+        case .jupiter: return "Jupiter"
+        case .saturn: return "Saturn"
+        case .uranus: return "Uranus"
+        case .neptune: return "Neptune"
+        case .pluto: return "Pluto"
+        default: return "Unknown"
+        }
+    }
+    
+    private func planetSymbol(_ planet: SwissEphemeris.Planet) -> String {
+        switch planet {
+        case .sun: return "☉"
+        case .moon: return "☽"
+        case .mercury: return "☿"
+        case .venus: return "♀"
+        case .mars: return "♂"
+        case .jupiter: return "♃"
+        case .saturn: return "♄"
+        case .uranus: return "♅"
+        case .neptune: return "♆"
+        case .pluto: return "♇"
+        default: return "?"
+        }
+    }
+    
+    // MARK: - Daily Insights (AI-Powered)
+    func generateDailyInsight(for chart: BirthChart) async -> String {
+        let transits = calculateCurrentTransits()
+        return await AIInsightService.shared.generateDailyInsight(for: chart, transits: transits)
+    }
+    
+    func generateDailyInsightSync(for chart: BirthChart) -> String {
+        // Synchronous fallback for immediate UI updates
         let transits = calculateCurrentTransits()
         
-        // Find most significant transit
         if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
             let moonSign = moonTransit.position.sign
             let natalSunSign = chart.sunSign
             
-            // Simple interpretation based on moon transit to sun sign
             if moonSign == natalSunSign {
                 return "The Moon illuminates your essence today. Your emotions and identity align, bringing clarity to personal matters."
             } else if moonSign.element == natalSunSign.element {
@@ -158,5 +220,11 @@ class AstrologyService {
         }
         
         return "The cosmos holds space for your becoming. Trust the unfolding."
+    }
+    
+    // MARK: - Weekly Insights (AI-Powered)
+    func generateWeeklyInsight(for chart: BirthChart) async -> String {
+        let transits = calculateCurrentTransits()
+        return await AIInsightService.shared.generateWeeklyInsight(for: chart, transits: transits)
     }
 }
