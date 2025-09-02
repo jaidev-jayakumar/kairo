@@ -492,16 +492,16 @@ class AstrologyService {
     }
     
     // MARK: - Horoscope Scores Calculation
-    func calculateHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
-        print("🎯 Calculating personalized horoscope scores using birth chart and current transits")
+    func calculateDailyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
+        print("🎯 Calculating daily horoscope scores using birth chart and current transits")
         let transits = calculateCurrentTransits()
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on actual astrological factors
-        let overallScore = calculateOverallScore(chart: chart, transits: transits, aspects: aspects)
-        let loveScore = calculateLoveScore(chart: chart, transits: transits, aspects: aspects)
-        let careerScore = calculateCareerScore(chart: chart, transits: transits, aspects: aspects)
-        let wealthScore = calculateWealthScore(chart: chart, transits: transits, aspects: aspects)
+        // Calculate each score based on TODAY'S astrological factors
+        let overallScore = calculateDailyOverallScore(chart: chart, transits: transits, aspects: aspects)
+        let loveScore = calculateDailyLoveScore(chart: chart, transits: transits, aspects: aspects)
+        let careerScore = calculateDailyCareerScore(chart: chart, transits: transits, aspects: aspects)
+        let wealthScore = calculateDailyWealthScore(chart: chart, transits: transits, aspects: aspects)
         
         return HoroscopeScores(
             overall: overallScore,
@@ -511,7 +511,64 @@ class AstrologyService {
         )
     }
     
-    private func calculateOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    func calculateWeeklyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
+        print("📅 Calculating weekly horoscope scores using birth chart and week-ahead transits")
+        let transits = calculateCurrentTransits()
+        let aspects = calculateAspects(for: chart)
+        
+        // Calculate each score based on THIS WEEK'S astrological factors
+        let overallScore = calculateWeeklyOverallScore(chart: chart, transits: transits, aspects: aspects)
+        let loveScore = calculateWeeklyLoveScore(chart: chart, transits: transits, aspects: aspects)
+        let careerScore = calculateWeeklyCareerScore(chart: chart, transits: transits, aspects: aspects)
+        let wealthScore = calculateWeeklyWealthScore(chart: chart, transits: transits, aspects: aspects)
+        
+        return HoroscopeScores(
+            overall: overallScore,
+            love: loveScore,
+            career: careerScore,
+            wealth: wealthScore
+        )
+    }
+    
+    func calculateMonthlyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
+        print("📅 Calculating monthly horoscope scores using birth chart and month-ahead transits")
+        let transits = calculateCurrentTransits()
+        let aspects = calculateAspects(for: chart)
+        
+        // Calculate each score based on THIS MONTH'S astrological factors
+        let overallScore = calculateMonthlyOverallScore(chart: chart, transits: transits, aspects: aspects)
+        let loveScore = calculateMonthlyLoveScore(chart: chart, transits: transits, aspects: aspects)
+        let careerScore = calculateMonthlyCareerScore(chart: chart, transits: transits, aspects: aspects)
+        let wealthScore = calculateMonthlyWealthScore(chart: chart, transits: transits, aspects: aspects)
+        
+        return HoroscopeScores(
+            overall: overallScore,
+            love: loveScore,
+            career: careerScore,
+            wealth: wealthScore
+        )
+    }
+    
+    func calculateYearlyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
+        print("📅 Calculating yearly horoscope scores using birth chart and year-ahead transits")
+        let transits = calculateCurrentTransits()
+        let aspects = calculateAspects(for: chart)
+        
+        // Calculate each score based on THIS YEAR'S astrological factors
+        let overallScore = calculateYearlyOverallScore(chart: chart, transits: transits, aspects: aspects)
+        let loveScore = calculateYearlyLoveScore(chart: chart, transits: transits, aspects: aspects)
+        let careerScore = calculateYearlyCareerScore(chart: chart, transits: transits, aspects: aspects)
+        let wealthScore = calculateYearlyWealthScore(chart: chart, transits: transits, aspects: aspects)
+        
+        return HoroscopeScores(
+            overall: overallScore,
+            love: loveScore,
+            career: careerScore,
+            wealth: wealthScore
+        )
+    }
+    
+    private func calculateDailyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
         var score = 75 // Base score
         
         // Sun-Moon harmony influences overall well-being
@@ -554,7 +611,7 @@ class AstrologyService {
         return max(40, min(100, score))
     }
     
-    private func calculateLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateDailyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
         var score = 70 // Base love score
         
         // Venus position is key for love
@@ -598,7 +655,7 @@ class AstrologyService {
         return max(30, min(100, score))
     }
     
-    private func calculateCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateDailyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
         var score = 72 // Base career score
         
         // Mars position affects drive and ambition
@@ -642,7 +699,7 @@ class AstrologyService {
         return max(35, min(100, score))
     }
     
-    private func calculateWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateDailyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
         var score = 68 // Base wealth score
         
         // Jupiter represents abundance and expansion
@@ -686,6 +743,130 @@ class AstrologyService {
         }
         
         return max(25, min(100, score))
+    }
+    
+    // MARK: - Weekly Score Calculations
+    private func calculateWeeklyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 78 // Slightly different base for weekly
+        
+        // Week-long trends focus more on slower planets
+        let sunSign = chart.sunSign
+        let currentWeek = Calendar.current.component(.weekOfYear, from: Date())
+        
+        // Jupiter weekly influence (expansion opportunities)
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSunAspect = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiterAspect = jupiterToSunAspect > 180 ? 360 - jupiterToSunAspect : jupiterToSunAspect
+            
+            if normalizedJupiterAspect < 8 || (112...128).contains(normalizedJupiterAspect) {
+                score += 15 // Weekly Jupiter boost
+            } else if (52...68).contains(normalizedJupiterAspect) {
+                score += 10 // Supportive Jupiter week
+            }
+        }
+        
+        // Weekly lunar cycle influence (different from daily)
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let weeklyMoonSign = moonTransit.position.sign
+            if weeklyMoonSign.element == sunSign.element {
+                score += 8 // Weekly elemental harmony
+            }
+        }
+        
+        // Week-specific adjustments based on week number
+        let weekAdjustment = (currentWeek % 4) * 2 - 3 // Varies by week in month
+        score += weekAdjustment
+        
+        return max(45, min(100, score))
+    }
+    
+    private func calculateWeeklyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 73 // Different base for weekly love
+        
+        // Weekly Venus patterns (different from daily focus)
+        let venusSign = chart.venus.position.sign
+        
+        // Venus weekly influence
+        if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
+            let venusToMarsAspect = abs(venusTransit.longitude - chart.mars.longitude)
+            let normalizedVenusAspect = venusToMarsAspect > 180 ? 360 - venusToMarsAspect : venusToMarsAspect
+            
+            if normalizedVenusAspect < 8 || (112...128).contains(normalizedVenusAspect) {
+                score += 14 // Weekly Venus-Mars harmony
+            }
+        }
+        
+        // Weekly relationship patterns favor different signs
+        if [.libra, .pisces, .cancer, .leo].contains(venusSign) {
+            score += 12 // Weekly love boost for these signs
+        }
+        
+        // Week-long romantic cycles
+        let weekOfMonth = Calendar.current.component(.weekOfMonth, from: Date())
+        if weekOfMonth == 2 || weekOfMonth == 3 { // Middle weeks better for love
+            score += 6
+        }
+        
+        return max(35, min(100, score))
+    }
+    
+    private func calculateWeeklyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 75 // Weekly career base
+        
+        // Saturn weekly influence (structure and discipline)
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToMarsAspect = abs(saturnTransit.longitude - chart.mars.longitude)
+            let normalizedSaturnAspect = saturnToMarsAspect > 180 ? 360 - saturnToMarsAspect : saturnToMarsAspect
+            
+            if (112...128).contains(normalizedSaturnAspect) {
+                score += 18 // Weekly Saturn trine - excellent for career building
+            } else if (52...68).contains(normalizedSaturnAspect) {
+                score += 12 // Weekly Saturn sextile - steady progress
+            }
+        }
+        
+        // Weekly Mars energy (different from daily quick actions)
+        let marsSign = chart.mars.position.sign
+        if [.capricorn, .aries, .leo, .virgo].contains(marsSign) {
+            score += 10 // Weekly career strength
+        }
+        
+        // First day of week affects weekly career energy
+        let weekday = Calendar.current.component(.weekday, from: Date())
+        if weekday == 2 || weekday == 3 { // Monday/Tuesday weeks start strong
+            score += 8
+        }
+        
+        return max(40, min(100, score))
+    }
+    
+    private func calculateWeeklyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 71 // Weekly wealth base
+        
+        // Jupiter weekly abundance (different timing than daily)
+        let jupiterSign = chart.jupiter.position.sign
+        if [.taurus, .sagittarius, .pisces, .leo].contains(jupiterSign) {
+            score += 16 // Weekly abundance boost
+        }
+        
+        // Weekly Venus-Jupiter aspects for wealth
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }),
+           let venusTransit = transits.first(where: { $0.name == "Venus" }) {
+            let venusJupiterAspect = abs(venusTransit.longitude - jupiterTransit.longitude)
+            let normalizedAspect = venusJupiterAspect > 180 ? 360 - venusJupiterAspect : venusJupiterAspect
+            
+            if normalizedAspect < 8 || (112...128).contains(normalizedAspect) {
+                score += 15 // Weekly wealth harmony
+            }
+        }
+        
+        // Week of month affects financial energy
+        let weekOfMonth = Calendar.current.component(.weekOfMonth, from: Date())
+        if weekOfMonth == 1 || weekOfMonth == 4 { // First and last weeks better for money
+            score += 7
+        }
+        
+        return max(30, min(100, score))
     }
     
     // MARK: - Astrological Cycles
@@ -863,7 +1044,7 @@ class AstrologyService {
     
     private func generateCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
         // Create specific, unique descriptions for each planet-planet combination
-        let planetPair = "\(transitPlanet.name)-\(natalPlanet.name)"
+        // Generate cycle description based on specific planetary combinations
         
         switch (transitPlanet.name, natalPlanet.name, aspectType) {
         // Uranus combinations
@@ -978,6 +1159,333 @@ class AstrologyService {
         case .opposition:
             return .transformative
         }
+    }
+    
+    // MARK: - Monthly Score Calculations
+    
+    private func calculateMonthlyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 80 // Higher base for monthly perspective
+        
+        // Major outer planet influences
+        if let saturn = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturn.longitude - chart.sun.longitude)
+            if saturnToSun < 8 || (112...128).contains(saturnToSun) {
+                score += 15 // Major structural support
+            } else if (82...98).contains(saturnToSun) {
+                score -= 8 // Growth through challenges
+            }
+        }
+        
+        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiter.longitude - chart.sun.longitude)
+            if jupiterToSun < 8 || (112...128).contains(jupiterToSun) {
+                score += 18 // Major expansion
+            } else if (52...68).contains(jupiterToSun) {
+                score += 12 // Growth opportunities
+            }
+        }
+        
+        // Monthly cycle based on current month
+        let month = Calendar.current.component(.month, from: Date())
+        switch month {
+        case 1, 3, 9: score += 8 // New beginning months
+        case 4, 5, 6: score += 10 // Growth months  
+        case 7, 8: score += 6 // Peak summer energy
+        case 10, 11, 12: score += 5 // Reflection months
+        default: score += 7
+        }
+        
+        return max(0, min(100, score))
+    }
+    
+    private func calculateMonthlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 75 // Base monthly love score
+        
+        // Venus monthly cycle
+        if let venus = transits.first(where: { $0.name == "Venus" }) {
+            let venusSignInfo = ZodiacSign.fromDegrees(venus.longitude)
+            let venusSign = venusSignInfo.sign
+            
+            // Venus sign compatibility with natal placements
+            if venusSign == chart.sunSign || venusSign == chart.moonSign {
+                score += 20 // Perfect alignment
+            } else if venusSign.element == chart.sunSign.element {
+                score += 15 // Harmonious element
+            } else if venusSign.element == chart.moonSign.element {
+                score += 12 // Emotional harmony
+            }
+        }
+        
+        // 5th house influences (romance)
+        let fifthHouseCusp = chart.houses[4].cusp
+        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterTo5thHouse = abs(jupiter.longitude - fifthHouseCusp)
+            if jupiterTo5thHouse < 15 {
+                score += 12 // Romantic expansion
+            }
+        }
+        
+        // Monthly love energy based on season
+        let month = Calendar.current.component(.month, from: Date())
+        switch month {
+        case 2, 6, 10: score += 8 // Romance peak months
+        case 4, 5: score += 10 // Spring love energy
+        case 12, 1: score += 6 // Winter intimacy
+        default: score += 7
+        }
+        
+        return max(0, min(100, score))
+    }
+    
+    private func calculateMonthlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 78 // Base monthly career score
+        
+        // Saturn monthly influences (career structure)
+        if let saturn = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToMC = abs(saturn.longitude - chart.houses[9].cusp)
+            if saturnToMC < 15 || (105...135).contains(saturnToMC) {
+                score += 15 // Career advancement
+            } else if (75...105).contains(saturnToMC) {
+                score += 5 // Steady progress through effort
+            }
+        }
+        
+        // Uranus influences (career innovation)
+        if let uranus = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranus.longitude - chart.sun.longitude)
+            if uranusToSun < 8 || (52...68).contains(uranusToSun) {
+                score += 12 // Career breakthrough
+            }
+        }
+        
+        // Monthly professional energy
+        let month = Calendar.current.component(.month, from: Date())
+        switch month {
+        case 1, 9: score += 12 // New beginning months
+        case 3, 4, 10: score += 10 // High productivity
+        case 7, 8: score += 5 // Summer slow down
+        case 11, 12: score += 8 // Year-end push
+        default: score += 7
+        }
+        
+        return max(0, min(100, score))
+    }
+    
+    private func calculateMonthlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 76 // Base monthly wealth score
+        
+        // Jupiter monthly cycle (abundance)
+        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterTo2ndHouse = abs(jupiter.longitude - chart.houses[1].cusp)
+            if jupiterTo2ndHouse < 15 || (105...135).contains(jupiterTo2ndHouse) {
+                score += 18 // Major financial expansion
+            } else if (45...75).contains(jupiterTo2ndHouse) {
+                score += 12 // Wealth opportunities
+            }
+            
+            // Jupiter to 8th house (investments, shared resources)
+            let jupiterTo8thHouse = abs(jupiter.longitude - chart.houses[7].cusp)
+            if jupiterTo8thHouse < 15 {
+                score += 10 // Investment gains
+            }
+        }
+        
+        // Pluto influences (transformation of resources)
+        if let pluto = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoTo2ndHouse = abs(pluto.longitude - chart.houses[1].cusp)
+            if plutoTo2ndHouse < 8 {
+                score += 8 // Financial transformation
+            }
+        }
+        
+        // Monthly wealth cycles
+        let month = Calendar.current.component(.month, from: Date())
+        switch month {
+        case 4, 11: score += 10 // Tax season opportunities
+        case 9, 10: score += 12 // Harvest season abundance
+        case 1: score += 8 // New year financial planning
+        default: score += 6
+        }
+        
+        return max(0, min(100, score))
+    }
+    
+    // MARK: - Yearly Score Calculations
+    
+    private func calculateYearlyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 85 // Higher base for yearly perspective
+        
+        // Major generational planets
+        if let pluto = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToSun = abs(pluto.longitude - chart.sun.longitude)
+            if plutoToSun < 5 || (110...130).contains(plutoToSun) {
+                score += 20 // Life transformation year
+            } else if (50...70).contains(plutoToSun) {
+                score += 12 // Growth through change
+            }
+        }
+        
+        if let neptune = transits.first(where: { $0.name == "Neptune" }) {
+            let neptuneToSun = abs(neptune.longitude - chart.sun.longitude)
+            if neptuneToSun < 5 || (110...130).contains(neptuneToSun) {
+                score += 15 // Spiritual awakening year
+            }
+        }
+        
+        if let uranus = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranus.longitude - chart.sun.longitude)
+            if uranusToSun < 5 || (110...130).contains(uranusToSun) {
+                score += 18 // Liberation and innovation year
+            }
+        }
+        
+        // Year numerology influence
+        let year = Calendar.current.component(.year, from: Date())
+        let yearDigitSum = String(year).compactMap { Int(String($0)) }.reduce(0, +)
+        let yearNumber = yearDigitSum % 9 + 1
+        
+        switch yearNumber {
+        case 1, 3, 5: score += 8 // Dynamic years
+        case 2, 6, 9: score += 10 // Harmonious years
+        case 4, 7: score += 6 // Steady building years
+        case 8: score += 12 // Achievement year
+        default: score += 7
+        }
+        
+        return max(0, min(100, score))
+    }
+    
+    private func calculateYearlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 80 // Base yearly love score
+        
+        // Major love transits for the year
+        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
+            // Jupiter to Venus (love expansion)
+            let jupiterToVenus = abs(jupiter.longitude - chart.venus.longitude)
+            if jupiterToVenus < 5 || (110...130).contains(jupiterToVenus) {
+                score += 25 // Major love expansion year
+            } else if (50...70).contains(jupiterToVenus) {
+                score += 15 // Love growth opportunities
+            }
+            
+            // Jupiter to 7th house (partnership)
+            let jupiterTo7thHouse = abs(jupiter.longitude - chart.houses[6].cusp)
+            if jupiterTo7thHouse < 10 {
+                score += 20 // Partnership blessing year
+            }
+        }
+        
+        // Saturn to Venus (serious relationships)
+        if let saturn = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToVenus = abs(saturn.longitude - chart.venus.longitude)
+            if saturnToVenus < 5 {
+                score += 10 // Serious commitment year
+            }
+        }
+        
+        // Venus return cycles (approximately every 8 months)
+        if let venus = transits.first(where: { $0.name == "Venus" }) {
+            let venusReturn = abs(venus.longitude - chart.venus.longitude)
+            if venusReturn < 15 {
+                score += 12 // Venus return year - renewed love
+            }
+        }
+        
+        return max(0, min(100, score))
+    }
+    
+    private func calculateYearlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 82 // Base yearly career score
+        
+        // Saturn career cycles (major professional development)
+        if let saturn = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturn.longitude - chart.sun.longitude)
+            if saturnToSun < 5 || (110...130).contains(saturnToSun) {
+                score += 20 // Major career milestone year
+            } else if (80...100).contains(saturnToSun) {
+                score += 10 // Career challenge leading to growth
+            }
+            
+            // Saturn to MC (professional achievement)
+            let saturnToMC = abs(saturn.longitude - chart.houses[9].cusp)
+            if saturnToMC < 5 {
+                score += 18 // Career peak year
+            }
+        }
+        
+        // Jupiter career expansion
+        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiter.longitude - chart.sun.longitude)
+            if jupiterToSun < 5 || (110...130).contains(jupiterToSun) {
+                score += 15 // Career expansion year
+            }
+            
+            // Jupiter to 10th house
+            let jupiterTo10thHouse = abs(jupiter.longitude - chart.houses[9].cusp)
+            if jupiterTo10thHouse < 10 {
+                score += 16 // Professional recognition year
+            }
+        }
+        
+        // Uranus career innovation
+        if let uranus = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToMC = abs(uranus.longitude - chart.houses[9].cusp)
+            if uranusToMC < 5 {
+                score += 14 // Career revolution year
+            }
+        }
+        
+        return max(0, min(100, score))
+    }
+    
+    private func calculateYearlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 78 // Base yearly wealth score
+        
+        // Jupiter wealth cycles (major financial growth)
+        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
+            // Jupiter to 2nd house (personal wealth)
+            let jupiterTo2ndHouse = abs(jupiter.longitude - chart.houses[1].cusp)
+            if jupiterTo2ndHouse < 8 {
+                score += 22 // Major wealth expansion year
+            } else if jupiterTo2ndHouse < 15 {
+                score += 15 // Financial growth year
+            }
+            
+            // Jupiter to 8th house (investments, inheritance)
+            let jupiterTo8thHouse = abs(jupiter.longitude - chart.houses[7].cusp)
+            if jupiterTo8thHouse < 8 {
+                score += 18 // Investment boom year
+            }
+            
+            // Jupiter to natal Jupiter (12-year cycle)
+            let jupiterReturn = abs(jupiter.longitude - chart.jupiter.longitude)
+            if jupiterReturn < 10 {
+                score += 16 // Jupiter return - abundance cycle
+            }
+        }
+        
+        // Saturn wealth building (long-term financial security)
+        if let saturn = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnTo2ndHouse = abs(saturn.longitude - chart.houses[1].cusp)
+            if saturnTo2ndHouse < 8 {
+                score += 12 // Financial discipline and security year
+            }
+        }
+        
+        // Pluto wealth transformation
+        if let pluto = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoTo2ndHouse = abs(pluto.longitude - chart.houses[1].cusp)
+            if plutoTo2ndHouse < 5 {
+                score += 15 // Wealth transformation year
+            }
+            
+            let plutoTo8thHouse = abs(pluto.longitude - chart.houses[7].cusp)
+            if plutoTo8thHouse < 5 {
+                score += 12 // Investment metamorphosis year
+            }
+        }
+        
+        return max(0, min(100, score))
     }
     
 }

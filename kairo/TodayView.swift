@@ -81,8 +81,8 @@ struct TodayView: View {
                 dailyInsight = AstrologyService.shared.generateDailyInsightSync(for: chart)
                 currentTransits = AstrologyService.shared.calculateCurrentTransits()
                 
-                // Calculate horoscope scores based on user's birth chart
-                horoscopeScores = AstrologyService.shared.calculateHoroscopeScores(for: chart)
+                // Calculate DAILY horoscope scores based on user's birth chart
+                horoscopeScores = AstrologyService.shared.calculateDailyHoroscopeScores(for: chart)
                 
                 // Calculate current astrological cycles
                 currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart)
@@ -116,44 +116,6 @@ struct MainCosmicMessage: View {
     
     var body: some View {
         VStack(spacing: 40) {
-            // Swiss Ephemeris indicator
-            HStack(spacing: 4) {
-                Image(systemName: "star.circle.fill")
-                    .foregroundColor(.yellow)
-                    .font(.system(size: 10))
-                Text("Real-time Swiss Ephemeris")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.white.opacity(0.6))
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 3)
-            .background(.yellow.opacity(0.1))
-            .cornerRadius(8)
-            
-            // Planet alignment visual
-            ZStack {
-                Circle()
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    .frame(width: 120, height: 120)
-                
-                ForEach(0..<3) { index in
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: index == 1 ? 12 : 6, height: index == 1 ? 12 : 6)
-                        .offset(x: cos(CGFloat(index) * 2 * .pi / 3) * 50,
-                               y: sin(CGFloat(index) * 2 * .pi / 3) * 50)
-                }
-                
-                // Connection lines
-                Path { path in
-                    path.move(to: CGPoint(x: 50, y: 0))
-                    path.addLine(to: CGPoint(x: -25, y: 43))
-                    path.addLine(to: CGPoint(x: -25, y: -43))
-                    path.closeSubpath()
-                }
-                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
-            }
-            
             VStack(spacing: 24) {
                 Text(getCurrentTransitTitle())
                     .font(.system(size: 13, weight: .medium))
@@ -264,7 +226,39 @@ struct CosmicTiming: View {
     }
 }
 
-// MARK: - Constellation Background
+// MARK: - Simple Constellation View (Co-Star Style)
+struct SimpleConstellationView: View {
+    var body: some View {
+        ZStack {
+            // Just the dots and connections like Co-Star
+            let positions: [CGPoint] = [
+                CGPoint(x: 60, y: 30),   // Top
+                CGPoint(x: 90, y: 75),   // Bottom right  
+                CGPoint(x: 30, y: 75)    // Bottom left
+            ]
+            
+            // Connection lines
+            Path { path in
+                path.move(to: positions[0])
+                path.addLine(to: positions[1])
+                path.addLine(to: positions[2])
+                path.addLine(to: positions[0])
+            }
+            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+            
+            // Planet dots
+            ForEach(0..<positions.count, id: \.self) { index in
+                Circle()
+                    .fill(Color.white.opacity(index == 0 ? 1.0 : 0.7))
+                    .frame(width: index == 0 ? 8 : 6, height: index == 0 ? 8 : 6)
+                    .position(positions[index])
+            }
+        }
+        .frame(width: 120, height: 105)
+    }
+}
+
+// MARK: - Constellation Background (for main background)
 struct ConstellationBackground: View {
     let phase: CGFloat
     
@@ -273,30 +267,11 @@ struct ConstellationBackground: View {
             Canvas { context, size in
                 let points = generateConstellationPoints(in: size)
                 
-                // Draw connections
-                for i in 0..<points.count {
-                    for j in (i+1)..<points.count {
-                        let distance = hypot(points[i].x - points[j].x, points[i].y - points[j].y)
-                        if distance < 150 {
-                            var path = Path()
-                            path.move(to: points[i])
-                            path.addLine(to: points[j])
-                            
-                            let opacity = 0.1 * (1.0 - distance / 150.0)
-                            context.stroke(
-                                path,
-                                with: .color(.white.opacity(opacity)),
-                                lineWidth: 0.5
-                            )
-                        }
-                    }
-                }
-                
-                // Draw points
+                // Draw subtle background stars
                 for point in points {
                     context.fill(
-                        Circle().path(in: CGRect(x: point.x - 1, y: point.y - 1, width: 2, height: 2)),
-                        with: .color(.white.opacity(0.3))
+                        Circle().path(in: CGRect(x: point.x - 0.5, y: point.y - 0.5, width: 1, height: 1)),
+                        with: .color(.white.opacity(0.1))
                     )
                 }
             }
@@ -305,7 +280,7 @@ struct ConstellationBackground: View {
     
     func generateConstellationPoints(in size: CGSize) -> [CGPoint] {
         var points: [CGPoint] = []
-        for _ in 0..<12 {
+        for _ in 0..<30 {
             let x = CGFloat.random(in: 0...size.width)
             let y = CGFloat.random(in: 0...size.height)
             points.append(CGPoint(x: x, y: y))
