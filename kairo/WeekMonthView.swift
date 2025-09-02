@@ -6,6 +6,8 @@ struct WeekMonthView: View {
     @State private var currentTransits: [CelestialBody] = []
     @State private var userBirthChart: BirthChart?
     @State private var weeklyInsight = ""
+    @State private var horoscopeScores: HoroscopeScores? = nil
+    @State private var currentCycles: [AstrologicalCycle] = []
     
     enum TimeFrame {
         case week, month
@@ -51,7 +53,12 @@ struct WeekMonthView: View {
                 .padding(.top, 20)
                 
                 if selectedTimeframe == .week {
-                    WeekView(weeklyInsight: weeklyInsight, weeklyThemes: getWeeklyThemes())
+                    WeekView(
+                        weeklyInsight: weeklyInsight, 
+                        weeklyThemes: getWeeklyThemes(),
+                        horoscopeScores: horoscopeScores,
+                        cycles: currentCycles
+                    )
                 } else {
                     MonthView()
                 }
@@ -73,16 +80,12 @@ struct WeekMonthView: View {
         if let birthData = UserDataManager.shared.getBirthData() {
             userBirthChart = AstrologyService.shared.calculateBirthChart(for: birthData)
             if let chart = userBirthChart {
-                // Start with basic insight for immediate display
+                // Use our deterministic, personalized insight (no AI override)
                 weeklyInsight = generateWeeklyInsight(chart: chart, transits: currentTransits)
                 
-                // Then fetch AI-powered weekly insight
-                Task {
-                    let aiWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart)
-                    DispatchQueue.main.async {
-                        self.weeklyInsight = aiWeeklyInsight
-                    }
-                }
+                // Calculate horoscope scores and cycles
+                horoscopeScores = AstrologyService.shared.calculateHoroscopeScores(for: chart)
+                currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart)
             }
         }
     }
@@ -320,9 +323,16 @@ struct WeekView: View {
     @State private var selectedDay = 3 // Thursday
     let weeklyInsight: String
     let weeklyThemes: [String]
+    let horoscopeScores: HoroscopeScores?
+    let cycles: [AstrologicalCycle]
     
     var body: some View {
         VStack(spacing: 24) {
+            // Horoscope Scores
+            if let scores = horoscopeScores {
+                HoroscopeScoresView(scores: scores)
+            }
+            
             // Day selector
             HStack(spacing: 12) {
                 ForEach(0..<7) { index in
@@ -360,6 +370,11 @@ struct WeekView: View {
                         .foregroundColor(.white.opacity(0.75))
                         .lineSpacing(6)
                 }
+            }
+            
+            // Cycles
+            if !cycles.isEmpty {
+                CyclesView(cycles: cycles)
             }
             
             // Week themes

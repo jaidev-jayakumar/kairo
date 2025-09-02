@@ -229,27 +229,102 @@ class AstrologyService {
     }
     
     private func generateAspectBasedInsight(natalSun: ZodiacSign, natalMoon: ZodiacSign, transitMoon: ZodiacSign, aspectDegrees: Double) -> String {
-        // Generate deterministic insight based on actual aspect degrees
+        // Generate provocative, Co-Star style insights based on actual aspects
         switch aspectDegrees {
         case 0...8: // Conjunction
-            return "Your emotions and identity are perfectly aligned today. Your \(natalSun.rawValue) nature and current \(transitMoon.rawValue) feelings are working as one. Trust this inner unity."
+            return getConjunctionInsight(natalSun: natalSun, transitMoon: transitMoon)
             
         case 52...68: // Sextile  
-            return "A subtle opportunity is available today. Your \(natalSun.rawValue) instincts and current \(transitMoon.rawValue) emotional climate are offering you a chance to blend your strengths. Pay attention to gentle nudges."
+            return getSextileInsight(natalSun: natalSun, transitMoon: transitMoon)
             
         case 82...98: // Square
-            return "There's creative tension between your \(natalSun.rawValue) identity and current \(transitMoon.rawValue) emotions. This friction is actually pushing you to integrate different parts of yourself."
+            return getSquareInsight(natalSun: natalSun, transitMoon: transitMoon)
             
         case 112...128: // Trine
-            return "Today flows naturally for you. Your \(natalSun.rawValue) energy and \(transitMoon.rawValue) emotions are in perfect harmony, making everything feel effortless."
+            return getTrineInsight(natalSun: natalSun, transitMoon: transitMoon)
             
         case 172...188: // Opposition
-            return "Today asks you to balance two sides of yourself. Your \(natalSun.rawValue) nature wants one thing while your emotions crave another. The key is honoring both."
+            return getOppositionInsight(natalSun: natalSun, transitMoon: transitMoon)
             
         default: // No major aspect
-            let moonInfluence = getMoonSignDailyInfluence(transitMoon)
-            let personalResponse = getPersonalResponseToMoon(natalSun, natalMoon, transitMoon)
-            return "The Moon in \(transitMoon.rawValue) \(moonInfluence). For you as a \(natalSun.rawValue) with \(natalMoon.rawValue) Moon, \(personalResponse)."
+            return getNoAspectInsight(natalSun: natalSun, natalMoon: natalMoon, transitMoon: transitMoon)
+        }
+    }
+    
+    private func getConjunctionInsight(natalSun: ZodiacSign, transitMoon: ZodiacSign) -> String {
+        // Moon conjunct Sun - New Moon energy, fresh starts, alignment of conscious and unconscious
+        return "Moon Conjunction Sun: A powerful new beginning is emerging in your life. This conjunction represents the perfect alignment between your conscious identity (\(natalSun.rawValue)) and your emotional needs. You're experiencing a rare moment of inner unity where what you want and what you feel are completely synchronized. This is an excellent time to set intentions, start new projects, or make important decisions because your head and heart are speaking the same language. Your intuition is especially strong, providing clear guidance about your next steps. You may feel more emotionally centered and self-aware than usual. Pay attention to insights that arise naturally - they're coming from your deepest wisdom. This energy supports authentic self-expression and genuine connections with others. Trust that what feels right emotionally is also what serves your highest good. New opportunities that align with your true nature are likely to present themselves. Take action on what genuinely excites you."
+    }
+    
+    private func getSquareInsight(natalSun: ZodiacSign, transitMoon: ZodiacSign) -> String {
+        // Moon square Sun - Creative tension, growth through challenge
+        return "Moon Square Sun: You're experiencing dynamic tension between your core identity (\(natalSun.rawValue)) and your current emotional state. This challenging aspect creates friction that, while uncomfortable, is essential for growth and development. You may feel pulled in different directions - what your mind thinks is best versus what your emotions are telling you. This inner conflict isn't a problem to be solved but rather creative energy to be harnessed. The pressure you're feeling is actually building strength and resilience. This is an excellent time for breakthrough thinking and innovative solutions to long-standing problems. Your emotional responses may seem at odds with your rational mind, but both contain important truths. Instead of choosing one over the other, look for ways to integrate these different aspects of yourself. This tension often leads to important realizations about your authentic needs and desires. Physical exercise or creative expression can help channel this dynamic energy constructively. Expect some emotional ups and downs, but trust that this process is refining your character and clarifying your true priorities."
+    }
+    
+    private func getTrineInsight(natalSun: ZodiacSign, transitMoon: ZodiacSign) -> String {
+        // Moon trine Sun - Harmonious flow, natural talents activated
+        return "Moon Trine Sun: This harmonious aspect brings a sense of ease and natural flow to your day. Your \(natalSun.rawValue) identity and current emotional state are working in perfect cooperation, creating conditions for effortless progress and genuine satisfaction. You're likely to feel more confident, optimistic, and emotionally balanced than usual. This supportive energy enhances your natural talents and makes it easier to express your authentic self without resistance. Creative endeavors, social connections, and personal projects benefit from this flowing energy. Others are drawn to your positive presence and may offer support or opportunities. Trust your instincts - they're aligned with your highest good right now. This is an excellent time for collaborative efforts, as you can easily harmonize with others while maintaining your individual identity. Your emotional intelligence is heightened, helping you navigate relationships with grace and understanding. Take advantage of this supportive energy to move forward on important goals or to simply enjoy a sense of inner peace and contentment."
+    }
+    
+    private func getOppositionInsight(natalSun: ZodiacSign, transitMoon: ZodiacSign) -> String {
+        // Moon opposition Sun - Full Moon energy, culmination, conscious awareness of patterns
+        return "Moon Opposition Sun: This aspect represents a culmination point where opposing forces in your life come into clear focus. Your \(natalSun.rawValue) conscious identity is directly facing your emotional needs and subconscious patterns. This can create tension, but it also brings valuable awareness about internal contradictions that need resolution. You may feel torn between what you think you should do and what you emotionally want to do. This is actually an opportunity to find a more authentic balance between these different aspects of yourself. Relationships may reflect this internal tension - others might mirror back parts of yourself you're not fully acknowledging. Pay attention to what irritates or attracts you in others right now, as it often reveals something important about your own psyche. This energy supports bringing unconscious patterns into conscious awareness. It's a powerful time for emotional releases, important conversations, or major realizations about your life direction. The goal isn't to eliminate the tension but to find a higher synthesis that honors both sides of the equation."
+    }
+    
+    private func getSextileInsight(natalSun: ZodiacSign, transitMoon: ZodiacSign) -> String {
+        // Moon sextile Sun - Supportive opportunities, gentle growth
+        return "Moon Sextile Sun: This supportive aspect creates gentle opportunities for growth and positive change. Your \(natalSun.rawValue) identity and current emotional state are working cooperatively, though with a bit more effort required than a trine. You're in a good position to take productive action toward your goals, especially those that involve both practical planning and emotional fulfillment. This energy supports learning, communication, and building bridges between different areas of your life. You may find it easier to express your feelings clearly or to understand others' emotional needs. Small but significant opportunities may present themselves - pay attention to subtle invitations or openings that could lead to meaningful developments. Your social connections are highlighted, with potential for making new friendships or strengthening existing relationships. This is an excellent time for constructive conversations, creative collaborations, or taking modest steps toward important goals. While not as intense as other aspects, this gentle support helps you move forward with confidence and emotional clarity."
+    }
+    
+    private func getNoAspectInsight(natalSun: ZodiacSign, natalMoon: ZodiacSign, transitMoon: ZodiacSign) -> String {
+        // No major aspect - focus on moon sign influence
+        if transitMoon == natalSun {
+            return "Today amplifies everything that makes you, you. Lean into your \(natalSun.rawValue) nature - but maybe tone it down like 10%."
+        } else if transitMoon == natalMoon {
+            return "Your \(natalMoon.rawValue) Moon is having a moment today. Pay attention to what your gut is trying to tell your brain."
+        } else {
+            return getMoonSpecificInsight(transitMoon)
+        }
+    }
+    
+    private func getMoonSpecificInsight(_ moonSign: ZodiacSign) -> String {
+        // Generate detailed, comprehensive insights like the reference app
+        switch moonSign {
+        case .aries:
+            return "The Moon in Aries activates your initiative and courage today. You may feel an urgent need to start new projects or take decisive action on matters you've been postponing. This impulsive energy can lead to breakthrough moments, but be mindful of rushing into situations without proper planning. Your leadership qualities are heightened, making this an excellent time to take charge of group situations or advocate for yourself. However, avoid making major decisions when emotions are running high. Channel this dynamic energy into physical activities or creative pursuits. Trust your first instincts today - they're likely more accurate than overthinking would be."
+            
+        case .taurus:
+            return "With the Moon in Taurus, you're craving stability and comfort in all areas of life. This is a powerful time for grounding yourself and focusing on practical matters that bring long-term security. Your senses are heightened, making it an ideal day for enjoying good food, beautiful surroundings, or tactile experiences. You may feel more stubborn than usual, but this isn't necessarily negative - it's your inner wisdom protecting you from unnecessary changes. Focus on building rather than destroying today. Financial matters and material possessions may demand your attention. Take time to appreciate what you already have before seeking more. Your patience and persistence will pay off in tangible ways."
+            
+        case .gemini:
+            return "The Moon in Gemini stimulates your curiosity and desire for mental stimulation. Communication takes center stage today - you'll find yourself more talkative, inquisitive, and eager to share ideas. This is an excellent time for learning, writing, or engaging in meaningful conversations that expand your perspective. However, you may feel scattered or unable to focus on one thing for long. Embrace this versatility rather than fighting it. Multiple projects or interests can coexist productively. Pay attention to the information coming your way through various channels - social media, conversations, books, or news may contain important insights. Your adaptability is your superpower today."
+            
+        case .cancer:
+            return "The Moon in Cancer heightens your emotional sensitivity and intuitive abilities. You may find yourself more protective of loved ones and drawn to nurturing activities. Home and family matters take priority, and you might feel the urge to create a cozy, secure environment. Trust your emotional responses today - they're providing valuable information about people and situations. You may experience mood swings, but these fluctuations are helping you process important feelings. This is an excellent time for self-care, cooking, or engaging in activities that make you feel emotionally fulfilled. Don't apologize for needing more emotional support than usual - it's perfectly natural during this transit."
+            
+        case .leo:
+            return "The Moon in Leo amplifies your need for recognition, creativity, and self-expression. You're feeling more dramatic and confident, with a natural magnetism that draws others to you. This is an ideal time for creative projects, performances, or any activities that allow you to shine. Your generous spirit is highlighted, making you want to share your talents and resources with others. However, be aware of ego-driven reactions if you don't receive the attention you're seeking. Focus on expressing yourself authentically rather than performing for validation. Children or youthful energy may play an important role today. Your heart is your guide - follow what genuinely excites and inspires you."
+            
+        case .virgo:
+            return "The Moon in Virgo activates your analytical mind and desire for improvement. You'll feel compelled to organize, analyze, and perfect various aspects of your life. This practical energy is excellent for tackling detailed work, health matters, or service-oriented activities. You may be more critical than usual - both of yourself and others - but this discernment can lead to valuable improvements. Pay attention to your body's needs and daily routines. Small adjustments to your habits can have significant long-term benefits. Your helpful nature is highlighted, making this a good time to assist others or engage in meaningful work. Don't let perfectionist tendencies paralyze you - progress is more important than perfection."
+            
+        case .libra:
+            return "The Moon in Libra emphasizes relationships, balance, and aesthetic harmony. You're seeking fairness and beauty in all interactions today, with a heightened sensitivity to discord or imbalance. Partnership matters - both romantic and business - may require your attention. Your diplomatic skills are enhanced, making you an excellent mediator in conflicts. However, you might struggle with decision-making as you weigh all options carefully. Trust that the 'right' choice often becomes clear when you consider what serves the highest good for all involved. Surround yourself with beauty, whether through art, music, or harmonious environments. Your charm and social grace are particularly powerful today."
+            
+        case .scorpio:
+            return "The Moon in Scorpio intensifies your emotional depth and desire for authentic connection. You're not interested in surface-level interactions today - you want to dig deeper and uncover hidden truths. This powerful energy can facilitate transformation and healing, but it may also bring up intense emotions or psychological material that needs processing. Trust your instincts about people and situations - your psychological radar is especially accurate. This is an excellent time for research, investigation, or any work that requires penetrating insight. Intimate relationships may reach new levels of honesty and connection. Don't shy away from difficult conversations if they lead to greater understanding."
+            
+        case .sagittarius:
+            return "The Moon in Sagittarius ignites your adventurous spirit and philosophical nature. You're seeking meaning, truth, and expansion in all forms today. This restless energy may manifest as wanderlust, a desire to learn about different cultures, or engagement with higher education or spiritual practices. Your optimism is contagious, inspiring others to think bigger and aim higher. However, you may feel confined by routine or small-minded thinking. Seek opportunities to broaden your horizons - whether through travel, learning, or connecting with people from different backgrounds. Your wisdom and experience are valuable to others. Share your insights generously, but avoid being preachy or dogmatic."
+            
+        case .capricorn:
+            return "The Moon in Capricorn activates your ambition and desire for achievement. You're feeling more serious and goal-oriented, with a natural inclination toward leadership and responsibility. This is an excellent time for career advancement, long-term planning, or building something of lasting value. Your discipline and persistence are highlighted, making complex projects more manageable. However, don't let ambition overshadow your emotional needs or relationships. Authority figures may play an important role today - either as mentors or challenges to overcome. Your reputation and public image are particularly important now. Make choices that reflect your highest integrity and long-term vision."
+            
+        case .aquarius:
+            return "The Moon in Aquarius emphasizes your individuality and desire for freedom. You're feeling more innovative and forward-thinking, with ideas that may seem unusual to others but are actually ahead of their time. Group activities, friendships, and humanitarian causes may capture your interest. This is an excellent time for networking, joining communities of like-minded individuals, or working toward social change. Your unique perspective is valuable - don't suppress it to fit in. Technology may play an important role in your day. You might feel emotionally detached, but this objectivity allows you to see situations more clearly and make decisions based on logic rather than emotion."
+            
+        case .pisces:
+            return "The Moon in Pisces heightens your intuition, empathy, and creative imagination. You're more sensitive to the emotional undercurrents around you, picking up on feelings and energies that others might miss. This psychic sensitivity can be both a gift and a challenge - trust your intuitive insights while protecting yourself from absorbing negative emotions. Creative and spiritual activities are especially fulfilling today. Dreams, meditation, and artistic expression can provide important guidance. You may feel more compassionate and willing to help others, but be careful not to sacrifice your own wellbeing in the process. Water, music, and quiet reflection will help you recharge and process your experiences."
         }
     }
     
@@ -413,6 +488,495 @@ class AstrologyService {
             return "your emotional patterns are heightened and familiar"
         } else {
             return "this brings a different flavor to your usual emotional experience"
+        }
+    }
+    
+    // MARK: - Horoscope Scores Calculation
+    func calculateHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
+        print("🎯 Calculating personalized horoscope scores using birth chart and current transits")
+        let transits = calculateCurrentTransits()
+        let aspects = calculateAspects(for: chart)
+        
+        // Calculate each score based on actual astrological factors
+        let overallScore = calculateOverallScore(chart: chart, transits: transits, aspects: aspects)
+        let loveScore = calculateLoveScore(chart: chart, transits: transits, aspects: aspects)
+        let careerScore = calculateCareerScore(chart: chart, transits: transits, aspects: aspects)
+        let wealthScore = calculateWealthScore(chart: chart, transits: transits, aspects: aspects)
+        
+        return HoroscopeScores(
+            overall: overallScore,
+            love: loveScore,
+            career: careerScore,
+            wealth: wealthScore
+        )
+    }
+    
+    private func calculateOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 75 // Base score
+        
+        // Sun-Moon harmony influences overall well-being
+        let sunMoonAngle = abs(chart.sun.longitude - chart.moon.longitude)
+        let normalizedAngle = sunMoonAngle > 180 ? 360 - sunMoonAngle : sunMoonAngle
+        
+        // Harmonious sun-moon aspects boost overall score
+        if normalizedAngle < 8 || (112...128).contains(normalizedAngle) { // Conjunction or Trine
+            score += 15
+        } else if (52...68).contains(normalizedAngle) { // Sextile
+            score += 10
+        } else if (82...98).contains(normalizedAngle) || (172...188).contains(normalizedAngle) { // Square or Opposition
+            score -= 5
+        }
+        
+        // Current Moon transit affects daily energy
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let moonToSunAspect = abs(moonTransit.longitude - chart.sun.longitude)
+            let normalizedMoonAspect = moonToSunAspect > 180 ? 360 - moonToSunAspect : moonToSunAspect
+            
+            if normalizedMoonAspect < 8 || (112...128).contains(normalizedMoonAspect) {
+                score += 8 // Flowing lunar energy
+            } else if (82...98).contains(normalizedMoonAspect) {
+                score -= 3 // Challenging lunar energy
+            }
+        }
+        
+        // Jupiter transits bring expansion and luck
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSunAspect = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiterAspect = jupiterToSunAspect > 180 ? 360 - jupiterToSunAspect : jupiterToSunAspect
+            
+            if normalizedJupiterAspect < 8 || (112...128).contains(normalizedJupiterAspect) {
+                score += 12 // Jupiter blessing
+            } else if (52...68).contains(normalizedJupiterAspect) {
+                score += 8 // Supportive Jupiter
+            }
+        }
+        
+        return max(40, min(100, score))
+    }
+    
+    private func calculateLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 70 // Base love score
+        
+        // Venus position is key for love
+        let venusSign = chart.venus.position.sign
+        
+        // Venus in harmonious signs
+        if [.libra, .taurus, .pisces, .cancer].contains(venusSign) {
+            score += 15
+        } else if [.leo, .gemini, .aquarius].contains(venusSign) {
+            score += 10
+        }
+        
+        // Current Venus transit
+        if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
+            let venusToNatalVenusAspect = abs(venusTransit.longitude - chart.venus.longitude)
+            let normalizedVenusAspect = venusToNatalVenusAspect > 180 ? 360 - venusToNatalVenusAspect : venusToNatalVenusAspect
+            
+            if normalizedVenusAspect < 8 || (112...128).contains(normalizedVenusAspect) {
+                score += 12 // Venus return or trine
+            } else if (52...68).contains(normalizedVenusAspect) {
+                score += 8 // Venus sextile
+            }
+        }
+        
+        // Moon in relationship-friendly signs affects emotional connection
+        let moonSign = chart.moon.position.sign
+        if [.cancer, .pisces, .libra, .taurus].contains(moonSign) {
+            score += 8
+        }
+        
+        // Current Moon transit to Venus
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let moonToVenusAspect = abs(moonTransit.longitude - chart.venus.longitude)
+            let normalizedMoonVenusAspect = moonToVenusAspect > 180 ? 360 - moonToVenusAspect : moonToVenusAspect
+            
+            if normalizedMoonVenusAspect < 8 || (112...128).contains(normalizedMoonVenusAspect) {
+                score += 10 // Emotional harmony in love
+            }
+        }
+        
+        return max(30, min(100, score))
+    }
+    
+    private func calculateCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 72 // Base career score
+        
+        // Mars position affects drive and ambition
+        let marsSign = chart.mars.position.sign
+        if [.aries, .capricorn, .scorpio, .leo].contains(marsSign) {
+            score += 12 // Strong Mars placement
+        } else if [.libra, .cancer, .pisces].contains(marsSign) {
+            score += 5 // Gentler Mars energy
+        }
+        
+        // Saturn transits affect career structure and discipline
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSunAspect = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturnAspect = saturnToSunAspect > 180 ? 360 - saturnToSunAspect : saturnToSunAspect
+            
+            if (112...128).contains(normalizedSaturnAspect) {
+                score += 15 // Saturn trine - structured success
+            } else if (52...68).contains(normalizedSaturnAspect) {
+                score += 10 // Saturn sextile - steady progress
+            } else if (82...98).contains(normalizedSaturnAspect) {
+                score -= 8 // Saturn square - challenges to overcome
+            }
+        }
+        
+        // Mercury affects communication and intellect in career
+        let mercurySign = chart.mercury.position.sign
+        if [.gemini, .virgo, .aquarius, .libra].contains(mercurySign) {
+            score += 8 // Strong Mercury for career communication
+        }
+        
+        // Jupiter transits to career planets
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToMarsAspect = abs(jupiterTransit.longitude - chart.mars.longitude)
+            let normalizedJupiterMarsAspect = jupiterToMarsAspect > 180 ? 360 - jupiterToMarsAspect : jupiterToMarsAspect
+            
+            if normalizedJupiterMarsAspect < 8 || (112...128).contains(normalizedJupiterMarsAspect) {
+                score += 12 // Jupiter blessing on career drive
+            }
+        }
+        
+        return max(35, min(100, score))
+    }
+    
+    private func calculateWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+        var score = 68 // Base wealth score
+        
+        // Jupiter represents abundance and expansion
+        let jupiterSign = chart.jupiter.position.sign
+        if [.sagittarius, .pisces, .cancer, .taurus].contains(jupiterSign) {
+            score += 15 // Strong Jupiter for wealth
+        } else if [.capricorn, .gemini].contains(jupiterSign) {
+            score -= 5 // Jupiter in more challenging signs for wealth
+        }
+        
+        // Venus also rules money and material resources
+        let venusSign = chart.venus.position.sign
+        if [.taurus, .libra, .pisces].contains(venusSign) {
+            score += 10 // Venus in money-friendly signs
+        }
+        
+        // Current Jupiter transits affect financial opportunities
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToJupiterAspect = abs(jupiterTransit.longitude - chart.jupiter.longitude)
+            let normalizedJupiterAspect = jupiterToJupiterAspect > 180 ? 360 - jupiterToJupiterAspect : jupiterToJupiterAspect
+            
+            if normalizedJupiterAspect < 8 {
+                score += 20 // Jupiter return - major financial opportunity
+            } else if (112...128).contains(normalizedJupiterAspect) {
+                score += 15 // Jupiter trine - flowing abundance
+            } else if (52...68).contains(normalizedJupiterAspect) {
+                score += 10 // Jupiter sextile - growth opportunities
+            }
+        }
+        
+        // Saturn can restrict or stabilize finances
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToVenusAspect = abs(saturnTransit.longitude - chart.venus.longitude)
+            let normalizedSaturnVenusAspect = saturnToVenusAspect > 180 ? 360 - saturnToVenusAspect : saturnToVenusAspect
+            
+            if (112...128).contains(normalizedSaturnVenusAspect) {
+                score += 8 // Saturn trine Venus - stable wealth building
+            } else if (82...98).contains(normalizedSaturnVenusAspect) {
+                score -= 10 // Saturn square Venus - financial restrictions
+            }
+        }
+        
+        return max(25, min(100, score))
+    }
+    
+    // MARK: - Astrological Cycles
+    func calculateCurrentCycles(for chart: BirthChart) -> [AstrologicalCycle] {
+        print("🔄 Calculating current astrological cycles and aspects")
+        let transits = calculateCurrentTransits()
+        var cycles: [AstrologicalCycle] = []
+        
+        // Calculate significant transit aspects
+        cycles.append(contentsOf: calculateTransitCycles(chart: chart, transits: transits))
+        
+        // Add current lunar cycle info
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let lunarCycle = calculateLunarCycle(moonTransit: moonTransit, chart: chart)
+            cycles.append(lunarCycle)
+        }
+        
+        return cycles
+    }
+    
+    private func calculateTransitCycles(chart: BirthChart, transits: [CelestialBody]) -> [AstrologicalCycle] {
+        var cycles: [AstrologicalCycle] = []
+        
+        // Check for significant outer planet transits
+        let outerPlanets = transits.filter { ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"].contains($0.name) }
+        let personalPlanets = [chart.sun, chart.moon, chart.mercury, chart.venus, chart.mars]
+        
+        for transitPlanet in outerPlanets {
+            for natalPlanet in personalPlanets {
+                let angle = abs(transitPlanet.longitude - natalPlanet.longitude)
+                let normalizedAngle = angle > 180 ? 360 - angle : angle
+                
+                // Check for major aspects
+                if let aspectType = getAspectType(for: normalizedAngle) {
+                    let cycle = createCycleFromAspect(
+                        transitPlanet: transitPlanet,
+                        natalPlanet: natalPlanet,
+                        aspectType: aspectType
+                    )
+                    cycles.append(cycle)
+                }
+            }
+        }
+        
+        // Also check for Venus and Mars transits to Sun/Moon for love and career cycles
+        if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
+            let venusToSunAngle = abs(venusTransit.longitude - chart.sun.longitude)
+            let normalizedVenusAngle = venusToSunAngle > 180 ? 360 - venusToSunAngle : venusToSunAngle
+            
+            if let aspectType = getAspectType(for: normalizedVenusAngle) {
+                cycles.append(createLoveCycle(aspectType: aspectType))
+            }
+        }
+        
+        return Array(cycles.prefix(4)) // Limit to most significant cycles
+    }
+    
+    private func calculateLunarCycle(moonTransit: CelestialBody, chart: BirthChart) -> AstrologicalCycle {
+        let moonToSunAngle = abs(moonTransit.longitude - chart.sun.longitude)
+        let normalizedAngle = moonToSunAngle > 180 ? 360 - moonToSunAngle : moonToSunAngle
+        
+        let phase: String
+        let description: String
+        let influence: AstrologicalCycle.CycleInfluence
+        
+        switch normalizedAngle {
+        case 0...15:
+            phase = "New Moon Energy"
+            description = "Perfect time for new beginnings and setting intentions. Your emotional and identity are aligned."
+            influence = .positive
+            
+        case 75...105:
+            phase = "First Quarter Tension"
+            description = "Dynamic energy that pushes you to take action. Use this creative tension constructively."
+            influence = .challenging
+            
+        case 165...195:
+            phase = "Full Moon Illumination"
+            description = "Time of heightened awareness and emotional clarity. Relationships and patterns become visible."
+            influence = .transformative
+            
+        case 255...285:
+            phase = "Last Quarter Release"
+            description = "Perfect time to let go of what no longer serves you. Clear space for new growth."
+            influence = .neutral
+            
+        default:
+            phase = "Lunar Flow"
+            description = "Gentle lunar energy supporting your natural rhythms and emotional processing."
+            influence = .neutral
+        }
+        
+        return AstrologicalCycle(
+            title: phase,
+            planetaryAspect: "Moon \(getAspectSymbol(for: normalizedAngle)) Sun",
+            duration: "< 3 days",
+            description: description,
+            influence: influence
+        )
+    }
+    
+    private func getAspectType(for angle: Double) -> AspectType? {
+        if angle <= 8 { return .conjunction }
+        if (52...68).contains(angle) { return .sextile }
+        if (82...98).contains(angle) { return .square }
+        if (112...128).contains(angle) { return .trine }
+        if (172...188).contains(angle) { return .opposition }
+        return nil
+    }
+    
+    private func getAspectSymbol(for angle: Double) -> String {
+        if let aspectType = getAspectType(for: angle) {
+            return aspectType.symbol
+        }
+        return "∠" // Generic angle symbol
+    }
+    
+    private func createCycleFromAspect(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> AstrologicalCycle {
+        let title = generateCycleTitle(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType)
+        let duration = getCycleDuration(for: transitPlanet.name)
+        let description = generateCycleDescription(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType)
+        let influence = getCycleInfluence(aspectType: aspectType, transitPlanet: transitPlanet.name)
+        
+        return AstrologicalCycle(
+            title: title,
+            planetaryAspect: "\(transitPlanet.name) \(aspectType.symbol) \(natalPlanet.name)",
+            duration: duration,
+            description: description,
+            influence: influence
+        )
+    }
+    
+    private func createLoveCycle(aspectType: AspectType) -> AstrologicalCycle {
+        let titles = [
+            "Heart Opening", "Romantic Alignment", "Love's Gentle Touch", "Attraction Amplified"
+        ]
+        let title = titles.randomElement() ?? "Venus Influence"
+        
+        return AstrologicalCycle(
+            title: title,
+            planetaryAspect: "Venus \(aspectType.symbol) Sun",
+            duration: "> 30 days",
+            description: "Venus energy enhances your attractiveness and ability to connect with others on a heart level.",
+            influence: aspectType == .square || aspectType == .opposition ? .challenging : .positive
+        )
+    }
+    
+    private func generateCycleTitle(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
+        let titles: [String: [String]] = [
+            "Jupiter": ["Expand Your Horizons", "Growth Opportunity", "Lucky Break Ahead", "Abundance Flows"],
+            "Saturn": ["Build Foundation", "Lesson in Discipline", "Structure Your Goals", "Wisdom Through Challenge"],
+            "Uranus": ["Break Free", "Revolutionary Change", "Unexpected Breakthrough", "Innovation Required"],
+            "Neptune": ["Spiritual Awakening", "Intuitive Insights", "Dream Into Reality", "Mystical Connection"],
+            "Pluto": ["Deep Transformation", "Phoenix Rising", "Power Shift", "Soul Evolution"]
+        ]
+        
+        let planetTitles = titles[transitPlanet.name] ?? ["Cosmic Influence"]
+        return planetTitles.randomElement() ?? "Planetary Alignment"
+    }
+    
+    private func getCycleDuration(for planetName: String) -> String {
+        switch planetName {
+        case "Jupiter": return "> 30 days"
+        case "Saturn": return "> 30 days"
+        case "Uranus": return "> 30 days"
+        case "Neptune": return "> 30 days"
+        case "Pluto": return "> 30 days"
+        case "Venus": return "> 30 days"
+        case "Mars": return "> 30 days"
+        case "Mercury": return "< 3 days"
+        case "Moon": return "< 3 days"
+        default: return "> 30 days"
+        }
+    }
+    
+    private func generateCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
+        // Create specific, unique descriptions for each planet-planet combination
+        let planetPair = "\(transitPlanet.name)-\(natalPlanet.name)"
+        
+        switch (transitPlanet.name, natalPlanet.name, aspectType) {
+        // Uranus combinations
+        case ("Uranus", "Mercury", .sextile):
+            return "Revolutionary thinking emerges as Uranus awakens new perspectives in your mind. Breakthrough insights about communication, technology, or learning are highlighted. Your mental processes are being upgraded."
+            
+        case ("Uranus", "Venus", .sextile):
+            return "Unexpected developments in relationships or creative endeavors bring exciting possibilities. You're attracting unconventional beauty and unique connections. Embrace the unusual in love and art."
+            
+        case ("Uranus", "Mercury", .conjunction):
+            return "A lightning bolt of innovation strikes your thinking patterns. Revolutionary ideas demand expression. Your communication style undergoes a dramatic transformation that opens new possibilities."
+            
+        case ("Uranus", "Venus", .conjunction):
+            return "Sudden attractions or creative breakthroughs electrify your world. Traditional relationship patterns are being revolutionized. Expect the unexpected in matters of the heart."
+            
+        case ("Uranus", "Sun", .square):
+            return "Your individuality clashes with external pressures for conformity. This tension catalyzes authentic self-expression. Break free from limiting identities that no longer serve you."
+            
+        case ("Uranus", "Moon", .opposition):
+            return "Emotional independence battles with security needs. This push-pull dynamic reveals where you've been playing it too safe. Trust your intuitive urges for freedom."
+            
+        // Saturn combinations  
+        case ("Saturn", "Sun", .trine):
+            return "Disciplined effort yields lasting recognition and achievement. Your authority and leadership skills are being refined through practical experience. Build something that will endure."
+            
+        case ("Saturn", "Mars", .square):
+            return "Obstacles test your determination and force you to develop patience. Each challenge is strengthening your character and teaching strategic thinking. Persist through resistance."
+            
+        case ("Saturn", "Venus", .sextile):
+            return "Commitment and structure bring stability to relationships and finances. Mature love is favored over superficial attractions. Invest in what has lasting value."
+            
+        // Jupiter combinations
+        case ("Jupiter", "Sun", .conjunction):
+            return "A year of expansion, opportunity, and increased confidence begins. Your natural talents are magnified and recognized. Think bigger than you ever have before."
+            
+        case ("Jupiter", "Mercury", .trine):
+            return "Learning accelerates and communication becomes more persuasive. Publishing, teaching, or travel opportunities arise. Your ideas have broader reach and impact."
+            
+        case ("Jupiter", "Venus", .sextile):
+            return "Generosity in love and creativity brings abundance. Social connections expand your horizons. Beautiful experiences and romantic opportunities flourish."
+            
+        // Neptune combinations
+        case ("Neptune", "Sun", .square):
+            return "Illusions about your identity are dissolving, creating temporary confusion but ultimate clarity. Surrender ego-driven goals that lack spiritual authenticity."
+            
+        case ("Neptune", "Mercury", .conjunction):
+            return "Intuitive perception blends with logical thinking, enhancing creativity and psychic sensitivity. Dreams and symbols carry important messages. Trust your hunches."
+            
+        case ("Neptune", "Venus", .trine):
+            return "Unconditional love and artistic inspiration flow naturally. Romantic idealism is beautifully expressed. Spiritual partnership or creative collaboration is highlighted."
+            
+        // Pluto combinations
+        case ("Pluto", "Sun", .conjunction):
+            return "A profound identity transformation begins that will reshape your entire life direction. Death of old self enables birth of authentic power. Embrace the metamorphosis."
+            
+        case ("Pluto", "Mars", .square):
+            return "Power struggles reveal where you need to transform your approach to conflict and assertion. Channel intense energy into constructive change rather than destruction."
+            
+        case ("Pluto", "Venus", .opposition):
+            return "Relationships undergo deep transformation as hidden dynamics surface. Possessiveness and control issues require honest examination. Love evolves or ends."
+            
+        // Generic fallbacks for less common combinations
+        default:
+            return generateGenericCycleDescription(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType)
+        }
+    }
+    
+    private func generateGenericCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
+        let planetMeanings: [String: String] = [
+            "Jupiter": "growth and opportunity",
+            "Saturn": "discipline and responsibility", 
+            "Uranus": "innovation and awakening",
+            "Neptune": "intuition and transcendence",
+            "Pluto": "transformation and regeneration",
+            "Venus": "love and beauty",
+            "Mars": "action and courage"
+        ]
+        
+        let natalMeanings: [String: String] = [
+            "Sun": "your core identity",
+            "Moon": "your emotional world",
+            "Mercury": "your mind and communication",
+            "Venus": "your relationships and values",
+            "Mars": "your energy and drive"
+        ]
+        
+        let transitMeaning = planetMeanings[transitPlanet.name] ?? "cosmic energy"
+        let natalMeaning = natalMeanings[natalPlanet.name] ?? "your nature"
+        
+        switch aspectType {
+        case .conjunction:
+            return "\(transitPlanet.name) merges with \(natalMeaning), creating intense focus on \(transitMeaning). A new cycle begins with powerful potential for transformation."
+        case .trine:
+            return "\(transitPlanet.name) harmonizes with \(natalMeaning), bringing easy access to \(transitMeaning). Natural talents flow without resistance."
+        case .sextile:
+            return "\(transitPlanet.name) supports \(natalMeaning) through opportunities involving \(transitMeaning). Gentle progress through conscious effort."
+        case .square:
+            return "\(transitPlanet.name) challenges \(natalMeaning), creating productive tension around \(transitMeaning). Growth through overcoming obstacles."
+        case .opposition:
+            return "\(transitPlanet.name) illuminates \(natalMeaning) by highlighting themes of \(transitMeaning). Balance and integration are required."
+        }
+    }
+    
+    private func getCycleInfluence(aspectType: AspectType, transitPlanet: String) -> AstrologicalCycle.CycleInfluence {
+        switch aspectType {
+        case .conjunction, .trine:
+            return .positive
+        case .sextile:
+            return transitPlanet == "Jupiter" ? .positive : .neutral
+        case .square:
+            return ["Saturn", "Pluto"].contains(transitPlanet) ? .challenging : .transformative
+        case .opposition:
+            return .transformative
         }
     }
     

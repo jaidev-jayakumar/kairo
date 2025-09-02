@@ -7,6 +7,8 @@ struct TodayView: View {
     @State private var dailyInsight: String = ""
     @State private var currentTransits: [CelestialBody] = []
     @State private var userBirthData: BirthData? = nil
+    @State private var horoscopeScores: HoroscopeScores? = nil
+    @State private var currentCycles: [AstrologicalCycle] = []
     
     var body: some View {
         ZStack {
@@ -26,22 +28,33 @@ struct TodayView: View {
                         .opacity(showContent ? 1 : 0)
                         .animation(.easeOut(duration: 1.2), value: showContent)
                     
+                    // Horoscope Scores
+                    if let scores = horoscopeScores {
+                        HoroscopeScoresView(scores: scores)
+                            .padding(.top, 40)
+                            .opacity(showContent ? 1 : 0)
+                            .offset(y: showContent ? 0 : 30)
+                            .animation(.easeOut(duration: 1.0).delay(0.3), value: showContent)
+                    }
+                    
                     // Main cosmic insight
                     MainCosmicMessage(dailyInsight: dailyInsight, currentTransits: currentTransits)
-                        .padding(.top, 80)
+                        .padding(.top, 60)
                         .opacity(showContent ? 1 : 0)
                         .offset(y: showContent ? 0 : 30)
-                        .animation(.easeOut(duration: 1.0).delay(0.3), value: showContent)
+                        .animation(.easeOut(duration: 1.0).delay(0.5), value: showContent)
+                    
+                    // Cycles
+                    if !currentCycles.isEmpty {
+                        CyclesView(cycles: currentCycles)
+                            .padding(.top, 60)
+                            .opacity(showContent ? 1 : 0)
+                            .animation(.easeOut(duration: 1.0).delay(0.7), value: showContent)
+                    }
                     
                     // Energy manifestations
                     EnergyManifestations()
                         .padding(.top, 60)
-                        .opacity(showContent ? 1 : 0)
-                        .animation(.easeOut(duration: 1.0).delay(0.6), value: showContent)
-                    
-                    // Cosmic timing
-                    CosmicTiming()
-                        .padding(.top, 80)
                         .opacity(showContent ? 1 : 0)
                         .animation(.easeOut(duration: 1.0).delay(0.9), value: showContent)
                     
@@ -61,20 +74,18 @@ struct TodayView: View {
             // Load user birth data
             userBirthData = UserDataManager.shared.getBirthData()
             
-            // Calculate daily insight
+            // Calculate daily insight and scores
             if let birthData = userBirthData,
                let chart = AstrologyService.shared.calculateBirthChart(for: birthData) {
-                // Start with sync fallback for immediate display
+                // Use our deterministic, personalized insight (no AI override)
                 dailyInsight = AstrologyService.shared.generateDailyInsightSync(for: chart)
                 currentTransits = AstrologyService.shared.calculateCurrentTransits()
                 
-                // Then fetch AI-powered insight
-                Task {
-                    let aiInsight = await AstrologyService.shared.generateDailyInsight(for: chart)
-                    DispatchQueue.main.async {
-                        self.dailyInsight = aiInsight
-                    }
-                }
+                // Calculate horoscope scores based on user's birth chart
+                horoscopeScores = AstrologyService.shared.calculateHoroscopeScores(for: chart)
+                
+                // Calculate current astrological cycles
+                currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart)
             }
         }
     }
@@ -171,15 +182,42 @@ struct MainCosmicMessage: View {
 
 // MARK: - Energy Manifestations
 struct EnergyManifestations: View {
-    let manifestations = [
-        ("Clarity arrives through confusion", "flame"),
-        ("Dreams carry more weight than facts", "moon.zzz"),
-        ("Your body knows before your mind", "figure.mind.and.body")
-    ]
+    @State private var manifestations: [(String, String)] = []
+    
+    private var todaysManifestations: [(String, String)] {
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        
+        let allManifestations = [
+            ("Your intuition is louder than your anxiety today", "brain.head.profile"),
+            ("Stop explaining yourself to people who won't listen anyway", "bubble.left.and.bubble.right"),
+            ("The thing you're avoiding is the thing that will set you free", "key"),
+            ("Your boundaries are love letters to your future self", "heart.shield"),
+            ("What feels like falling apart is actually falling together", "sparkles"),
+            ("Your sensitivity is a superpower, not a weakness", "wand.and.stars"),
+            ("The person you're becoming is worth the discomfort", "figure.walk"),
+            ("Trust the process even when you can't see the outcome", "eye"),
+            ("Your weirdness is your authenticity trying to escape", "star"),
+            ("The resistance you feel is just fear dressed up as logic", "flame"),
+            ("Your gut knows things your brain hasn't figured out yet", "brain"),
+            ("Dreams carry more weight than facts when you're changing", "moon.zzz"),
+            ("Clarity arrives through confusion, not around it", "lightbulb"),
+            ("Your body keeps the score your mind tries to forget", "figure.mind.and.body"),
+            ("Sometimes the answer is to stop asking the question", "questionmark.diamond")
+        ]
+        
+        // Select 3 deterministic manifestations based on day of year
+        var selected: [(String, String)] = []
+        for i in 0..<3 {
+            let index = (dayOfYear + i * 7) % allManifestations.count
+            selected.append(allManifestations[index])
+        }
+        
+        return selected
+    }
     
     var body: some View {
         VStack(spacing: 20) {
-            ForEach(manifestations, id: \.0) { text, icon in
+            ForEach(todaysManifestations, id: \.0) { text, icon in
                 HStack(spacing: 16) {
                     Image(systemName: icon)
                         .font(.system(size: 16))

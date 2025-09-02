@@ -226,3 +226,46 @@ struct Aspect {
         "\(planet1.name) \(type.symbol) \(planet2.name)"
     }
 }
+
+// MARK: - Horoscope Scores
+struct HoroscopeScores {
+    let overall: Int
+    let love: Int
+    let career: Int
+    let wealth: Int
+    let date: Date
+    
+    init(overall: Int, love: Int, career: Int, wealth: Int, date: Date = Date()) {
+        self.overall = max(0, min(100, overall))
+        self.love = max(0, min(100, love))
+        self.career = max(0, min(100, career))
+        self.wealth = max(0, min(100, wealth))
+        self.date = date
+    }
+}
+
+// MARK: - Cycle/Transit Information
+struct AstrologicalCycle {
+    let id: UUID = UUID()
+    let title: String
+    let planetaryAspect: String
+    let duration: String
+    let description: String
+    let influence: CycleInfluence
+    
+    enum CycleInfluence {
+        case positive
+        case challenging
+        case transformative
+        case neutral
+        
+        var color: String {
+            switch self {
+            case .positive: return "#4CAF50"
+            case .challenging: return "#FF9800"
+            case .transformative: return "#9C27B0"
+            case .neutral: return "#607D8B"
+            }
+        }
+    }
+}
