@@ -54,16 +54,15 @@ struct HoroscopeScoresView: View {
 
 // MARK: - Day Selector
 struct DaySelector: View {
-    @State private var selectedDay = 1 // Monday
-    
-    private let weekdays = [
-        ("Fri", 29), ("Sat", 30), ("Sun", 31), ("Mon", 1), ("Tue", 2), ("Wed", 3), ("Thu", 4)
-    ]
+    @State private var selectedDayIndex: Int = 0
+    @State private var weekdays: [(String, Int)] = []
     
     var body: some View {
         HStack(spacing: 12) {
             ForEach(0..<weekdays.count, id: \.self) { index in
                 let (day, date) = weekdays[index]
+                let isToday = index == selectedDayIndex
+                
                 VStack(spacing: 8) {
                     Text(day)
                         .font(.system(size: 12, weight: .medium))
@@ -71,20 +70,53 @@ struct DaySelector: View {
                     
                     Text("\(date)")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(index == 3 ? .black : .white.opacity(0.7))
+                        .foregroundColor(isToday ? .black : .white.opacity(0.7))
                         .frame(width: 32, height: 32)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(index == 3 ? Color.pink.opacity(0.8) : Color.clear)
+                                .fill(isToday ? Color.pink.opacity(0.8) : Color.clear)
                         )
                 }
                 .onTapGesture {
                     withAnimation(.spring(response: 0.3)) {
-                        selectedDay = index
+                        selectedDayIndex = index
                     }
                 }
             }
         }
+        .onAppear {
+            generateWeekDays()
+        }
+    }
+    
+    private func generateWeekDays() {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Find the current day of week (0 = Sunday, 1 = Monday, etc.)
+        let todayWeekday = calendar.component(.weekday, from: today)
+        
+        // Calculate the start of the week (3 days before today)
+        let startOffset = -3
+        
+        var tempWeekdays: [(String, Int)] = []
+        var todayIndex = 3 // Today should be in the middle (index 3)
+        
+        for i in 0..<7 {
+            let offset = startOffset + i
+            
+            if let date = calendar.date(byAdding: .day, value: offset, to: today) {
+                let dayFormatter = DateFormatter()
+                dayFormatter.dateFormat = "E" // Short day name (Mon, Tue, etc.)
+                let dayName = dayFormatter.string(from: date)
+                
+                let dayNumber = calendar.component(.day, from: date)
+                tempWeekdays.append((dayName, dayNumber))
+            }
+        }
+        
+        self.weekdays = tempWeekdays
+        self.selectedDayIndex = todayIndex
     }
 }
 
