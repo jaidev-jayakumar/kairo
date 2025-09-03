@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct LaunchScreenView: View {
-    @State private var showLogo = false
-    @State private var expandCircle = false
     @State private var showStars = false
+    @State private var pulseScale: Double = 1.0
+    @State private var fadeOut = false
     @Binding var isLoading: Bool
     
     var body: some View {
@@ -11,90 +11,71 @@ struct LaunchScreenView: View {
             Color.black
                 .ignoresSafeArea()
             
-            // Animated stars background
+            // Subtle star field
             if showStars {
-                StarsBackgroundView()
-                    .opacity(0.5)
-            }
-            
-            // Center cosmic circle animation
-            Circle()
-                .stroke(
-                    LinearGradient(
-                        colors: [.white.opacity(0.3), .white.opacity(0.1)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: expandCircle ? 2 : 40
-                )
-                .frame(width: expandCircle ? 800 : 120, height: expandCircle ? 800 : 120)
-                .opacity(expandCircle ? 0 : 1)
-                .animation(.easeOut(duration: 1.5), value: expandCircle)
-            
-            // App logo/name
-            VStack(spacing: 20) {
-                // Constellation icon
-                ZStack {
-                    ForEach(0..<6) { index in
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 4, height: 4)
-                            .offset(x: cos(CGFloat(index) * .pi / 3) * 30,
-                                   y: sin(CGFloat(index) * .pi / 3) * 30)
-                            .opacity(showLogo ? 1 : 0)
-                            .animation(.easeOut(duration: 0.3).delay(Double(index) * 0.1), value: showLogo)
-                    }
-                    
-                    // Connecting lines
-                    ForEach(0..<6) { index in
-                        Rectangle()
-                            .fill(Color.white.opacity(0.3))
-                            .frame(width: 1, height: 60)
-                            .rotationEffect(.degrees(Double(index) * 60))
-                            .opacity(showLogo ? 1 : 0)
-                            .animation(.easeOut(duration: 0.5).delay(0.6), value: showLogo)
-                    }
+                ForEach(0..<20) { index in
+                    Circle()
+                        .fill(Color.white.opacity(Double.random(in: 0.3...0.8)))
+                        .frame(width: CGFloat.random(in: 1...3))
+                        .position(
+                            x: CGFloat.random(in: 50...350),
+                            y: CGFloat.random(in: 100...700)
+                        )
+                        .opacity(showStars ? 1 : 0)
+                        .animation(.easeOut(duration: 1.0).delay(Double(index) * 0.05), value: showStars)
                 }
-                
-                Text("KAIRO")
-                    .font(.system(size: 28, weight: .ultraLight, design: .default))
-                    .foregroundColor(.white)
-                    .tracking(8)
-                    .opacity(showLogo ? 1 : 0)
-                    .offset(y: showLogo ? 0 : 20)
-                    .animation(.easeOut(duration: 0.8).delay(0.3), value: showLogo)
-                
-                Text("cosmic guidance")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(.white.opacity(0.6))
-                    .tracking(2)
-                    .textCase(.uppercase)
-                    .opacity(showLogo ? 1 : 0)
-                    .animation(.easeOut(duration: 0.8).delay(0.5), value: showLogo)
             }
-            .scaleEffect(expandCircle ? 0.8 : 1)
-            .opacity(expandCircle ? 0 : 1)
-            .animation(.easeOut(duration: 0.8), value: expandCircle)
+            
+            // Central constellation
+            ZStack {
+                ForEach(0..<6) { index in
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 4, height: 4)
+                        .offset(
+                            x: cos(CGFloat(index) * .pi / 3) * 30,
+                            y: sin(CGFloat(index) * .pi / 3) * 30
+                        )
+                        .opacity(showStars ? 1 : 0)
+                        .scaleEffect(pulseScale)
+                        .animation(.easeOut(duration: 0.8).delay(Double(index) * 0.1), value: showStars)
+                }
+            }
+            .scaleEffect(fadeOut ? 0.8 : 1)
+            .opacity(fadeOut ? 0 : 1)
+            .animation(.easeOut(duration: 0.8), value: fadeOut)
         }
         .onAppear {
-            withAnimation {
-                showStars = true
-                showLogo = true
+            startSubtleAnimation()
+        }
+    }
+    
+    private func startSubtleAnimation() {
+        // Show stars and constellation
+        withAnimation {
+            showStars = true
+        }
+        
+        // Gentle pulsing
+        withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+            pulseScale = 1.2
+        }
+        
+        // Fade out and complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation(.easeOut(duration: 0.8)) {
+                fadeOut = true
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                withAnimation(.easeOut(duration: 1)) {
-                    expandCircle = true
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                    isLoading = false
-                }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                isLoading = false
             }
         }
     }
 }
 
-#Preview {
-    LaunchScreenView(isLoading: .constant(true))
+struct LaunchScreenView_Previews: PreviewProvider {
+    static var previews: some View {
+        LaunchScreenView(isLoading: .constant(true))
+    }
 }
