@@ -12,14 +12,8 @@ struct MainTabView: View {
                 WeekMonthView()
                     .tag(1)
                 
-                BirthChartView()
-                    .tag(2)
-                
-                ChatView()
-                    .tag(3)
-                
                 ProfileView()
-                    .tag(4)
+                    .tag(2)
             }
             
             // Custom tab bar
@@ -30,14 +24,8 @@ struct MainTabView: View {
                 TabBarButton(icon: "calendar", title: "Week", isSelected: selectedTab == 1)
                     .onTapGesture { selectedTab = 1 }
                 
-                TabBarButton(icon: "sparkles", title: "Chart", isSelected: selectedTab == 2)
+                TabBarButton(icon: "person", title: "Profile", isSelected: selectedTab == 2)
                     .onTapGesture { selectedTab = 2 }
-                
-                TabBarButton(icon: "bubble.left", title: "Chat", isSelected: selectedTab == 3)
-                    .onTapGesture { selectedTab = 3 }
-                
-                TabBarButton(icon: "person", title: "Profile", isSelected: selectedTab == 4)
-                    .onTapGesture { selectedTab = 4 }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
