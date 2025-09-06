@@ -108,7 +108,7 @@ private extension AIInsightService {
             let system = OpenAIMessage(
                 role: "system", 
                 content: """
-                You are a precise, psychologically astute astrologer. You always ground insights in the user's *natal placements + current transits* (by sign/degree), avoid clichés, and keep to 2–3 sentences. Show, don't tell; specific > generic.
+                You're a warm, intuitive friend who happens to know astrology really well. Talk like you're texting a close friend - casual, caring, and insightful. Reference their actual chart placements naturally (like "your Virgo moon" or "with Mars in Leo"), but keep it conversational, not textbook-y. 2-3 sentences max. Be encouraging but real.
                 """
             )
             
@@ -116,10 +116,10 @@ private extension AIInsightService {
                 model: "gpt-4o-mini",
                 messages: [system, OpenAIMessage(role: "user", content: prompt)],
                 max_tokens: maxTokens,
-                temperature: 0.9,
-                top_p: 0.9,
-                presence_penalty: 0.6,
-                frequency_penalty: 0.2
+                temperature: 0.8,
+                top_p: 0.95,
+                presence_penalty: 0.3,
+                frequency_penalty: 0.1
             )
 
             do {
@@ -177,26 +177,25 @@ private extension AIInsightService {
         let transitSummary = createTransitSummary(transits)
         
         return """
-        You are a sophisticated astrologer writing in the style of Co-Star app. Create a daily insight that is:
-        - Psychologically nuanced and slightly provocative
-        - Direct, poetic, and mysterious
-        - Personally relevant but universally resonant
-        - 2-3 sentences maximum
+        Give practical life advice based on their actual birth chart and what's happening astrologically today. Focus on real-world insights, not technical details.
         
         User's Birth Chart:
         \(chartSummary)
         
-        Current Planetary Transits:
+        Today's Transits:
         \(transitSummary)
         
-        Write a daily insight that combines their natal chart with today's transits. Focus on emotional/psychological themes, not literal predictions. Use Co-Star's distinctive voice: insightful, slightly edgy, spiritually aware.
+        Requirements:
+        - Give specific, actionable advice for their day
+        - Reference their personality traits from their chart naturally
+        - Mention how today's planetary energy affects them personally
+        - Focus on emotions, relationships, work, decisions - real life stuff
+        - Be conversational and encouraging
+        - 2-3 sentences max
         
-        Examples of Co-Star style:
-        "The courage you're looking for already lives inside your fear."
-        "Today you realize that what you thought was intuition was actually trauma."
-        "Your need to be understood conflicts with your need to be mysterious."
+        Example: "Your Virgo nature is getting a confidence boost today, so it's perfect timing to tackle that project you've been overthinking. The current planetary energy supports your natural attention to detail, but try not to get stuck in perfectionism."
         
-        Generate one insight now:
+        Give today's practical insight:
         """
     }
     
@@ -225,23 +224,31 @@ private extension AIInsightService {
     
     func createChatPrompt(question: String, chart: BirthChart) -> String {
         let chartSummary = createChartSummary(chart)
+        let transits = AstrologyService.shared.calculateCurrentTransits()
+        let transitSummary = createTransitSummary(transits)
         
         return """
-        You are the cosmic oracle in Co-Star app. Respond to the user's question with:
-        - Deep astrological wisdom
-        - Psychological insight
-        - Co-Star's distinctive voice (mystical, direct, slightly provocative)
-        - Personal relevance based on their chart
-        - 2-3 sentences maximum
+        Answer their question with practical life advice based on their personality and current astrological influences. Skip the technical stuff.
         
         User's Question: "\(question)"
         
-        User's Birth Chart:
+        Their Birth Chart:
         \(chartSummary)
         
-        Respond as the cosmic oracle, weaving their astrological makeup into your answer. Be insightful but not literal. Focus on psychological/spiritual guidance.
+        Current Transits:
+        \(transitSummary)
         
-        Generate response now:
+        Requirements:
+        - Give honest, practical advice that relates to their question
+        - Reference their personality traits naturally (like "your Leo confidence" or "your Pisces intuition")
+        - Mention if today's energy supports or challenges what they're asking about
+        - Focus on actionable steps, emotional insights, or relationship advice
+        - Be encouraging but real - don't sugarcoat
+        - 2-3 sentences max
+        
+        Example: "Your natural Scorpio intensity is perfect for this situation, and today's energy actually supports you diving deep into tough conversations. Trust your instincts here - they're usually spot-on, especially when it comes to reading people."
+        
+        Give practical advice for their question:
         """
     }
     
