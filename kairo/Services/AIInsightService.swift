@@ -26,6 +26,7 @@ class AIInsightService: ObservableObject {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
+        config.waitsForConnectivity = true
         self.urlSession = URLSession(configuration: config)
         
         self.cache = NSCache<NSString, NSString>()
@@ -93,46 +94,77 @@ class AIInsightService: ObservableObject {
 private extension AIInsightService {
     
     func callOpenAIAPI(prompt: String, maxTokens: Int) async throws -> String {
-        guard let url = URL(string: baseURL) else {
-            throw AIInsightError.invalidURL
+        guard let url = URL(string: baseURL) else { throw AIInsightError.invalidURL }
+
+        var attempt = 0
+        let maxAttempts = 4
+
+        while true {
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+            let system = OpenAIMessage(
+                role: "system", 
+                content: """
+                You are a precise, psychologically astute astrologer. You always ground insights in the user's *natal placements + current transits* (by sign/degree), avoid clichés, and keep to 2–3 sentences. Show, don't tell; specific > generic.
+                """
+            )
+            
+            let requestBody = OpenAIRequest(
+                model: "gpt-4o-mini",
+                messages: [system, OpenAIMessage(role: "user", content: prompt)],
+                max_tokens: maxTokens,
+                temperature: 0.9,
+                top_p: 0.9,
+                presence_penalty: 0.6,
+                frequency_penalty: 0.2
+            )
+
+            do {
+                request.httpBody = try JSONEncoder().encode(requestBody)
+            } catch {
+                throw AIInsightError.encodingFailed
+            }
+
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                guard let http = response as? HTTPURLResponse else { throw AIInsightError.invalidResponse }
+
+                if http.statusCode == 200 {
+                    let decoded = try JSONDecoder().decode(OpenAIResponse.self, from: data)
+                    guard let content = decoded.choices.first?.message.content, 
+                          !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    else { throw AIInsightError.noContent }
+                    return content.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+
+                // For 429/5xx, backoff & retry
+                if http.statusCode == 429 || (500...599).contains(http.statusCode), attempt < maxAttempts - 1 {
+                    attempt += 1
+                    let delayMs = Int(pow(2.0, Double(attempt)) * 250) // 250ms, 500ms, 1s, 2s
+                    try await Task.sleep(nanoseconds: UInt64(delayMs) * 1_000_000)
+                    continue
+                }
+
+                // Try to read error message for logs
+                if let errText = String(data: data, encoding: .utf8) {
+                    print("OpenAI error \(http.statusCode): \(errText)")
+                }
+                throw AIInsightError.apiError(http.statusCode)
+
+            } catch {
+                // Network-level error: retry a couple times too
+                if attempt < maxAttempts - 1 {
+                    attempt += 1
+                    let delayMs = Int(pow(2.0, Double(attempt)) * 250)
+                    try await Task.sleep(nanoseconds: UInt64(delayMs) * 1_000_000)
+                    continue
+                }
+                throw error
+            }
         }
-        
-        let requestBody = OpenAIRequest(
-            model: "gpt-4o-mini",
-            messages: [
-                OpenAIMessage(role: "user", content: prompt)
-            ],
-            max_tokens: maxTokens
-        )
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        
-        do {
-            request.httpBody = try JSONEncoder().encode(requestBody)
-        } catch {
-            throw AIInsightError.encodingFailed
-        }
-        
-        let (data, response) = try await urlSession.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw AIInsightError.invalidResponse
-        }
-        
-        guard httpResponse.statusCode == 200 else {
-            throw AIInsightError.apiError(httpResponse.statusCode)
-        }
-        
-        let openaiResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
-        
-        guard let content = openaiResponse.choices.first?.message.content else {
-            throw AIInsightError.noContent
-        }
-        
-        return content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
@@ -570,6 +602,10 @@ private struct OpenAIRequest: Codable {
     let model: String
     let messages: [OpenAIMessage]
     let max_tokens: Int
+    let temperature: Double?
+    let top_p: Double?
+    let presence_penalty: Double?
+    let frequency_penalty: Double?
 }
 
 private struct OpenAIMessage: Codable {

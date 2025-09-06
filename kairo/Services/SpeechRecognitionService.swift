@@ -190,8 +190,8 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         do {
             inputNode.removeTap(onBus: 0)
 
-            // Match the node's format exactly
-            inputNode.installTap(onBus: 0, bufferSize: 1024, format: nodeFormat) { buffer, _ in
+            // Match the node's format exactly - larger buffer to prevent overloads
+            inputNode.installTap(onBus: 0, bufferSize: 2048, format: nodeFormat) { buffer, _ in
                 recognitionRequest.append(buffer)
             }
 
