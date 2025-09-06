@@ -5,7 +5,7 @@ class AIInsightService: ObservableObject {
     static let shared = AIInsightService()
     
     private let apiKey: String
-    private let baseURL = "https://api.anthropic.com/v1/messages"
+    private let baseURL = "https://api.openai.com/v1/chat/completions"
     
     private var urlSession: URLSession
     private var cache: NSCache<NSString, NSString>
@@ -14,13 +14,13 @@ class AIInsightService: ObservableObject {
         // Load API key from APIKeys.plist (not committed to git)
         if let path = Bundle.main.path(forResource: "APIKeys", ofType: "plist"),
            let plist = NSDictionary(contentsOfFile: path),
-           let key = plist["CLAUDE_API_KEY"] as? String {
+           let key = plist["OPENAI_API_KEY"] as? String {
             self.apiKey = key
         } else {
             // Fallback for development - TODO: Create APIKeys.plist with your key
             self.apiKey = ""
-            print("⚠️ Warning: Please create APIKeys.plist with CLAUDE_API_KEY to enable AI features.")
-            print("📋 Instructions: Create kairo/APIKeys.plist and add your Claude API key")
+            print("⚠️ Warning: Please create APIKeys.plist with OPENAI_API_KEY to enable AI features.")
+            print("📋 Instructions: Create kairo/APIKeys.plist and add your OpenAI API key")
         }
         
         let config = URLSessionConfiguration.default
@@ -46,7 +46,7 @@ class AIInsightService: ObservableObject {
         let prompt = createDailyInsightPrompt(chart: chart, transits: transits)
         
         do {
-            let insight = try await callClaudeAPI(prompt: prompt, maxTokens: 300)
+            let insight = try await callOpenAIAPI(prompt: prompt, maxTokens: 300)
             cache.setObject(insight as NSString, forKey: cacheKey as NSString)
             return insight
         } catch {
@@ -66,7 +66,7 @@ class AIInsightService: ObservableObject {
         let prompt = createWeeklyInsightPrompt(chart: chart, transits: transits)
         
         do {
-            let insight = try await callClaudeAPI(prompt: prompt, maxTokens: 400)
+            let insight = try await callOpenAIAPI(prompt: prompt, maxTokens: 400)
             cache.setObject(insight as NSString, forKey: cacheKey as NSString)
             return insight
         } catch {
@@ -80,7 +80,7 @@ class AIInsightService: ObservableObject {
         let prompt = createChatPrompt(question: question, chart: chart)
         
         do {
-            return try await callClaudeAPI(prompt: prompt, maxTokens: 250)
+            return try await callOpenAIAPI(prompt: prompt, maxTokens: 250)
         } catch {
             print("Failed to generate AI chat response: \(error)")
             return createFallbackChatResponse(question: question, chart: chart)
@@ -92,24 +92,23 @@ class AIInsightService: ObservableObject {
 
 private extension AIInsightService {
     
-    func callClaudeAPI(prompt: String, maxTokens: Int) async throws -> String {
+    func callOpenAIAPI(prompt: String, maxTokens: Int) async throws -> String {
         guard let url = URL(string: baseURL) else {
             throw AIInsightError.invalidURL
         }
         
-        let requestBody = ClaudeRequest(
-            model: "claude-3-5-sonnet-20241022",
-            maxTokens: maxTokens,
+        let requestBody = OpenAIRequest(
+            model: "gpt-4o-mini",
             messages: [
-                ClaudeMessage(role: "user", content: prompt)
-            ]
+                OpenAIMessage(role: "user", content: prompt)
+            ],
+            max_tokens: maxTokens
         )
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         
         do {
             request.httpBody = try JSONEncoder().encode(requestBody)
@@ -127,9 +126,9 @@ private extension AIInsightService {
             throw AIInsightError.apiError(httpResponse.statusCode)
         }
         
-        let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
+        let openaiResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
         
-        guard let content = claudeResponse.content.first?.text else {
+        guard let content = openaiResponse.choices.first?.message.content else {
             throw AIInsightError.noContent
         }
         
@@ -213,6 +212,7 @@ private extension AIInsightService {
         Generate response now:
         """
     }
+    
     
     func createChartSummary(_ chart: BirthChart) -> String {
         return """
@@ -566,29 +566,23 @@ private extension AIInsightService {
 
 // MARK: - Data Models
 
-private struct ClaudeRequest: Codable {
+private struct OpenAIRequest: Codable {
     let model: String
-    let maxTokens: Int
-    let messages: [ClaudeMessage]
-    
-    enum CodingKeys: String, CodingKey {
-        case model
-        case maxTokens = "max_tokens"
-        case messages
-    }
+    let messages: [OpenAIMessage]
+    let max_tokens: Int
 }
 
-private struct ClaudeMessage: Codable {
+private struct OpenAIMessage: Codable {
     let role: String
     let content: String
 }
 
-private struct ClaudeResponse: Codable {
-    let content: [ClaudeContent]
+private struct OpenAIResponse: Codable {
+    let choices: [OpenAIChoice]
 }
 
-private struct ClaudeContent: Codable {
-    let text: String
+private struct OpenAIChoice: Codable {
+    let message: OpenAIMessage
 }
 
 // MARK: - Errors

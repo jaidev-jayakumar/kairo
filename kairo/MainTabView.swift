@@ -12,8 +12,11 @@ struct MainTabView: View {
                 WeekMonthView()
                     .tag(1)
                 
-                ProfileView()
+                VoiceAssistantView()
                     .tag(2)
+                
+                ProfileView()
+                    .tag(3)
             }
             
             // Custom tab bar
@@ -24,8 +27,11 @@ struct MainTabView: View {
                 TabBarButton(icon: "calendar", title: "Week", isSelected: selectedTab == 1)
                     .onTapGesture { selectedTab = 1 }
                 
-                TabBarButton(icon: "person", title: "Profile", isSelected: selectedTab == 2)
+                TabBarButton(icon: "mic", title: "Oracle", isSelected: selectedTab == 2)
                     .onTapGesture { selectedTab = 2 }
+                
+                TabBarButton(icon: "person", title: "Profile", isSelected: selectedTab == 3)
+                    .onTapGesture { selectedTab = 3 }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)

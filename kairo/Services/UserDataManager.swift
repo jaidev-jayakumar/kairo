@@ -32,4 +32,10 @@ class UserDataManager {
     func clearBirthData() {
         userDefaults.removeObject(forKey: birthDataKey)
     }
+    
+    // Get current birth chart (computed property)
+    var currentBirthChart: BirthChart? {
+        guard let birthData = getBirthData() else { return nil }
+        return AstrologyService.shared.calculateBirthChart(for: birthData)
+    }
 }
