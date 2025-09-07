@@ -101,8 +101,8 @@ struct VoiceAssistantView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
-            // Main recording button
-            recordingButton
+            // Interactive audio visualizer (replaces button)
+            audioVisualizerSection
             
             // Error message if any
             if !errorMessage.isEmpty {
@@ -115,64 +115,42 @@ struct VoiceAssistantView: View {
         }
     }
     
-    // MARK: - Recording Button
-    private var recordingButton: some View {
-        ZStack {
-            // Outer circle with subtle glow
-            Circle()
-                .stroke(Color.white.opacity(0.2), lineWidth: 2)
-                .frame(width: 140, height: 140)
-            
-            // Main button circle
-            Button(action: toggleRecording) {
-                ZStack {
-                    // Button background
-                    Circle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 120, height: 120)
-                    
-                    // Central indicator
-                    if isProcessing {
-                        // Processing indicator
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.2)
-                    } else if elevenLabsService.isPlaying {
-                        // Speaking indicator
-                        Image(systemName: "speaker.wave.2")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                    } else {
-                        // Recording indicator
-                        Circle()
-                            .fill(.white.opacity(isRecording ? 1.0 : 0.6))
-                            .frame(width: 12, height: 12)
-                            .scaleEffect(isRecording ? 1.5 : 1.0)
-                            .animation(.easeInOut(duration: 0.3), value: isRecording)
-                    }
-                }
-            }
-            .scaleEffect(isRecording ? 1.1 : 1.0)
-            .animation(.easeInOut(duration: 0.3), value: isRecording)
-            
-            // Pulse effect when active
-            if isRecording {
-                Circle()
-                    .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                    .frame(width: 160, height: 160)
-                    .scaleEffect(pulseAnimation ? 1.2 : 1.0)
-                    .opacity(pulseAnimation ? 0 : 1)
-                    .animation(
-                        .easeOut(duration: 2.0)
-                        .repeatForever(autoreverses: false),
-                        value: pulseAnimation
-                    )
+    // MARK: - Audio Visualizer Section
+    private var audioVisualizerSection: some View {
+        Button(action: toggleRecording) {
+            VStack(spacing: 20) {
+                // Main visualizer as interactive element
+                BarAudioVisualizer(
+                    agentState: currentAgentState,
+                    barColor: .white.opacity(0.8),
+                    barCount: 7,
+                    barCornerRadius: 6,
+                    barSpacingFactor: 0.02
+                )
+                .frame(height: 120)
+                .padding(.horizontal, 40)
+                .scaleEffect(isRecording ? 1.05 : 1.0)
+                .animation(.easeInOut(duration: 0.3), value: isRecording)
             }
         }
         .disabled(isProcessing || elevenLabsService.isSynthesizing)
         .opacity((isProcessing || elevenLabsService.isSynthesizing) ? 0.7 : 1.0)
         .animation(.easeInOut(duration: 0.3), value: isProcessing)
     }
+    
+    // MARK: - Current Agent State
+    private var currentAgentState: AgentState {
+        if elevenLabsService.isSynthesizing {
+            return .thinking
+        } else if elevenLabsService.isPlaying {
+            return .speaking
+        } else if isRecording {
+            return .listening
+        } else {
+            return .idle
+        }
+    }
+    
     
     // MARK: - Status Text
     private var currentStatus: String {
