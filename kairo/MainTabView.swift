@@ -27,7 +27,7 @@ struct MainTabView: View {
                 TabBarButton(icon: "calendar", title: "Week", isSelected: selectedTab == 1)
                     .onTapGesture { selectedTab = 1 }
                 
-                TabBarButton(icon: "chart.bar", title: "Kaira", isSelected: selectedTab == 2)
+                TabBarButton(icon: "waveform", title: "Kaira", isSelected: selectedTab == 2)
                     .onTapGesture { selectedTab = 2 }
                 
                 TabBarButton(icon: "person", title: "Profile", isSelected: selectedTab == 3)
