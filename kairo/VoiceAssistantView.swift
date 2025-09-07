@@ -84,12 +84,23 @@ struct VoiceAssistantView: View {
     // MARK: - Microphone Interface
     private var microphoneInterface: some View {
         VStack(spacing: 40) {
-            // Recording status
-            Text(currentStatus)
-                .font(.subheadline)
-                .foregroundColor(.white.opacity(0.7))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+            // Recording status and description
+            VStack(spacing: 12) {
+                Text(currentStatus)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                
+                // Show Kaira description when idle
+                if !isRecording && !isProcessing && !elevenLabsService.isPlaying && !elevenLabsService.isSynthesizing {
+                    Text("Your personal astrology companion")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 50)
+                }
+            }
             
             // Interactive audio visualizer (replaces button)
             audioVisualizerSection
