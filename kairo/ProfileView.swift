@@ -174,9 +174,10 @@ struct ProfileView: View {
             return "No birth data"
         }
 
-        
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM d, yyyy • h:mm a"
+        // Use the birth location's timezone to display the correct time
+        formatter.timeZone = birthData.timeZone
         return formatter.string(from: birthData.date)
     }
     

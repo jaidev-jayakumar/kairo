@@ -2,12 +2,28 @@ import SwiftUI
 import CoreLocation
 
 struct BirthDataInputView: View {
-    @State private var birthDate = Date()
-    @State private var birthTime = Date()
+    @State private var birthDate: Date
+    @State private var birthTime: Date
     @State private var locationString = "Kochi, Kerala"
     @State private var isGeocoding = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    
+    init(onSave: @escaping (BirthData) -> Void) {
+        self.onSave = onSave
+        
+        // Initialize with a reasonable birth date (e.g., 25 years ago)
+        let calendar = Calendar.current
+        let defaultBirthDate = calendar.date(byAdding: .year, value: -25, to: Date()) ?? Date()
+        self._birthDate = State(initialValue: defaultBirthDate)
+        
+        // Initialize birth time to 12:00 PM (noon) to avoid AM/PM confusion
+        var components = calendar.dateComponents([.year, .month, .day], from: defaultBirthDate)
+        components.hour = 12
+        components.minute = 0
+        let defaultBirthTime = calendar.date(from: components) ?? Date()
+        self._birthTime = State(initialValue: defaultBirthTime)
+    }
     
     @Environment(\.dismiss) var dismiss
     
@@ -77,6 +93,7 @@ struct BirthDataInputView: View {
                                 .labelsHidden()
                                 .colorScheme(.dark)
                                 .accentColor(.white)
+                                .environment(\.timeZone, .current)
                         }
                         
                         // Birth Location
@@ -122,12 +139,20 @@ struct BirthDataInputView: View {
     
     
     private func saveBirthDataWithCoordinates(latitude: Double, longitude: Double, timeZone: TimeZone) {
-        // Combine date and time
-        let calendar = Calendar.current
-        let dateComponents = calendar.dateComponents([.year, .month, .day], from: birthDate)
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: birthTime)
+        // Extract date and time components using device's current calendar
+        // This ensures we get exactly what the user sees on the DatePicker
+        let deviceCalendar = Calendar.current
+        let dateComponents = deviceCalendar.dateComponents([.year, .month, .day], from: birthDate)
+        let timeComponents = deviceCalendar.dateComponents([.hour, .minute], from: birthTime)
         
-        guard let combinedDate = calendar.date(from: DateComponents(
+        print("🕐 User selected values - Date: \(dateComponents.year!)/\(dateComponents.month!)/\(dateComponents.day!), Time: \(timeComponents.hour!):\(String(format: "%02d", timeComponents.minute!))")
+        
+        // Now create the birth date/time in the birth location's timezone
+        // using the exact time components the user selected
+        var birthLocationCalendar = Calendar.current
+        birthLocationCalendar.timeZone = timeZone
+        
+        guard let combinedDate = birthLocationCalendar.date(from: DateComponents(
             year: dateComponents.year,
             month: dateComponents.month,
             day: dateComponents.day,
@@ -138,6 +163,8 @@ struct BirthDataInputView: View {
             showingAlert = true
             return
         }
+        
+        print("🌍 Birth date/time created in \(timeZone.identifier): \(combinedDate)")
         
         let birthData = BirthData(
             date: combinedDate,

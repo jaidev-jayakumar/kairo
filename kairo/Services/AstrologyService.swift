@@ -14,8 +14,8 @@ class AstrologyService {
     func calculateBirthChart(for birthData: BirthData) -> BirthChart? {
         print("🌟 Using SwissEphemeris for professional birth chart calculation")
         
-        // Convert birth time to UTC for SwissEphemeris (ephemeris calculations use UTC)
-        let utcDate = convertToUTC(date: birthData.date, timeZone: birthData.timeZone)
+        // Use the birth date directly - it's already correctly stored as the exact moment in time
+        let utcDate = birthData.date
         
         print("📅 Birth time: \(birthData.date) in \(birthData.timeZone.identifier)")
         print("📅 UTC time for ephemeris: \(utcDate)")
