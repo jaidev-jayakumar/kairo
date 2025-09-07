@@ -4,7 +4,7 @@ import CoreLocation
 struct BirthDataInputView: View {
     @State private var birthDate = Date()
     @State private var birthTime = Date()
-    @State private var locationString = "San Francisco, CA"
+    @State private var locationString = "Kochi, Kerala"
     @State private var isGeocoding = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
@@ -87,7 +87,7 @@ struct BirthDataInputView: View {
                                 .foregroundColor(.white.opacity(0.4))
                             
                             HStack {
-                                TextField("City, Country", text: $locationString)
+                                TextField("Kochi, Kerala", text: $locationString)
                                     .font(.system(size: 16))
                                     .foregroundColor(.white)
                                     .textFieldStyle(.plain)
@@ -99,12 +99,6 @@ struct BirthDataInputView: View {
                                         .scaleEffect(0.8)
                                 }
                             }
-                            .padding()
-                            .background(Color.white.opacity(0.05))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
                         }
                         
                         // Info text
@@ -124,6 +118,37 @@ struct BirthDataInputView: View {
         } message: {
             Text(alertMessage)
         }
+    }
+    
+    
+    private func saveBirthDataWithCoordinates(latitude: Double, longitude: Double, timeZone: TimeZone) {
+        // Combine date and time
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: birthDate)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: birthTime)
+        
+        guard let combinedDate = calendar.date(from: DateComponents(
+            year: dateComponents.year,
+            month: dateComponents.month,
+            day: dateComponents.day,
+            hour: timeComponents.hour,
+            minute: timeComponents.minute
+        )) else {
+            alertMessage = "Invalid date or time"
+            showingAlert = true
+            return
+        }
+        
+        let birthData = BirthData(
+            date: combinedDate,
+            latitude: latitude,
+            longitude: longitude,
+            timeZone: timeZone,
+            locationName: locationString
+        )
+        
+        onSave(birthData)
+        dismiss()
     }
     
     private func saveBirthData() {
@@ -147,31 +172,14 @@ struct BirthDataInputView: View {
                 return
             }
             
-            // Combine date and time
-            let calendar = Calendar.current
-            let dateComponents = calendar.dateComponents([.year, .month, .day], from: birthDate)
-            let timeComponents = calendar.dateComponents([.hour, .minute], from: birthTime)
+            // Get timezone for the birth location
+            let birthTimeZone = placemark.timeZone ?? TimeZone(identifier: "Asia/Kolkata") ?? .current
             
-            guard let combinedDate = calendar.date(from: DateComponents(
-                year: dateComponents.year,
-                month: dateComponents.month,
-                day: dateComponents.day,
-                hour: timeComponents.hour,
-                minute: timeComponents.minute
-            )) else {
-                alertMessage = "Invalid date or time"
-                showingAlert = true
-                return
-            }
-            
-            let birthData = BirthData(
-                date: combinedDate,
+            self.saveBirthDataWithCoordinates(
                 latitude: location.coordinate.latitude,
-                longitude: location.coordinate.longitude
+                longitude: location.coordinate.longitude, 
+                timeZone: birthTimeZone
             )
-            
-            onSave(birthData)
-            dismiss()
         }
     }
 }

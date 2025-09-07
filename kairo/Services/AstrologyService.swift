@@ -13,17 +13,25 @@ class AstrologyService {
     // MARK: - Birth Chart Calculation
     func calculateBirthChart(for birthData: BirthData) -> BirthChart? {
         print("🌟 Using SwissEphemeris for professional birth chart calculation")
+        
+        // Convert birth time to UTC for SwissEphemeris (ephemeris calculations use UTC)
+        let utcDate = convertToUTC(date: birthData.date, timeZone: birthData.timeZone)
+        
+        print("📅 Birth time: \(birthData.date) in \(birthData.timeZone.identifier)")
+        print("📅 UTC time for ephemeris: \(utcDate)")
+        print("🌍 Location: lat=\(birthData.latitude), lng=\(birthData.longitude), location=\(birthData.locationName ?? "Unknown")")
+        
         // Calculate planets using SwissEphemeris
-        guard let sun = calculatePlanet(.sun, date: birthData.date),
-              let moon = calculatePlanet(.moon, date: birthData.date),
-              let mercury = calculatePlanet(.mercury, date: birthData.date),
-              let venus = calculatePlanet(.venus, date: birthData.date),
-              let mars = calculatePlanet(.mars, date: birthData.date),
-              let jupiter = calculatePlanet(.jupiter, date: birthData.date),
-              let saturn = calculatePlanet(.saturn, date: birthData.date),
-              let uranus = calculatePlanet(.uranus, date: birthData.date),
-              let neptune = calculatePlanet(.neptune, date: birthData.date),
-              let pluto = calculatePlanet(.pluto, date: birthData.date) else {
+        guard let sun = calculatePlanet(.sun, date: utcDate),
+              let moon = calculatePlanet(.moon, date: utcDate),
+              let mercury = calculatePlanet(.mercury, date: utcDate),
+              let venus = calculatePlanet(.venus, date: utcDate),
+              let mars = calculatePlanet(.mars, date: utcDate),
+              let jupiter = calculatePlanet(.jupiter, date: utcDate),
+              let saturn = calculatePlanet(.saturn, date: utcDate),
+              let uranus = calculatePlanet(.uranus, date: utcDate),
+              let neptune = calculatePlanet(.neptune, date: utcDate),
+              let pluto = calculatePlanet(.pluto, date: utcDate) else {
             // Fallback to simplified service if SwissEphemeris fails
             print("SwissEphemeris calculation failed, falling back to simplified service")
             return SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
@@ -32,7 +40,7 @@ class AstrologyService {
         // Calculate houses
         do {
             let houseCusps = try HouseCusps(
-                date: birthData.date,
+                date: utcDate,
                 latitude: birthData.latitude,
                 longitude: birthData.longitude,
                 houseSystem: .placidus
@@ -1488,4 +1496,9 @@ class AstrologyService {
         return max(0, min(100, score))
     }
     
+    // MARK: - Timezone Conversion
+    private func convertToUTC(date: Date, timeZone: TimeZone) -> Date {
+        let offset = timeZone.secondsFromGMT(for: date)
+        return date.addingTimeInterval(-TimeInterval(offset))
+    }
 }

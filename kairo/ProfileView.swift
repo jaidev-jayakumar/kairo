@@ -46,7 +46,7 @@ struct ProfileView: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.6))
                             
-                            Text("Location")
+                            Text(formatBirthLocation())
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.6))
                         }
@@ -173,10 +173,23 @@ struct ProfileView: View {
         guard let birthData = userBirthData else {
             return "No birth data"
         }
+
         
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM d, yyyy • h:mm a"
         return formatter.string(from: birthData.date)
+    }
+    
+    private func formatBirthLocation() -> String {
+        guard let birthData = userBirthData else {
+            return "No location data"
+        }
+        
+        if birthData.locationName?.isEmpty != false {
+            return "Location"
+        }
+        
+        return birthData.locationName ?? "Unknown Location"
     }
 }
 

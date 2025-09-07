@@ -7,12 +7,14 @@ struct BirthData: Codable {
     let latitude: Double
     let longitude: Double
     let timeZone: TimeZone
+    let locationName: String?
     
-    init(date: Date, latitude: Double, longitude: Double, timeZone: TimeZone = .current) {
+    init(date: Date, latitude: Double, longitude: Double, timeZone: TimeZone = .current, locationName: String = "") {
         self.date = date
         self.latitude = latitude
         self.longitude = longitude
         self.timeZone = timeZone
+        self.locationName = locationName
     }
 }
 
