@@ -94,6 +94,10 @@ class AstrologyService {
     }
     
     // MARK: - Transit Calculations
+    func calculatePlanetPositionAt(planet: SwissEphemeris.Planet, date: Date) -> CelestialBody? {
+        return calculatePlanet(planet, date: date)
+    }
+    
     func calculateCurrentTransits() -> [CelestialBody] {
         print("🌍 Using SwissEphemeris for current planetary transits")
         let now = Date()
