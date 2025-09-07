@@ -63,21 +63,11 @@ struct VoiceAssistantView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: 8) {
-            HStack {
-                Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                
-                Text("COSMIC ORACLE")
-                    .font(.headline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                
-                Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundColor(.white)
-            }
-            .padding(.top, 20)
+            Text("KAIRA")
+                .font(.headline)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .padding(.top, 20)
             
             // Show last transcription when processing
             if !lastTranscription.isEmpty && isProcessing {
@@ -155,17 +145,17 @@ struct VoiceAssistantView: View {
     // MARK: - Status Text
     private var currentStatus: String {
         if elevenLabsService.isSynthesizing {
-            return "Crafting mystical response..."
+            return "Preparing response..."
         } else if elevenLabsService.isPlaying {
-            return "The oracle speaks..."
+            return "Kaira is speaking..."
         } else if isProcessing {
-            return "Consulting the stars..."
+            return "Analyzing your question..."
         } else if isRecording {
-            return "I'm listening..."
+            return "Listening..."
         } else if !speechService.isAuthorized {
-            return "Permissions needed to commune with the cosmos"
+            return "Microphone permissions required"
         } else {
-            return "Tap to speak with the cosmic oracle"
+            return "Tap to speak with Kaira"
         }
     }
     
