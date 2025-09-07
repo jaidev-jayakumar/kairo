@@ -102,19 +102,27 @@ class SpeechRecognitionService: NSObject, ObservableObject {
                 // Ignore deactivation errors - session might not have been active
             }
             
-            // Use recording-optimized settings - don't force sample rate
+            // Use speech recognition optimized settings with standard sample rate
             try audioSession.setCategory(.record, 
-                                       mode: .measurement, 
+                                       mode: .spokenAudio,
                                        options: [.allowBluetooth, .duckOthers])
+            
+            // Set preferred sample rate to 44.1kHz to avoid conflicts
+            try audioSession.setPreferredSampleRate(44100)
+            // Also set preferred buffer duration for stability
+            try audioSession.setPreferredIOBufferDuration(0.02) // 20ms buffer
             
             // Activate with a delay to prevent RPC timeouts
             try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
             
-            // Wait for the session to stabilize
-            try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+            // Wait for the session to stabilize and force refresh
+            try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds for proper init
             
-            print("✅ Audio session configured successfully")
+            // Verify the session is properly configured
+            let actualSampleRate = audioSession.sampleRate
+            let actualChannels = audioSession.inputNumberOfChannels
+            print("✅ Audio session configured: \(actualSampleRate) Hz, \(actualChannels) ch")
             
         } catch {
             print("⚠️ Primary audio session setup failed: \(error)")
@@ -175,12 +183,32 @@ class SpeechRecognitionService: NSObject, ObservableObject {
             try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         }
         
-        // Use the input format for input nodes - this is the correct format to read
-        let nodeFormat = inputNode.inputFormat(forBus: 0)
-        print("📱 Node format: \(nodeFormat.sampleRate) Hz, \(nodeFormat.channelCount) ch")
+        // Force the audio engine to reset completely
+        audioEngine.reset()
+        try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
         
-        try await installTapWithFormat(nodeFormat: nodeFormat,
-                                     inputNode: inputNode,
+        // Get fresh input node after reset
+        let freshInputNode = audioEngine.inputNode
+        let nodeFormat = freshInputNode.inputFormat(forBus: 0)
+        print("📱 Node format after reset: \(nodeFormat.sampleRate) Hz, \(nodeFormat.channelCount) ch")
+        
+        // CRITICAL: Tap format MUST match hardware format exactly
+        // Use the actual hardware format for the tap, convert later if needed
+        let tapFormat: AVAudioFormat
+        if nodeFormat.sampleRate > 0 && nodeFormat.channelCount > 0 {
+            tapFormat = nodeFormat
+            print("✅ Using hardware format for tap: \(tapFormat.sampleRate) Hz, \(tapFormat.channelCount) ch")
+        } else {
+            // Fallback only if hardware format is completely invalid
+            guard let fallbackFormat = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 1) else {
+                throw SpeechRecognitionError.audioEngineError
+            }
+            tapFormat = fallbackFormat
+            print("⚠️ Using fallback format: \(tapFormat.sampleRate) Hz, \(tapFormat.channelCount) ch")
+        }
+        
+        try await installTapWithFormat(nodeFormat: tapFormat,
+                                     inputNode: freshInputNode,
                                      recognitionRequest: recognitionRequest)
     }
     
@@ -190,9 +218,48 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         do {
             inputNode.removeTap(onBus: 0)
 
-            // Match the node's format exactly - larger buffer to prevent overloads
-            inputNode.installTap(onBus: 0, bufferSize: 2048, format: nodeFormat) { buffer, _ in
-                recognitionRequest.append(buffer)
+            // Create converter if needed for speech recognition (prefers 16kHz or 44.1kHz)
+            let preferredSampleRate: Double = 16000  // Speech recognition optimal rate
+            let needsConversion = nodeFormat.sampleRate != preferredSampleRate
+            
+            var audioConverter: AVAudioConverter?
+            var preferredFormat: AVAudioFormat?
+            
+            if needsConversion {
+                preferredFormat = AVAudioFormat(standardFormatWithSampleRate: preferredSampleRate, channels: 1)
+                if let prefFormat = preferredFormat {
+                    audioConverter = AVAudioConverter(from: nodeFormat, to: prefFormat)
+                    print("🔄 Will convert from \(nodeFormat.sampleRate)Hz to \(prefFormat.sampleRate)Hz")
+                }
+            }
+
+            // Install tap with hardware format, convert in callback if needed
+            inputNode.installTap(onBus: 0, bufferSize: 4096, format: nodeFormat) { [weak audioConverter, weak preferredFormat] buffer, _ in
+                
+                if let converter = audioConverter, let prefFormat = preferredFormat {
+                    // Convert the audio format for speech recognition
+                    let frameCapacity = AVAudioFrameCount((Double(buffer.frameLength) * prefFormat.sampleRate) / nodeFormat.sampleRate)
+                    
+                    guard let convertedBuffer = AVAudioPCMBuffer(pcmFormat: prefFormat, frameCapacity: frameCapacity) else {
+                        recognitionRequest.append(buffer) // Fallback to original
+                        return
+                    }
+                    
+                    var error: NSError?
+                    let status = converter.convert(to: convertedBuffer, error: &error) { _, outStatus in
+                        outStatus.pointee = .haveData
+                        return buffer
+                    }
+                    
+                    if status == .haveData && error == nil {
+                        recognitionRequest.append(convertedBuffer)
+                    } else {
+                        recognitionRequest.append(buffer) // Fallback to original
+                    }
+                } else {
+                    // No conversion needed
+                    recognitionRequest.append(buffer)
+                }
             }
 
             audioEngine.prepare()
