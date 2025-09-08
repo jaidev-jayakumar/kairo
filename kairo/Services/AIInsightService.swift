@@ -76,6 +76,58 @@ class AIInsightService: ObservableObject {
         }
     }
     
+    /// Generate a personalized monthly insight
+    func generateMonthlyInsight(for chart: BirthChart, transits: [CelestialBody]) async -> String {
+        let cacheKey = createCacheKey(type: "monthly", chart: chart, date: Date())
+        
+        if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
+            return String(cachedInsight)
+        }
+        
+        let prompt = createMonthlyInsightPrompt(chart: chart, transits: transits)
+        
+        do {
+            let insight = try await callOpenAIAPI(prompt: prompt, maxTokens: 500)
+            cache.setObject(insight as NSString, forKey: cacheKey as NSString)
+            return insight
+        } catch {
+            print("Failed to generate AI monthly insight: \(error)")
+            return createFallbackMonthlyInsight(chart: chart, transits: transits)
+        }
+    }
+    
+    /// Generate a personalized yearly insight
+    func generateYearlyInsight(for chart: BirthChart, transits: [CelestialBody]) async -> String {
+        let cacheKey = createCacheKey(type: "yearly", chart: chart, date: Date())
+        
+        if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
+            return String(cachedInsight)
+        }
+        
+        let prompt = createYearlyInsightPrompt(chart: chart, transits: transits)
+        
+        do {
+            let insight = try await callOpenAIAPI(prompt: prompt, maxTokens: 600)
+            cache.setObject(insight as NSString, forKey: cacheKey as NSString)
+            return insight
+        } catch {
+            print("Failed to generate AI yearly insight: \(error)")
+            return createFallbackYearlyInsight(chart: chart, transits: transits)
+        }
+    }
+    
+    /// Generate personalized cycle insights
+    func generateCycleInsight(for cycles: [AstrologicalCycle], chart: BirthChart) async -> String {
+        let prompt = createCycleInsightPrompt(cycles: cycles, chart: chart)
+        
+        do {
+            return try await callOpenAIAPI(prompt: prompt, maxTokens: 400)
+        } catch {
+            print("Failed to generate AI cycle insight: \(error)")
+            return createFallbackCycleInsight(cycles: cycles, chart: chart)
+        }
+    }
+    
     /// Generate a personalized chat response
     func generateChatResponse(question: String, chart: BirthChart) async -> String {
         let prompt = createChatPrompt(question: question, chart: chart)
@@ -108,7 +160,7 @@ private extension AIInsightService {
             let system = OpenAIMessage(
                 role: "system", 
                 content: """
-                You're a warm, intuitive friend who happens to know astrology really well. Talk like you're texting a close friend - casual, caring, and insightful. Reference their actual chart placements naturally (like "your Virgo moon" or "with Mars in Leo"), but keep it conversational, not textbook-y. 2-3 sentences max. Be encouraging but real.
+                You're giving thoughtful life guidance to someone. Write in a calm, grounded tone like the reference examples. Focus on real-life situations and personal growth, not astrological concepts. Use their personality insights to give relevant advice, but translate everything into everyday language about confidence, intuition, planning, communication, etc. Never mention planets, signs, or astrological terms in your response.
                 """
             )
             
@@ -116,9 +168,9 @@ private extension AIInsightService {
                 model: "gpt-4o-mini",
                 messages: [system, OpenAIMessage(role: "user", content: prompt)],
                 max_tokens: maxTokens,
-                temperature: 0.8,
-                top_p: 0.95,
-                presence_penalty: 0.3,
+                temperature: 0.7,
+                top_p: 0.9,
+                presence_penalty: 0.2,
                 frequency_penalty: 0.1
             )
 
@@ -173,101 +225,318 @@ private extension AIInsightService {
 private extension AIInsightService {
     
     func createDailyInsightPrompt(chart: BirthChart, transits: [CelestialBody]) -> String {
-        let chartSummary = createChartSummary(chart)
-        let transitSummary = createTransitSummary(transits)
+        let personalityTraits = getPersonalityTraits(chart)
+        let energyPattern = getEnergyPattern(transits, chart)
+        let currentDate = formatCurrentDate()
+        let dayOfWeek = getDayOfWeekContext()
+        let seasonalContext = getSeasonalContext()
         
         return """
-        Give practical life advice based on their actual birth chart and what's happening astrologically today. Focus on real-world insights, not technical details.
+        You're giving daily life guidance to someone with these personality traits: \(personalityTraits)
         
-        User's Birth Chart:
-        \(chartSummary)
+        Today's energy pattern suggests: \(energyPattern)
         
-        Today's Transits:
-        \(transitSummary)
+        Context: \(currentDate), \(dayOfWeek), \(seasonalContext.lowercased())
         
-        Requirements:
-        - Give specific, actionable advice for their day
-        - Reference their personality traits from their chart naturally
-        - Mention how today's planetary energy affects them personally
-        - Focus on emotions, relationships, work, decisions - real life stuff
-        - Be conversational and encouraging
-        - 2-3 sentences max
+        Write 2-3 sentences of thoughtful daily guidance in this exact style:
         
-        Example: "Your Virgo nature is getting a confidence boost today, so it's perfect timing to tackle that project you've been overthinking. The current planetary energy supports your natural attention to detail, but try not to get stuck in perfectionism."
+        "Today, you may find your plans for the future wavering as you seek support and understanding from friends. Unfortunately, they might not fully grasp your points, leaving their encouragement feeling somewhat hollow. It's a day to seek clarity within yourself and not rely solely on external validation."
         
-        Give today's practical insight:
+        Focus on:
+        - Real-life situations (work, relationships, decisions, self-reflection)
+        - Their natural personality strengths and tendencies
+        - What today's energy supports or challenges
+        - Internal vs external focus
+        - Practical emotional or life guidance
+        
+        Use the same thoughtful, grounded tone. No astrology terms, no emojis. Write as if you understand both their personality and what today brings.
         """
     }
     
     func createWeeklyInsightPrompt(chart: BirthChart, transits: [CelestialBody]) -> String {
-        let chartSummary = createChartSummary(chart)
-        let transitSummary = createTransitSummary(transits)
+        let personalityTraits = getPersonalityTraits(chart)
+        let weeklyEnergyPattern = getWeeklyEnergyPattern(transits, chart)
+        let weekDates = getWeekDateRange()
+        let seasonalContext = getSeasonalContext()
         
         return """
-        You are a sophisticated astrologer writing in Co-Star app's style. Create a weekly insight that is:
-        - Deeper and more developmental than daily insights
-        - Focuses on growth, patterns, and psychological evolution
-        - 3-4 sentences maximum
-        - Mystical yet practical
+        Weekly guidance for someone with these traits: \(personalityTraits)
         
-        User's Birth Chart:
-        \(chartSummary)
+        This week's energy pattern (\(weekDates)): \(weeklyEnergyPattern)
         
-        Current Week's Transits:
-        \(transitSummary)
+        Context: \(seasonalContext.lowercased())
         
-        Write about weekly themes, personal growth opportunities, and psychological patterns. Use Co-Star's voice: profound, slightly challenging, spiritually intelligent.
+        Write 3-4 sentences about their week ahead in this thoughtful, grounded style. Focus on:
+        - Weekly themes and patterns
+        - How their personality navigates this week's challenges/opportunities  
+        - Relationships, work decisions, personal growth
+        - Planning and goal-setting
+        - What to focus on or be mindful of
         
-        Generate one weekly insight now:
+        Match this tone - thoughtful and specific to real life, not abstract. No astrology terms.
+        """
+    }
+    
+    func createMonthlyInsightPrompt(chart: BirthChart, transits: [CelestialBody]) -> String {
+        let personalityTraits = getPersonalityTraits(chart)
+        let monthlyTheme = getMonthlyTheme(transits, chart)
+        let monthYear = getMonthYear()
+        let seasonalContext = getSeasonalContext()
+        
+        return """
+        Monthly guidance for someone with these traits: \(personalityTraits)
+        
+        This month's theme (\(monthYear)): \(monthlyTheme)
+        
+        Context: \(seasonalContext.lowercased())
+        
+        Write 4-5 sentences about their month ahead. Focus on:
+        - Major themes and longer-term patterns
+        - Career, relationships, personal development
+        - How their natural strengths serve them this month
+        - What to build toward or release
+        - Practical monthly focus areas
+        
+        Keep the tone grounded and specific to real life situations. No astrology jargon.
+        """
+    }
+    
+    func createYearlyInsightPrompt(chart: BirthChart, transits: [CelestialBody]) -> String {
+        let personalityCore = getPersonalityCore(chart)
+        let yearlyTheme = getYearlyTheme(transits, chart)
+        let currentYear = getCurrentYear()
+        
+        return """
+        Yearly guidance for someone with this core personality: \(personalityCore)
+        
+        This year's major theme (\(currentYear)): \(yearlyTheme)
+        
+        Write 5-6 sentences about their year ahead. Focus on:
+        - Major life direction and evolution
+        - Career development and life goals
+        - Relationship patterns and growth
+        - Personal transformation themes
+        - What this year is asking them to build, release, or become
+        
+        Keep it grounded in real life development and growth. No astrology terms.
+        """
+    }
+    
+    func createCycleInsightPrompt(cycles: [AstrologicalCycle], chart: BirthChart) -> String {
+        let personalityTraits = getPersonalityTraits(chart)
+        let currentTheme = getCycleTheme(cycles, chart)
+        
+        return """
+        Life guidance for someone with these traits: \(personalityTraits)
+        
+        Current life theme: \(currentTheme)
+        
+        Write 3-4 sentences about navigating this period. Focus on:
+        - How to work with current life patterns and energies
+        - Personal growth and evolution
+        - Timing and patience
+        - What this phase is asking of them
+        
+        Keep it practical and grounded in personal development. No astrology terms.
         """
     }
     
     func createChatPrompt(question: String, chart: BirthChart) -> String {
-        let chartSummary = createChartSummary(chart)
+        let personalityTraits = getPersonalityTraits(chart)
         let transits = AstrologyService.shared.calculateCurrentTransits()
-        let transitSummary = createTransitSummary(transits)
+        let todaysEnergy = getEnergyPattern(transits, chart)
         
         return """
-        Answer their question with practical life advice based on their personality and current astrological influences. Skip the technical stuff.
+        Someone with these traits asked: "\(question)"
         
-        User's Question: "\(question)"
+        Their personality: \(personalityTraits)
+        Today's energy: \(todaysEnergy)
         
-        Their Birth Chart:
-        \(chartSummary)
-        
-        Current Transits:
-        \(transitSummary)
-        
-        Requirements:
-        - Give honest, practical advice that relates to their question
-        - Reference their personality traits naturally (like "your Leo confidence" or "your Pisces intuition")
-        - Mention if today's energy supports or challenges what they're asking about
-        - Focus on actionable steps, emotional insights, or relationship advice
-        - Be encouraging but real - don't sugarcoat
-        - 2-3 sentences max
-        
-        Example: "Your natural Scorpio intensity is perfect for this situation, and today's energy actually supports you diving deep into tough conversations. Trust your instincts here - they're usually spot-on, especially when it comes to reading people."
-        
-        Give practical advice for their question:
+        Give honest, practical advice that relates to their question in 2-3 sentences. Reference their natural strengths and how today's energy helps or challenges what they're asking about. No astrology terms, just real life guidance.
         """
     }
     
+    // MARK: - Personality Translation Helpers
+    
+    func getPersonalityTraits(_ chart: BirthChart) -> String {
+        var traits: [String] = []
+        
+        // Translate sun sign to personality traits
+        switch chart.sunSign {
+        case .aries: traits.append("natural leadership and initiative")
+        case .taurus: traits.append("steady determination and practical approach")
+        case .gemini: traits.append("curiosity and communication skills")
+        case .cancer: traits.append("emotional intelligence and nurturing nature")
+        case .leo: traits.append("confidence and creative self-expression")
+        case .virgo: traits.append("attention to detail and helpful nature")
+        case .libra: traits.append("desire for harmony and strong aesthetic sense")
+        case .scorpio: traits.append("intensity and ability to see beneath the surface")
+        case .sagittarius: traits.append("optimism and love of learning")
+        case .capricorn: traits.append("ambition and long-term planning skills")
+        case .aquarius: traits.append("innovative thinking and humanitarian values")
+        case .pisces: traits.append("intuition and empathetic nature")
+        }
+        
+        // Add moon sign emotional style
+        switch chart.moonSign {
+        case .aries: traits.append("direct emotional expression")
+        case .taurus: traits.append("need for emotional security")
+        case .gemini: traits.append("mental processing of emotions")
+        case .cancer: traits.append("deep emotional sensitivity")
+        case .leo: traits.append("dramatic emotional expression")
+        case .virgo: traits.append("practical emotional approach")
+        case .libra: traits.append("need for emotional balance")
+        case .scorpio: traits.append("intense emotional depth")
+        case .sagittarius: traits.append("optimistic emotional outlook")
+        case .capricorn: traits.append("controlled emotional expression")
+        case .aquarius: traits.append("unique emotional perspective")
+        case .pisces: traits.append("intuitive emotional understanding")
+        }
+        
+        return traits.prefix(3).joined(separator: ", ")
+    }
+    
+    func getPersonalityCore(_ chart: BirthChart) -> String {
+        return getPersonalityTraits(chart) + ", with a " + getLifeApproach(chart)
+    }
+    
+    func getLifeApproach(_ chart: BirthChart) -> String {
+        switch chart.ascendantSign {
+        case .aries: return "direct, action-oriented approach to life"
+        case .taurus: return "steady, practical approach to life"
+        case .gemini: return "curious, communicative approach to life"
+        case .cancer: return "protective, nurturing approach to life"
+        case .leo: return "confident, expressive approach to life"
+        case .virgo: return "analytical, service-oriented approach to life"
+        case .libra: return "balanced, relationship-focused approach to life"
+        case .scorpio: return "transformative, depth-seeking approach to life"
+        case .sagittarius: return "adventurous, growth-oriented approach to life"
+        case .capricorn: return "structured, achievement-focused approach to life"
+        case .aquarius: return "innovative, group-minded approach to life"
+        case .pisces: return "intuitive, compassionate approach to life"
+        }
+    }
+    
+    func getEnergyPattern(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
+        // Translate current transits into energy descriptions without astrology terms
+        let patterns = [
+            "focused energy for decision-making",
+            "creative and expressive energy",
+            "introspective and planning energy",
+            "collaborative and social energy",
+            "intense focus and determination",
+            "expansive and optimistic energy",
+            "grounding and practical energy",
+            "transformative and growth-oriented energy"
+        ]
+        
+        // Use transit data to determine which pattern fits (safe from overflow)
+        let hash = transits.map { abs($0.name.hashValue % 10000) }.reduce(0) { $0 &+ $1 }
+        return patterns[Int(hash) % patterns.count]
+    }
+    
+    func getWeeklyEnergyPattern(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
+        return "themes of " + getEnergyPattern(transits, chart) + " and relationship dynamics"
+    }
+    
+    func getMonthlyTheme(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
+        let themes = [
+            "building foundations and planning ahead",
+            "creative self-expression and personal growth",
+            "relationship development and communication",
+            "career advancement and goal achievement",
+            "inner reflection and emotional healing",
+            "learning new skills and expanding horizons",
+            "financial planning and resource management",
+            "personal transformation and releasing old patterns"
+        ]
+        
+        let hash = transits.map { abs($0.name.hashValue % 10000) }.reduce(0) { $0 &+ $1 }
+        return themes[Int(hash) % themes.count]
+    }
+    
+    func getYearlyTheme(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
+        let themes = [
+            "stepping into authentic personal power and leadership",
+            "deepening relationships and emotional intelligence",
+            "career evolution and professional development",
+            "creative expression and finding your unique voice",
+            "building lasting foundations for future growth",
+            "expanding your worldview and learning new perspectives",
+            "healing old patterns and embracing personal transformation",
+            "developing your intuition and spiritual understanding"
+        ]
+        
+        let hash = transits.map { abs($0.name.hashValue % 10000) }.reduce(0) { $0 &+ $1 }
+        return themes[Int(hash) % themes.count]
+    }
+    
+    func getCycleTheme(_ cycles: [AstrologicalCycle], _ chart: BirthChart) -> String {
+        return "a time of personal evolution and aligning with your authentic path"
+    }
     
     func createChartSummary(_ chart: BirthChart) -> String {
-        return """
-        Sun: \(chart.sun.name) in \(chart.sunSign.rawValue) at \(chart.sun.formattedDegree)
-        Moon: \(chart.moon.name) in \(chart.moonSign.rawValue) at \(chart.moon.formattedDegree)
-        Rising: \(chart.ascendantSign.rawValue) at \(String(format: "%.1f", chart.ascendant))°
-        Mercury: \(chart.mercury.name) in \(chart.mercury.position.sign.rawValue)
-        Venus: \(chart.venus.name) in \(chart.venus.position.sign.rawValue)
-        Mars: \(chart.mars.name) in \(chart.mars.position.sign.rawValue)
-        """
+        return "Sun in \(chart.sunSign.rawValue), Moon in \(chart.moonSign.rawValue), \(chart.ascendantSign.rawValue) rising"
     }
     
     func createTransitSummary(_ transits: [CelestialBody]) -> String {
         return transits.prefix(5).map { transit in
-            "\(transit.name) in \(transit.position.sign.rawValue) at \(transit.formattedDegree)"
-        }.joined(separator: "\n")
+            "\(transit.name) in \(transit.position.sign.rawValue)"
+        }.joined(separator: ", ")
+    }
+    
+    // MARK: - Date and Context Helpers
+    
+    func formatCurrentDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d"
+        return formatter.string(from: Date())
+    }
+    
+    func getWeekDateRange() -> String {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: today)?.start else {
+            return formatCurrentDate()
+        }
+        
+        let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) ?? today
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        
+        return "\(formatter.string(from: weekStart)) - \(formatter.string(from: weekEnd))"
+    }
+    
+    func getMonthYear() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: Date())
+    }
+    
+    func getCurrentYear() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy"
+        return formatter.string(from: Date())
+    }
+    
+    func getDayOfWeekContext() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: Date())
+    }
+    
+    func getSeasonalContext() -> String {
+        let month = Calendar.current.component(.month, from: Date())
+        
+        switch month {
+        case 12, 1, 2: return "Winter reflection season"
+        case 3, 4, 5: return "Spring growth season"
+        case 6, 7, 8: return "Summer expansion season"
+        case 9, 10, 11: return "Autumn harvest season"
+        default: return "Seasonal transition"
+        }
     }
 }
 
@@ -276,317 +545,28 @@ private extension AIInsightService {
 private extension AIInsightService {
     
     func createFallbackDailyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        let sunSign = chart.sunSign
-        let moonSign = chart.moonSign
-        
-        // Generate Co-Star style daily insights
-        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
-            let currentMoonSign = moonTransit.position.sign
-            
-            // Use the same Co-Star style insights from AstrologyService
-            let insights = generateCoStarStyleInsights(sunSign: sunSign, moonSign: moonSign, currentMoon: currentMoonSign)
-            let dayOfMonth = Calendar.current.component(.day, from: Date())
-            let chartSeed = sunSign.rawValue.hashValue ^ moonSign.rawValue.hashValue ^ currentMoonSign.rawValue.hashValue
-            let index = abs(dayOfMonth ^ chartSeed) % insights.count
-            return insights.isEmpty ? getCoStarStyleDefault() : insights[index]
-        }
-        
-        // Fallback insights when no moon transit available
-        let fallbackInsights = [
-            "Your instincts are trying to tell you something important today.",
-            "The gap between who you are and who you think you should be is closing.",
-            "Today you realize that waiting for permission was just another form of procrastination.",
-            "What you're avoiding has been avoiding you too. Time to meet in the middle.",
-            "Your past self would be proud of how far you've come, even when progress feels invisible."
-        ]
-        
-        let dayOfMonth = Calendar.current.component(.day, from: Date())
-        let chartSeed = sunSign.rawValue.hashValue ^ moonSign.rawValue.hashValue
-        let index = abs(dayOfMonth ^ chartSeed) % fallbackInsights.count
-        return fallbackInsights[index]
-    }
-    
-    private func generateCoStarStyleInsights(sunSign: ZodiacSign, moonSign: ZodiacSign, currentMoon: ZodiacSign) -> [String] {
-        var insights: [String] = []
-        
-        // Moon-sign specific insights
-        switch currentMoon {
-        case .aries:
-            insights.append("Your impatience today is actually intuition in disguise.")
-            insights.append("The thing you want to start right now? That's your soul talking.")
-            insights.append("Anger is just passion wearing a disguise. What's it really about?")
-            
-        case .taurus:
-            insights.append("Slow down. Your body is trying to teach your brain something.")
-            insights.append("Today's craving for comfort isn't weakness - it's wisdom.")
-            insights.append("The pleasure you're denying yourself is probably exactly what you need.")
-            
-        case .gemini:
-            insights.append("That conversation you keep avoiding? It's time.")
-            insights.append("Your scattered thoughts are actually connecting dots you couldn't see before.")
-            insights.append("Stop explaining yourself to people who are determined to misunderstand you.")
-            
-        case .cancer:
-            insights.append("Vulnerability isn't weakness when it's a choice.")
-            insights.append("That feeling of homesickness? You're missing a version of yourself.")
-            insights.append("Your sensitivity is picking up on something everyone else is missing.")
-            
-        case .leo:
-            insights.append("The spotlight you crave is already on you - you just can't see it yet.")
-            insights.append("Your need to be seen conflicts with your fear of being truly known.")
-            insights.append("Today you realize that confidence isn't the absence of doubt - it's dancing with it.")
-            
-        case .virgo:
-            insights.append("Perfectionism is just fear wearing a productive mask.")
-            insights.append("The thing you're nitpicking isn't really the problem.")
-            insights.append("Sometimes 'good enough' is actually perfect timing.")
-            
-        case .libra:
-            insights.append("Your people-pleasing is really self-preservation in disguise.")
-            insights.append("The decision you're avoiding is already made - you just need to admit it.")
-            insights.append("Balance isn't about being in the middle - it's about knowing when to tip the scales.")
-            
-        case .scorpio:
-            insights.append("What you think is paranoia is actually pattern recognition.")
-            insights.append("The intensity you're feeling isn't too much - the world is just too small.")
-            insights.append("That thing you're hiding? Everyone already knows. The secret is how you feel about it.")
-            
-        case .sagittarius:
-            insights.append("Your restlessness is your compass pointing toward growth.")
-            insights.append("The truth you're avoiding is the adventure you've been looking for.")
-            insights.append("Freedom isn't about having no commitments - it's about choosing the right ones.")
-            
-        case .capricorn:
-            insights.append("Your ambition is really just love wearing a business suit.")
-            insights.append("The goal you're chasing is actually chasing you back.")
-            insights.append("Sometimes the mountain climbs you more than you climb it.")
-            
-        case .aquarius:
-            insights.append("Your need to be different conflicts with your need to belong.")
-            insights.append("The revolution you're planning starts with the person in the mirror.")
-            insights.append("Your weirdness is actually your superpower in disguise.")
-            
-        case .pisces:
-            insights.append("Your emotions aren't drowning you - they're teaching you to swim.")
-            insights.append("That dream you had? It wasn't random.")
-            insights.append("Your empathy is a gift, not a burden - but boundaries are still necessary.")
-        }
-        
-        // Add some sun-moon combination insights
-        if sunSign.element != moonSign.element {
-            insights.append("The tension between your \(sunSign.rawValue) self and \(moonSign.rawValue) feelings is actually creating something new.")
-            insights.append("Your head says \(getSunDesire(sunSign)), but your heart needs \(getMoonNeed(moonSign)). Both are right.")
-        }
-        
-        return insights
-    }
-    
-    private func getSunDesire(_ sign: ZodiacSign) -> String {
-        switch sign {
-        case .aries: return "action"
-        case .taurus: return "stability"
-        case .gemini: return "variety"
-        case .cancer: return "security"
-        case .leo: return "recognition"
-        case .virgo: return "perfection"
-        case .libra: return "harmony"
-        case .scorpio: return "truth"
-        case .sagittarius: return "freedom"
-        case .capricorn: return "success"
-        case .aquarius: return "innovation"
-        case .pisces: return "connection"
-        }
-    }
-    
-    private func getMoonNeed(_ sign: ZodiacSign) -> String {
-        switch sign {
-        case .aries: return "excitement"
-        case .taurus: return "comfort"
-        case .gemini: return "stimulation"
-        case .cancer: return "nurturing"
-        case .leo: return "appreciation"
-        case .virgo: return "order"
-        case .libra: return "peace"
-        case .scorpio: return "depth"
-        case .sagittarius: return "adventure"
-        case .capricorn: return "structure"
-        case .aquarius: return "independence"
-        case .pisces: return "understanding"
-        }
-    }
-    
-    private func getCoStarStyleDefault() -> String {
-        let defaults = [
-            "You're exactly where you need to be, even when it doesn't feel like it.",
-            "Your instincts are trying to tell you something important today.",
-            "The gap between who you are and who you think you should be is closing.",
-            "What you're avoiding has been avoiding you too. Time to meet in the middle."
-        ]
-        let dayOfMonth = Calendar.current.component(.day, from: Date())
-        let index = dayOfMonth % defaults.count
-        return defaults[index]
+        return "Today brings an opportunity to trust your natural instincts and focus on what truly matters to you."
     }
     
     func createFallbackWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        // Generate Co-Star style weekly insights
-        let weeklyInsights = [
-            "This week asks you to stop apologizing for taking up space.",
-            "The version of yourself you're becoming is already here - you just need to let them out.",
-            "This week, your biggest breakthrough comes disguised as your biggest breakdown.",
-            "You've been waiting for permission to be yourself. Consider this your sign.",
-            "This week teaches you the difference between what you want and what you actually need.",
-            "The resistance you're feeling isn't a stop sign - it's a muscle you need to build.",
-            "This week, your intuition gets louder than your anxiety. Finally.",
-            "You're not falling behind - you're taking a different path. Trust the detour.",
-            "This week shows you that vulnerability and strength aren't opposites.",
-            "The person you were last week couldn't handle what's coming next. Good thing you're evolving."
-        ]
-        
-        let weekOfYear = Calendar.current.component(.weekOfYear, from: Date())
-        let index = weekOfYear % weeklyInsights.count
-        return weeklyInsights[index]
+        return "This week asks you to balance your personal goals with the needs of those around you."
+    }
+    
+    func createFallbackMonthlyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
+        return "This month is about building something meaningful while staying true to your core values."
+    }
+    
+    func createFallbackYearlyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
+        return "This year represents a significant step in your personal evolution and authentic self-expression."
+    }
+    
+    func createFallbackCycleInsight(cycles: [AstrologicalCycle], chart: BirthChart) -> String {
+        return "This period invites you to embrace change while honoring your natural strengths and wisdom."
     }
     
     func createFallbackChatResponse(question: String, chart: BirthChart) -> String {
-        let sunSign = chart.sunSign
-        let moonSign = chart.moonSign
-        let asc = chart.ascendantSign
-        
-        let questionLower = question.lowercased()
-        
-        if questionLower.contains("love") || questionLower.contains("relationship") {
-            return "In relationships, your \(moonSign.rawValue) side needs \(getSimpleMoonLoveNeed(moonSign)). But as a \(sunSign.rawValue), you express love by \(getSimpleSunLoveExpression(sunSign)). The trick is finding someone who gets both sides of you."
-        } else if questionLower.contains("career") || questionLower.contains("work") {
-            return "Career-wise, people see you as \(getSimpleRisingCareerImage(asc)). But what really drives you is \(getSimpleSunCareerDrive(sunSign)). Don't be afraid to show more of your real self at work."
-        } else if questionLower.contains("future") || questionLower.contains("what will") {
-            return "Here's the thing about the future - you already have the answer. Your \(sunSign.rawValue) instincts are usually right, and your \(moonSign.rawValue) gut feelings are trying to tell you something. Trust yourself more."
-        } else {
-            let responses = [
-                "You know what? You already know the answer to this. Your \(sunSign.rawValue) side has good instincts, and your \(moonSign.rawValue) emotions are trying to guide you. Sometimes we just need permission to trust ourselves.",
-                "Honestly, this question is really about something deeper. As a \(sunSign.rawValue), you probably \(getSunQuestionPattern(sunSign)). Listen to what your gut (\(moonSign.rawValue) moon) is actually asking.",
-                "Your \(sunSign.rawValue) nature wants to figure this out, while your \(moonSign.rawValue) emotions are feeling something important. Both are right. The answer is probably somewhere in the middle.",
-                "Sometimes when we're confused, it's because we're ready for something new. You're a \(sunSign.rawValue) - \(getSunReadinessMessage(sunSign)). Trust the process."
-            ]
-            let questionHash = question.hashValue
-            let chartSeed = sunSign.rawValue.hashValue ^ moonSign.rawValue.hashValue
-            let index = abs(questionHash ^ chartSeed) % responses.count
-            return responses[index]
-        }
+        return "Trust your natural wisdom and consider both your logical mind and intuitive feelings about this situation."
     }
-    
-    
-    private func getWeeklyGrowthMessage(sun: ZodiacSign, moon: ZodiacSign) -> String {
-        return "you're learning to balance what you want to do with what you actually need emotionally."
-    }
-    
-    private func getWeeklyBalanceAdvice(sun: ZodiacSign, moon: ZodiacSign) -> String {
-        return "When they seem to conflict, try to find a way to honor both instead of choosing one over the other."
-    }
-    
-    // Chat response helpers
-    private func getSimpleMoonLoveNeed(_ moonSign: ZodiacSign) -> String {
-        switch moonSign {
-        case .aries: return "excitement and passion, but also some independence"
-        case .taurus: return "stability, affection, and lots of quality time"
-        case .gemini: return "someone who can keep up with your mind and talk about everything"
-        case .cancer: return "emotional security and someone who feels like home"
-        case .leo: return "admiration, romance, and someone who makes you feel special"
-        case .virgo: return "practical support and someone who appreciates your helpful nature"
-        case .libra: return "harmony, partnership, and someone who values fairness"
-        case .scorpio: return "deep emotional intimacy and complete honesty"
-        case .sagittarius: return "freedom within the relationship and shared adventures"
-        case .capricorn: return "commitment, loyalty, and someone who shares your goals"
-        case .aquarius: return "friendship first, and someone who respects your independence"
-        case .pisces: return "emotional understanding and someone who gets your sensitivity"
-        }
-    }
-    
-    private func getSimpleSunLoveExpression(_ sunSign: ZodiacSign) -> String {
-        switch sunSign {
-        case .aries: return "being direct, passionate, and taking the lead"
-        case .taurus: return "showing love through actions, gifts, and physical affection"
-        case .gemini: return "talking, sharing ideas, and keeping things interesting"
-        case .cancer: return "caring for them and creating a safe, loving environment"
-        case .leo: return "grand gestures, creativity, and making them feel like royalty"
-        case .virgo: return "helping them improve their life and paying attention to details"
-        case .libra: return "creating harmony, being romantic, and making everything beautiful"
-        case .scorpio: return "going all-in emotionally and creating intense intimacy"
-        case .sagittarius: return "sharing adventures and being honest about everything"
-        case .capricorn: return "building a solid future together and providing stability"
-        case .aquarius: return "being a best friend first and supporting their independence"
-        case .pisces: return "being intuitive, compassionate, and emotionally supportive"
-        }
-    }
-    
-    private func getSimpleRisingCareerImage(_ risingSign: ZodiacSign) -> String {
-        switch risingSign {
-        case .aries: return "a leader and go-getter"
-        case .taurus: return "reliable and down-to-earth"
-        case .gemini: return "communicative and adaptable"
-        case .cancer: return "caring and protective"
-        case .leo: return "confident and creative"
-        case .virgo: return "detail-oriented and helpful"
-        case .libra: return "diplomatic and charming"
-        case .scorpio: return "intense and mysterious"
-        case .sagittarius: return "optimistic and adventurous"
-        case .capricorn: return "professional and ambitious"
-        case .aquarius: return "innovative and unique"
-        case .pisces: return "intuitive and compassionate"
-        }
-    }
-    
-    private func getSimpleSunCareerDrive(_ sunSign: ZodiacSign) -> String {
-        switch sunSign {
-        case .aries: return "leading projects and being first at something"
-        case .taurus: return "building something lasting and valuable"
-        case .gemini: return "communicating, learning, and connecting people"
-        case .cancer: return "helping others and creating emotional safety"
-        case .leo: return "being creative and getting recognition for your work"
-        case .virgo: return "improving systems and helping people solve problems"
-        case .libra: return "creating harmony and making things fair for everyone"
-        case .scorpio: return "transforming things and getting to the truth"
-        case .sagittarius: return "exploring new ideas and sharing knowledge"
-        case .capricorn: return "achieving long-term goals and building authority"
-        case .aquarius: return "innovating and making positive changes"
-        case .pisces: return "helping others and following your intuition"
-        }
-    }
-    
-    private func getSunQuestionPattern(_ sunSign: ZodiacSign) -> String {
-        switch sunSign {
-        case .aries: return "want to solve this quickly and move forward"
-        case .taurus: return "want to think it through thoroughly before deciding"
-        case .gemini: return "want to talk it through with someone first"
-        case .cancer: return "want to make sure everyone's feelings are considered"
-        case .leo: return "want to make sure you're making the right choice for your future"
-        case .virgo: return "want to analyze all the details before moving forward"
-        case .libra: return "want to weigh all the options and find the fairest solution"
-        case .scorpio: return "want to understand the deeper truth behind the situation"
-        case .sagittarius: return "want to explore all possibilities before committing"
-        case .capricorn: return "want to make sure this aligns with your long-term goals"
-        case .aquarius: return "want to find a unique solution that feels authentic to you"
-        case .pisces: return "want to follow your intuition and do what feels right"
-        }
-    }
-    
-    private func getSunReadinessMessage(_ sunSign: ZodiacSign) -> String {
-        switch sunSign {
-        case .aries: return "you're ready for action, even if you don't have all the answers yet"
-        case .taurus: return "you prefer to move slowly, but when you're ready, you're really ready"
-        case .gemini: return "you're ready to learn and adapt to whatever comes next"
-        case .cancer: return "you're ready when you feel emotionally secure about the decision"
-        case .leo: return "you're ready to shine and show the world what you're capable of"
-        case .virgo: return "you're ready when you've analyzed everything and have a plan"
-        case .libra: return "you're ready when you've considered how it affects everyone involved"
-        case .scorpio: return "you're ready to transform and go deeper than before"
-        case .sagittarius: return "you're ready for the next adventure, whatever it might be"
-        case .capricorn: return "you're ready to build something that will last"
-        case .aquarius: return "you're ready to do things your own way"
-        case .pisces: return "you're ready when it feels right in your heart"
-        }
-    }
-    
-
 }
 
 // MARK: - Utility
@@ -595,7 +575,13 @@ private extension AIInsightService {
     
     func createCacheKey(type: String, chart: BirthChart, date: Date) -> String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = type == "daily" ? "yyyy-MM-dd" : "yyyy-'W'ww"
+        switch type {
+        case "daily": dateFormatter.dateFormat = "yyyy-MM-dd"
+        case "weekly": dateFormatter.dateFormat = "yyyy-'W'ww"
+        case "monthly": dateFormatter.dateFormat = "yyyy-MM"
+        case "yearly": dateFormatter.dateFormat = "yyyy"
+        default: dateFormatter.dateFormat = "yyyy-MM-dd"
+        }
         let dateString = dateFormatter.string(from: date)
         
         let chartHash = "\(chart.sunSign.rawValue)-\(chart.moonSign.rawValue)-\(chart.ascendantSign.rawValue)"

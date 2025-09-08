@@ -145,7 +145,18 @@ struct BirthDataInputView: View {
         let dateComponents = deviceCalendar.dateComponents([.year, .month, .day], from: birthDate)
         let timeComponents = deviceCalendar.dateComponents([.hour, .minute], from: birthTime)
         
-        print("🕐 User selected values - Date: \(dateComponents.year!)/\(dateComponents.month!)/\(dateComponents.day!), Time: \(timeComponents.hour!):\(String(format: "%02d", timeComponents.minute!))")
+        // Safely unwrap date and time components
+        guard let year = dateComponents.year,
+              let month = dateComponents.month,
+              let day = dateComponents.day,
+              let hour = timeComponents.hour,
+              let minute = timeComponents.minute else {
+            alertMessage = "Invalid date or time components"
+            showingAlert = true
+            return
+        }
+        
+        print("🕐 User selected values - Date: \(year)/\(month)/\(day), Time: \(hour):\(String(format: "%02d", minute))")
         
         // Now create the birth date/time in the birth location's timezone
         // using the exact time components the user selected
@@ -153,11 +164,11 @@ struct BirthDataInputView: View {
         birthLocationCalendar.timeZone = timeZone
         
         guard let combinedDate = birthLocationCalendar.date(from: DateComponents(
-            year: dateComponents.year,
-            month: dateComponents.month,
-            day: dateComponents.day,
-            hour: timeComponents.hour,
-            minute: timeComponents.minute
+            year: year,
+            month: month,
+            day: day,
+            hour: hour,
+            minute: minute
         )) else {
             alertMessage = "Invalid date or time"
             showingAlert = true

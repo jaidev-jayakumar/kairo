@@ -16,6 +16,16 @@ class AstrologyService {
         JPLFileManager.setEphemerisPath()
     }
     
+    
+    // MARK: - Safe Array Access Helpers
+    /// Safely access a house cusp by number (1-12)
+    private func getHouseCusp(from chart: BirthChart, house: Int) -> Double? {
+        guard house >= 1 && house <= 12, house <= chart.houses.count else {
+            print("⚠️ Warning: Attempted to access house \(house) but only \(chart.houses.count) houses available")
+            return nil
+        }
+        return chart.houses[house - 1].cusp
+    }
     // MARK: - Birth Chart Calculation
     func calculateBirthChart(for birthData: BirthData) -> BirthChart? {
         print("🌟 Using SwissEphemeris for professional birth chart calculation")
@@ -476,6 +486,24 @@ class AstrologyService {
         return await AIInsightService.shared.generateWeeklyInsight(for: chart, transits: transits)
     }
     
+    // MARK: - Monthly Insights (AI-Powered)
+    func generateMonthlyInsight(for chart: BirthChart) async -> String {
+        let transits = calculateCurrentTransits()
+        return await AIInsightService.shared.generateMonthlyInsight(for: chart, transits: transits)
+    }
+    
+    // MARK: - Yearly Insights (AI-Powered)
+    func generateYearlyInsight(for chart: BirthChart) async -> String {
+        let transits = calculateCurrentTransits()
+        return await AIInsightService.shared.generateYearlyInsight(for: chart, transits: transits)
+    }
+    
+    // MARK: - Cycle Insights (AI-Powered)
+    func generateCycleInsight(for chart: BirthChart) async -> String {
+        let cycles = calculateCurrentCycles(for: chart)
+        return await AIInsightService.shared.generateCycleInsight(for: cycles, chart: chart)
+    }
+    
     // MARK: - Astrological Helper Functions
     
     private func getMoonSignDailyInfluence(_ sign: ZodiacSign) -> String {
@@ -537,9 +565,9 @@ class AstrologyService {
     // MARK: - Horoscope Scores Calculation
     func calculateDailyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
         // Check cache first
-        if isDailyScoresValid(for: date) {
+        if isDailyScoresValid(for: date), let cachedScores = cachedDailyScores {
             print("📱 Using cached daily horoscope scores for \(date)")
-            return cachedDailyScores!
+            return cachedScores
         }
         
         print("🎯 Calculating NEW daily horoscope scores for \(date) using birth chart and current transits")
@@ -567,9 +595,9 @@ class AstrologyService {
     
     func calculateWeeklyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
         // Check cache first
-        if isWeeklyScoresValid(for: date) {
+        if isWeeklyScoresValid(for: date), let cachedScores = cachedWeeklyScores {
             print("📱 Using cached weekly horoscope scores for \(date)")
-            return cachedWeeklyScores!
+            return cachedScores
         }
         
         print("📅 Calculating NEW weekly horoscope scores for \(date) using birth chart and week-ahead transits")
@@ -597,9 +625,9 @@ class AstrologyService {
     
     func calculateMonthlyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
         // Check cache first
-        if isMonthlyScoresValid(for: date) {
+        if isMonthlyScoresValid(for: date), let cachedScores = cachedMonthlyScores {
             print("📱 Using cached monthly horoscope scores for \(date)")
-            return cachedMonthlyScores!
+            return cachedScores
         }
         
         print("📅 Calculating NEW monthly horoscope scores for \(date) using birth chart and month-ahead transits")
@@ -627,9 +655,9 @@ class AstrologyService {
     
     func calculateYearlyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
         // Check cache first
-        if isYearlyScoresValid(for: date) {
+        if isYearlyScoresValid(for: date), let cachedScores = cachedYearlyScores {
             print("📱 Using cached yearly horoscope scores for \(date)")
-            return cachedYearlyScores!
+            return cachedScores
         }
         
         print("📅 Calculating NEW yearly horoscope scores for \(date) using birth chart and year-ahead transits")
@@ -1334,7 +1362,7 @@ class AstrologyService {
         }
         
         // 5th house influences (romance)
-        let fifthHouseCusp = chart.houses[4].cusp
+        let fifthHouseCusp = (getHouseCusp(from: chart, house: 5) ?? 0)
         if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
             let jupiterTo5thHouse = abs(jupiter.longitude - fifthHouseCusp)
             if jupiterTo5thHouse < 15 {
@@ -1363,7 +1391,7 @@ class AstrologyService {
         
         // Saturn monthly influences (career structure)
         if let saturn = transits.first(where: { $0.name == "Saturn" }) {
-            let saturnToMC = abs(saturn.longitude - chart.houses[9].cusp)
+            let saturnToMC = abs(saturn.longitude - (getHouseCusp(from: chart, house: 10) ?? 0))
             if saturnToMC < 15 || (105...135).contains(saturnToMC) {
                 score += 15 // Career advancement
             } else if (75...105).contains(saturnToMC) {
@@ -1401,7 +1429,7 @@ class AstrologyService {
         
         // Jupiter monthly cycle (abundance)
         if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
-            let jupiterTo2ndHouse = abs(jupiter.longitude - chart.houses[1].cusp)
+            let jupiterTo2ndHouse = abs(jupiter.longitude - (getHouseCusp(from: chart, house: 2) ?? 0))
             if jupiterTo2ndHouse < 15 || (105...135).contains(jupiterTo2ndHouse) {
                 score += 18 // Major financial expansion
             } else if (45...75).contains(jupiterTo2ndHouse) {
@@ -1409,7 +1437,7 @@ class AstrologyService {
             }
             
             // Jupiter to 8th house (investments, shared resources)
-            let jupiterTo8thHouse = abs(jupiter.longitude - chart.houses[7].cusp)
+            let jupiterTo8thHouse = abs(jupiter.longitude - (getHouseCusp(from: chart, house: 8) ?? 0))
             if jupiterTo8thHouse < 15 {
                 score += 10 // Investment gains
             }
@@ -1417,7 +1445,7 @@ class AstrologyService {
         
         // Pluto influences (transformation of resources)
         if let pluto = transits.first(where: { $0.name == "Pluto" }) {
-            let plutoTo2ndHouse = abs(pluto.longitude - chart.houses[1].cusp)
+            let plutoTo2ndHouse = abs(pluto.longitude - (getHouseCusp(from: chart, house: 2) ?? 0))
             if plutoTo2ndHouse < 8 {
                 score += 8 // Financial transformation
             }
@@ -1504,7 +1532,7 @@ class AstrologyService {
             }
             
             // Jupiter to 7th house (partnership)
-            let jupiterTo7thHouse = abs(jupiter.longitude - chart.houses[6].cusp)
+            let jupiterTo7thHouse = abs(jupiter.longitude - (getHouseCusp(from: chart, house: 7) ?? 0))
             if jupiterTo7thHouse < 10 {
                 score += 20 // Partnership blessing year
             }
@@ -1542,7 +1570,7 @@ class AstrologyService {
             }
             
             // Saturn to MC (professional achievement)
-            let saturnToMC = abs(saturn.longitude - chart.houses[9].cusp)
+            let saturnToMC = abs(saturn.longitude - (getHouseCusp(from: chart, house: 10) ?? 0))
             if saturnToMC < 5 {
                 score += 18 // Career peak year
             }
@@ -1556,7 +1584,7 @@ class AstrologyService {
             }
             
             // Jupiter to 10th house
-            let jupiterTo10thHouse = abs(jupiter.longitude - chart.houses[9].cusp)
+            let jupiterTo10thHouse = abs(jupiter.longitude - (getHouseCusp(from: chart, house: 10) ?? 0))
             if jupiterTo10thHouse < 10 {
                 score += 16 // Professional recognition year
             }
@@ -1564,7 +1592,7 @@ class AstrologyService {
         
         // Uranus career innovation
         if let uranus = transits.first(where: { $0.name == "Uranus" }) {
-            let uranusToMC = abs(uranus.longitude - chart.houses[9].cusp)
+            let uranusToMC = abs(uranus.longitude - (getHouseCusp(from: chart, house: 10) ?? 0))
             if uranusToMC < 5 {
                 score += 14 // Career revolution year
             }
@@ -1579,7 +1607,7 @@ class AstrologyService {
         // Jupiter wealth cycles (major financial growth)
         if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
             // Jupiter to 2nd house (personal wealth)
-            let jupiterTo2ndHouse = abs(jupiter.longitude - chart.houses[1].cusp)
+            let jupiterTo2ndHouse = abs(jupiter.longitude - (getHouseCusp(from: chart, house: 2) ?? 0))
             if jupiterTo2ndHouse < 8 {
                 score += 22 // Major wealth expansion year
             } else if jupiterTo2ndHouse < 15 {
@@ -1587,7 +1615,7 @@ class AstrologyService {
             }
             
             // Jupiter to 8th house (investments, inheritance)
-            let jupiterTo8thHouse = abs(jupiter.longitude - chart.houses[7].cusp)
+            let jupiterTo8thHouse = abs(jupiter.longitude - (getHouseCusp(from: chart, house: 8) ?? 0))
             if jupiterTo8thHouse < 8 {
                 score += 18 // Investment boom year
             }
@@ -1601,7 +1629,7 @@ class AstrologyService {
         
         // Saturn wealth building (long-term financial security)
         if let saturn = transits.first(where: { $0.name == "Saturn" }) {
-            let saturnTo2ndHouse = abs(saturn.longitude - chart.houses[1].cusp)
+            let saturnTo2ndHouse = abs(saturn.longitude - (getHouseCusp(from: chart, house: 2) ?? 0))
             if saturnTo2ndHouse < 8 {
                 score += 12 // Financial discipline and security year
             }
@@ -1609,12 +1637,12 @@ class AstrologyService {
         
         // Pluto wealth transformation
         if let pluto = transits.first(where: { $0.name == "Pluto" }) {
-            let plutoTo2ndHouse = abs(pluto.longitude - chart.houses[1].cusp)
+            let plutoTo2ndHouse = abs(pluto.longitude - (getHouseCusp(from: chart, house: 2) ?? 0))
             if plutoTo2ndHouse < 5 {
                 score += 15 // Wealth transformation year
             }
             
-            let plutoTo8thHouse = abs(pluto.longitude - chart.houses[7].cusp)
+            let plutoTo8thHouse = abs(pluto.longitude - (getHouseCusp(from: chart, house: 8) ?? 0))
             if plutoTo8thHouse < 5 {
                 score += 12 // Investment metamorphosis year
             }

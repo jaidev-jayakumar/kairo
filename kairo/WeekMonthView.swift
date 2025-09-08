@@ -94,10 +94,18 @@ struct WeekMonthView: View {
         if let birthData = UserDataManager.shared.getBirthData() {
             userBirthChart = AstrologyService.shared.calculateBirthChart(for: birthData)
             if let chart = userBirthChart {
-                // Use our deterministic, personalized insights (no AI override)
-                weeklyInsight = generateWeeklyInsight(chart: chart, transits: currentTransits)
-                monthlyInsight = generateMonthlyInsight(chart: chart, transits: currentTransits)
-                yearlyInsight = generateYearlyInsight(chart: chart, transits: currentTransits)
+                // Use AI-powered fresh insights for all timeframes
+                Task {
+                    let freshWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart)
+                    let freshMonthlyInsight = await AstrologyService.shared.generateMonthlyInsight(for: chart)
+                    let freshYearlyInsight = await AstrologyService.shared.generateYearlyInsight(for: chart)
+                    
+                    await MainActor.run {
+                        weeklyInsight = freshWeeklyInsight
+                        monthlyInsight = freshMonthlyInsight
+                        yearlyInsight = freshYearlyInsight
+                    }
+                }
                 
                 // Calculate horoscope scores for all timeframes
                 horoscopeScores = AstrologyService.shared.calculateWeeklyHoroscopeScores(for: chart)

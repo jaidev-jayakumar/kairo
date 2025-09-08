@@ -77,9 +77,16 @@ struct TodayView: View {
             // Calculate daily insight and scores
             if let birthData = userBirthData,
                let chart = AstrologyService.shared.calculateBirthChart(for: birthData) {
-                // Use our deterministic, personalized insight (no AI override)
-                dailyInsight = AstrologyService.shared.generateDailyInsightSync(for: chart)
+                
                 currentTransits = AstrologyService.shared.calculateCurrentTransits()
+                
+                // Use AI-powered fresh daily insight
+                Task {
+                    let freshInsight = await AstrologyService.shared.generateDailyInsight(for: chart)
+                    await MainActor.run {
+                        dailyInsight = freshInsight
+                    }
+                }
                 
                 // Calculate DAILY horoscope scores based on user's birth chart
                 horoscopeScores = AstrologyService.shared.calculateDailyHoroscopeScores(for: chart)
