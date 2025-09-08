@@ -4,6 +4,12 @@ import SwissEphemeris
 class AstrologyService {
     static let shared = AstrologyService()
     
+    // Cache for horoscope scores
+    private var cachedDailyScores: HoroscopeScores?
+    private var cachedWeeklyScores: HoroscopeScores?
+    private var cachedMonthlyScores: HoroscopeScores?
+    private var cachedYearlyScores: HoroscopeScores?
+    
     private init() {
         // Initialize Swiss Ephemeris with default path
         // The package will use its internal ephemeris data
@@ -503,84 +509,153 @@ class AstrologyService {
         }
     }
     
+    // MARK: - Cache Management
+    private func isDailyScoresValid(for date: Date) -> Bool {
+        guard let cachedScores = cachedDailyScores else { return false }
+        return Calendar.current.isDate(cachedScores.date, inSameDayAs: date)
+    }
+    
+    private func isWeeklyScoresValid(for date: Date) -> Bool {
+        guard let cachedScores = cachedWeeklyScores else { return false }
+        let calendar = Calendar.current
+        return calendar.component(.weekOfYear, from: cachedScores.date) == calendar.component(.weekOfYear, from: date) &&
+               calendar.component(.year, from: cachedScores.date) == calendar.component(.year, from: date)
+    }
+    
+    private func isMonthlyScoresValid(for date: Date) -> Bool {
+        guard let cachedScores = cachedMonthlyScores else { return false }
+        let calendar = Calendar.current
+        return calendar.component(.month, from: cachedScores.date) == calendar.component(.month, from: date) &&
+               calendar.component(.year, from: cachedScores.date) == calendar.component(.year, from: date)
+    }
+    
+    private func isYearlyScoresValid(for date: Date) -> Bool {
+        guard let cachedScores = cachedYearlyScores else { return false }
+        return Calendar.current.component(.year, from: cachedScores.date) == Calendar.current.component(.year, from: date)
+    }
+    
     // MARK: - Horoscope Scores Calculation
-    func calculateDailyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
-        print("🎯 Calculating daily horoscope scores using birth chart and current transits")
+    func calculateDailyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
+        // Check cache first
+        if isDailyScoresValid(for: date) {
+            print("📱 Using cached daily horoscope scores for \(date)")
+            return cachedDailyScores!
+        }
+        
+        print("🎯 Calculating NEW daily horoscope scores for \(date) using birth chart and current transits")
         let transits = calculateCurrentTransits()
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on TODAY'S astrological factors
-        let overallScore = calculateDailyOverallScore(chart: chart, transits: transits, aspects: aspects)
-        let loveScore = calculateDailyLoveScore(chart: chart, transits: transits, aspects: aspects)
-        let careerScore = calculateDailyCareerScore(chart: chart, transits: transits, aspects: aspects)
-        let wealthScore = calculateDailyWealthScore(chart: chart, transits: transits, aspects: aspects)
+        // Calculate each score based on SPECIFIC DATE's astrological factors
+        let overallScore = calculateDailyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let loveScore = calculateDailyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let careerScore = calculateDailyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let wealthScore = calculateDailyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
         
-        return HoroscopeScores(
+        let scores = HoroscopeScores(
             overall: overallScore,
             love: loveScore,
             career: careerScore,
-            wealth: wealthScore
+            wealth: wealthScore,
+            date: date
         )
+        
+        // Cache the results
+        cachedDailyScores = scores
+        return scores
     }
     
-    func calculateWeeklyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
-        print("📅 Calculating weekly horoscope scores using birth chart and week-ahead transits")
+    func calculateWeeklyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
+        // Check cache first
+        if isWeeklyScoresValid(for: date) {
+            print("📱 Using cached weekly horoscope scores for \(date)")
+            return cachedWeeklyScores!
+        }
+        
+        print("📅 Calculating NEW weekly horoscope scores for \(date) using birth chart and week-ahead transits")
         let transits = calculateCurrentTransits()
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on THIS WEEK'S astrological factors
-        let overallScore = calculateWeeklyOverallScore(chart: chart, transits: transits, aspects: aspects)
-        let loveScore = calculateWeeklyLoveScore(chart: chart, transits: transits, aspects: aspects)
-        let careerScore = calculateWeeklyCareerScore(chart: chart, transits: transits, aspects: aspects)
-        let wealthScore = calculateWeeklyWealthScore(chart: chart, transits: transits, aspects: aspects)
+        // Calculate each score based on SPECIFIC WEEK'S astrological factors
+        let overallScore = calculateWeeklyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let loveScore = calculateWeeklyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let careerScore = calculateWeeklyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let wealthScore = calculateWeeklyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
         
-        return HoroscopeScores(
+        let scores = HoroscopeScores(
             overall: overallScore,
             love: loveScore,
             career: careerScore,
-            wealth: wealthScore
+            wealth: wealthScore,
+            date: date
         )
+        
+        // Cache the results
+        cachedWeeklyScores = scores
+        return scores
     }
     
-    func calculateMonthlyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
-        print("📅 Calculating monthly horoscope scores using birth chart and month-ahead transits")
+    func calculateMonthlyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
+        // Check cache first
+        if isMonthlyScoresValid(for: date) {
+            print("📱 Using cached monthly horoscope scores for \(date)")
+            return cachedMonthlyScores!
+        }
+        
+        print("📅 Calculating NEW monthly horoscope scores for \(date) using birth chart and month-ahead transits")
         let transits = calculateCurrentTransits()
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on THIS MONTH'S astrological factors
-        let overallScore = calculateMonthlyOverallScore(chart: chart, transits: transits, aspects: aspects)
-        let loveScore = calculateMonthlyLoveScore(chart: chart, transits: transits, aspects: aspects)
-        let careerScore = calculateMonthlyCareerScore(chart: chart, transits: transits, aspects: aspects)
-        let wealthScore = calculateMonthlyWealthScore(chart: chart, transits: transits, aspects: aspects)
+        // Calculate each score based on SPECIFIC MONTH'S astrological factors
+        let overallScore = calculateMonthlyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let loveScore = calculateMonthlyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let careerScore = calculateMonthlyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let wealthScore = calculateMonthlyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
         
-        return HoroscopeScores(
+        let scores = HoroscopeScores(
             overall: overallScore,
             love: loveScore,
             career: careerScore,
-            wealth: wealthScore
+            wealth: wealthScore,
+            date: date
         )
+        
+        // Cache the results
+        cachedMonthlyScores = scores
+        return scores
     }
     
-    func calculateYearlyHoroscopeScores(for chart: BirthChart) -> HoroscopeScores {
-        print("📅 Calculating yearly horoscope scores using birth chart and year-ahead transits")
+    func calculateYearlyHoroscopeScores(for chart: BirthChart, date: Date = Date()) -> HoroscopeScores {
+        // Check cache first
+        if isYearlyScoresValid(for: date) {
+            print("📱 Using cached yearly horoscope scores for \(date)")
+            return cachedYearlyScores!
+        }
+        
+        print("📅 Calculating NEW yearly horoscope scores for \(date) using birth chart and year-ahead transits")
         let transits = calculateCurrentTransits()
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on THIS YEAR'S astrological factors
-        let overallScore = calculateYearlyOverallScore(chart: chart, transits: transits, aspects: aspects)
-        let loveScore = calculateYearlyLoveScore(chart: chart, transits: transits, aspects: aspects)
-        let careerScore = calculateYearlyCareerScore(chart: chart, transits: transits, aspects: aspects)
-        let wealthScore = calculateYearlyWealthScore(chart: chart, transits: transits, aspects: aspects)
+        // Calculate each score based on SPECIFIC YEAR'S astrological factors
+        let overallScore = calculateYearlyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let loveScore = calculateYearlyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let careerScore = calculateYearlyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        let wealthScore = calculateYearlyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
         
-        return HoroscopeScores(
+        let scores = HoroscopeScores(
             overall: overallScore,
             love: loveScore,
             career: careerScore,
-            wealth: wealthScore
+            wealth: wealthScore,
+            date: date
         )
+        
+        // Cache the results
+        cachedYearlyScores = scores
+        return scores
     }
     
-    private func calculateDailyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateDailyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 75 // Base score
         
         // Sun-Moon harmony influences overall well-being
@@ -596,7 +671,7 @@ class AstrologyService {
             score -= 5
         }
         
-        // Current Moon transit affects daily energy
+        // Current Moon transit affects daily energy - INCLUDE DATE-BASED VARIATION
         if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
             let moonToSunAspect = abs(moonTransit.longitude - chart.sun.longitude)
             let normalizedMoonAspect = moonToSunAspect > 180 ? 360 - moonToSunAspect : moonToSunAspect
@@ -606,6 +681,11 @@ class AstrologyService {
             } else if (82...98).contains(normalizedMoonAspect) {
                 score -= 3 // Challenging lunar energy
             }
+            
+            // Add daily variation based on specific date
+            let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+            let moonPhaseVariation = (dayOfYear % 7) - 3 // Range: -3 to +3
+            score += moonPhaseVariation
         }
         
         // Jupiter transits bring expansion and luck
@@ -620,10 +700,15 @@ class AstrologyService {
             }
         }
         
+        // Add birth chart personalization based on current date
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+        let personalizedVariation = (chart.sun.longitude + chart.moon.longitude + Double(dayOfYear)).truncatingRemainder(dividingBy: 20) - 10
+        score += Int(personalizedVariation)
+        
         return max(40, min(100, score))
     }
     
-    private func calculateDailyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateDailyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 70 // Base love score
         
         // Venus position is key for love
@@ -664,10 +749,15 @@ class AstrologyService {
             }
         }
         
+        // Add date-specific love energy variation
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+        let venusPersonalization = (chart.venus.longitude + Double(dayOfYear * 3)).truncatingRemainder(dividingBy: 15) - 7
+        score += Int(venusPersonalization)
+        
         return max(30, min(100, score))
     }
     
-    private func calculateDailyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateDailyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 72 // Base career score
         
         // Mars position affects drive and ambition
@@ -708,10 +798,15 @@ class AstrologyService {
             }
         }
         
+        // Add date-specific career momentum variation
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+        let careerPersonalization = (chart.mars.longitude + chart.sun.longitude + Double(dayOfYear * 2)).truncatingRemainder(dividingBy: 18) - 9
+        score += Int(careerPersonalization)
+        
         return max(35, min(100, score))
     }
     
-    private func calculateDailyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateDailyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 68 // Base wealth score
         
         // Jupiter represents abundance and expansion
@@ -754,11 +849,16 @@ class AstrologyService {
             }
         }
         
+        // Add date-specific wealth opportunity variation
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+        let wealthPersonalization = (chart.jupiter.longitude + chart.venus.longitude + Double(dayOfYear * 5)).truncatingRemainder(dividingBy: 16) - 8
+        score += Int(wealthPersonalization)
+        
         return max(25, min(100, score))
     }
     
     // MARK: - Weekly Score Calculations
-    private func calculateWeeklyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateWeeklyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 78 // Slightly different base for weekly
         
         // Week-long trends focus more on slower planets
@@ -785,14 +885,15 @@ class AstrologyService {
             }
         }
         
-        // Week-specific adjustments based on week number
+        // Week-specific adjustments based on week number and birth chart
         let weekAdjustment = (currentWeek % 4) * 2 - 3 // Varies by week in month
-        score += weekAdjustment
+        let personalWeeklyVariation = (chart.sun.longitude + Double(currentWeek * 7)).truncatingRemainder(dividingBy: 12) - 6
+        score += weekAdjustment + Int(personalWeeklyVariation)
         
         return max(45, min(100, score))
     }
     
-    private func calculateWeeklyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateWeeklyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 73 // Different base for weekly love
         
         // Weekly Venus patterns (different from daily focus)
@@ -822,7 +923,7 @@ class AstrologyService {
         return max(35, min(100, score))
     }
     
-    private func calculateWeeklyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateWeeklyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 75 // Weekly career base
         
         // Saturn weekly influence (structure and discipline)
@@ -852,7 +953,7 @@ class AstrologyService {
         return max(40, min(100, score))
     }
     
-    private func calculateWeeklyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateWeeklyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 71 // Weekly wealth base
         
         // Jupiter weekly abundance (different timing than daily)
@@ -1175,7 +1276,7 @@ class AstrologyService {
     
     // MARK: - Monthly Score Calculations
     
-    private func calculateMonthlyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateMonthlyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 80 // Higher base for monthly perspective
         
         // Major outer planet influences
@@ -1197,8 +1298,8 @@ class AstrologyService {
             }
         }
         
-        // Monthly cycle based on current month
-        let month = Calendar.current.component(.month, from: Date())
+        // Monthly cycle based on current month with personalization
+        let month = Calendar.current.component(.month, from: date)
         switch month {
         case 1, 3, 9: score += 8 // New beginning months
         case 4, 5, 6: score += 10 // Growth months  
@@ -1207,10 +1308,14 @@ class AstrologyService {
         default: score += 7
         }
         
+        // Add personalized monthly variation
+        let monthlyPersonalization = (chart.sun.longitude + chart.moon.longitude + Double(month * 30)).truncatingRemainder(dividingBy: 20) - 10
+        score += Int(monthlyPersonalization)
+        
         return max(0, min(100, score))
     }
     
-    private func calculateMonthlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateMonthlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 75 // Base monthly love score
         
         // Venus monthly cycle
@@ -1237,8 +1342,8 @@ class AstrologyService {
             }
         }
         
-        // Monthly love energy based on season
-        let month = Calendar.current.component(.month, from: Date())
+        // Monthly love energy based on season with personalization
+        let month = Calendar.current.component(.month, from: date)
         switch month {
         case 2, 6, 10: score += 8 // Romance peak months
         case 4, 5: score += 10 // Spring love energy
@@ -1246,10 +1351,14 @@ class AstrologyService {
         default: score += 7
         }
         
+        // Add Venus-based personalization for love
+        let lovePersonalization = (chart.venus.longitude + Double(month * 15)).truncatingRemainder(dividingBy: 12) - 6
+        score += Int(lovePersonalization)
+        
         return max(0, min(100, score))
     }
     
-    private func calculateMonthlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateMonthlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 78 // Base monthly career score
         
         // Saturn monthly influences (career structure)
@@ -1270,8 +1379,8 @@ class AstrologyService {
             }
         }
         
-        // Monthly professional energy
-        let month = Calendar.current.component(.month, from: Date())
+        // Monthly professional energy with personalization
+        let month = Calendar.current.component(.month, from: date)
         switch month {
         case 1, 9: score += 12 // New beginning months
         case 3, 4, 10: score += 10 // High productivity
@@ -1280,10 +1389,14 @@ class AstrologyService {
         default: score += 7
         }
         
+        // Add Mars-based career personalization
+        let careerPersonalization = (chart.mars.longitude + Double(month * 20)).truncatingRemainder(dividingBy: 14) - 7
+        score += Int(careerPersonalization)
+        
         return max(0, min(100, score))
     }
     
-    private func calculateMonthlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateMonthlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 76 // Base monthly wealth score
         
         // Jupiter monthly cycle (abundance)
@@ -1310,8 +1423,8 @@ class AstrologyService {
             }
         }
         
-        // Monthly wealth cycles
-        let month = Calendar.current.component(.month, from: Date())
+        // Monthly wealth cycles with personalization
+        let month = Calendar.current.component(.month, from: date)
         switch month {
         case 4, 11: score += 10 // Tax season opportunities
         case 9, 10: score += 12 // Harvest season abundance
@@ -1319,12 +1432,16 @@ class AstrologyService {
         default: score += 6
         }
         
+        // Add Jupiter-based wealth personalization
+        let wealthPersonalization = (chart.jupiter.longitude + Double(month * 25)).truncatingRemainder(dividingBy: 16) - 8
+        score += Int(wealthPersonalization)
+        
         return max(0, min(100, score))
     }
     
     // MARK: - Yearly Score Calculations
     
-    private func calculateYearlyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateYearlyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 85 // Higher base for yearly perspective
         
         // Major generational planets
@@ -1351,10 +1468,15 @@ class AstrologyService {
             }
         }
         
-        // Year numerology influence
-        let year = Calendar.current.component(.year, from: Date())
+        // Year numerology influence with birth chart integration
+        let year = Calendar.current.component(.year, from: date)
         let yearDigitSum = String(year).compactMap { Int(String($0)) }.reduce(0, +)
         let yearNumber = yearDigitSum % 9 + 1
+        
+        // Add birth chart influence on yearly energy
+        let birthYear = Calendar.current.component(.year, from: chart.birthData.date)
+        let ageInfluence = (year - birthYear) % 12 // 12-year Jupiter cycle
+        let personalYearlyInfluence = Int((chart.sun.longitude + Double(ageInfluence * 30)).truncatingRemainder(dividingBy: 25)) - 12
         
         switch yearNumber {
         case 1, 3, 5: score += 8 // Dynamic years
@@ -1364,10 +1486,11 @@ class AstrologyService {
         default: score += 7
         }
         
+        score += personalYearlyInfluence
         return max(0, min(100, score))
     }
     
-    private func calculateYearlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateYearlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 80 // Base yearly love score
         
         // Major love transits for the year
@@ -1406,7 +1529,7 @@ class AstrologyService {
         return max(0, min(100, score))
     }
     
-    private func calculateYearlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateYearlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 82 // Base yearly career score
         
         // Saturn career cycles (major professional development)
@@ -1450,7 +1573,7 @@ class AstrologyService {
         return max(0, min(100, score))
     }
     
-    private func calculateYearlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect]) -> Int {
+    private func calculateYearlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
         var score = 78 // Base yearly wealth score
         
         // Jupiter wealth cycles (major financial growth)
