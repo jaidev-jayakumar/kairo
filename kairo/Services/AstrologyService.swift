@@ -684,330 +684,970 @@ class AstrologyService {
     }
     
     private func calculateDailyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 75 // Base score
+        var score = 50 // Neutral baseline - true middle ground
         
-        // Sun-Moon harmony influences overall well-being
+        // === NATAL CHART FOUNDATION (affects baseline) ===
         let sunMoonAngle = abs(chart.sun.longitude - chart.moon.longitude)
-        let normalizedAngle = sunMoonAngle > 180 ? 360 - sunMoonAngle : sunMoonAngle
+        let normalizedSunMoon = sunMoonAngle > 180 ? 360 - sunMoonAngle : sunMoonAngle
         
-        // Harmonious sun-moon aspects boost overall score
-        if normalizedAngle < 8 || (112...128).contains(normalizedAngle) { // Conjunction or Trine
+        // Natal sun-moon aspect sets your general life harmony
+        if normalizedSunMoon < 8 { // Conjunction - unified personality
+            score += 12
+        } else if (112...128).contains(normalizedSunMoon) { // Trine - natural harmony
             score += 15
-        } else if (52...68).contains(normalizedAngle) { // Sextile
-            score += 10
-        } else if (82...98).contains(normalizedAngle) || (172...188).contains(normalizedAngle) { // Square or Opposition
+        } else if (52...68).contains(normalizedSunMoon) { // Sextile - cooperative energy
+            score += 8
+        } else if (82...98).contains(normalizedSunMoon) { // Square - creative tension
             score -= 5
+        } else if (172...188).contains(normalizedSunMoon) { // Opposition - internal polarity
+            score -= 8
         }
         
-        // Current Moon transit affects daily energy - INCLUDE DATE-BASED VARIATION
-        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
-            let moonToSunAspect = abs(moonTransit.longitude - chart.sun.longitude)
-            let normalizedMoonAspect = moonToSunAspect > 180 ? 360 - moonToSunAspect : moonToSunAspect
+        // === MAJOR TRANSITS (can dramatically shift scores) ===
+        
+        // Saturn transits - lessons, restrictions, achievements
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
             
-            if normalizedMoonAspect < 8 || (112...128).contains(normalizedMoonAspect) {
-                score += 8 // Flowing lunar energy
-            } else if (82...98).contains(normalizedMoonAspect) {
-                score -= 3 // Challenging lunar energy
+            if normalizedSaturn < 8 { // Saturn return or conjunction - major life restructuring
+                score -= 15 // Intense pressure but builds character
+            } else if (82...98).contains(normalizedSaturn) { // Square - obstacles and tests
+                score -= 20 // Most challenging aspect
+            } else if (172...188).contains(normalizedSaturn) { // Opposition - external pressure
+                score -= 12 // Difficult but clarifying
+            } else if (112...128).contains(normalizedSaturn) { // Trine - earned rewards
+                score += 18 // Well-deserved success
+            } else if (52...68).contains(normalizedSaturn) { // Sextile - steady progress
+                score += 10
             }
-            
-            // Add daily variation based on specific date
-            let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
-            let moonPhaseVariation = (dayOfYear % 7) - 3 // Range: -3 to +3
-            score += moonPhaseVariation
         }
         
-        // Jupiter transits bring expansion and luck
+        // Jupiter transits - expansion, opportunity, optimism
         if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
-            let jupiterToSunAspect = abs(jupiterTransit.longitude - chart.sun.longitude)
-            let normalizedJupiterAspect = jupiterToSunAspect > 180 ? 360 - jupiterToSunAspect : jupiterToSunAspect
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
             
-            if normalizedJupiterAspect < 8 || (112...128).contains(normalizedJupiterAspect) {
-                score += 12 // Jupiter blessing
-            } else if (52...68).contains(normalizedJupiterAspect) {
-                score += 8 // Supportive Jupiter
+            if normalizedJupiter < 8 { // Jupiter return - major expansion year
+                score += 25 // Peak opportunity
+            } else if (112...128).contains(normalizedJupiter) { // Trine - flowing abundance
+                score += 20
+            } else if (52...68).contains(normalizedJupiter) { // Sextile - growth opportunities
+                score += 12
+            } else if (82...98).contains(normalizedJupiter) { // Square - overconfidence or legal issues
+                score -= 8
+            } else if (172...188).contains(normalizedJupiter) { // Opposition - excess or conflicts
+                score -= 5
             }
         }
         
-        // Add birth chart personalization based on current date
-        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
-        let personalizedVariation = (chart.sun.longitude + chart.moon.longitude + Double(dayOfYear)).truncatingRemainder(dividingBy: 20) - 10
-        score += Int(personalizedVariation)
+        // Mars transits - energy, conflict, action
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if normalizedMars < 8 { // Mars return - energy surge
+                score += 8
+            } else if (82...98).contains(normalizedMars) { // Square - conflicts, accidents
+                score -= 15 // Dangerous time, requires caution
+            } else if (172...188).contains(normalizedMars) { // Opposition - confrontations
+                score -= 10
+            } else if (112...128).contains(normalizedMars) { // Trine - productive energy
+                score += 12
+            }
+        }
         
-        return max(40, min(100, score))
+        // Moon transit - daily emotional tone
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let moonToSun = abs(moonTransit.longitude - chart.sun.longitude)
+            let normalizedMoon = moonToSun > 180 ? 360 - moonToSun : moonToSun
+            
+            if normalizedMoon < 8 { // New Moon energy - fresh starts
+                score += 8
+            } else if (82...98).contains(normalizedMoon) { // First/Last Quarter - tension
+                score -= 3
+            } else if (172...188).contains(normalizedMoon) { // Full Moon - heightened emotions
+                score += 5
+            } else if (112...128).contains(normalizedMoon) { // Waxing/Waning Trine
+                score += 6
+            }
+        }
+        
+        // === CHALLENGING OUTER PLANET TRANSITS ===
+        
+        // Uranus transits - sudden changes, breakthroughs, upheaval
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if normalizedUranus < 8 { // Uranus conjunction - life revolution
+                score -= 10 // Chaotic but liberating
+            } else if (82...98).contains(normalizedUranus) { // Square - shocking changes
+                score -= 18 // Very disruptive
+            } else if (172...188).contains(normalizedUranus) { // Opposition - external upheaval
+                score -= 12
+            } else if (112...128).contains(normalizedUranus) { // Trine - positive breakthroughs
+                score += 15
+            }
+        }
+        
+        // Neptune transits - confusion, spirituality, illusion
+        if let neptuneTransit = transits.first(where: { $0.name == "Neptune" }) {
+            let neptuneToSun = abs(neptuneTransit.longitude - chart.sun.longitude)
+            let normalizedNeptune = neptuneToSun > 180 ? 360 - neptuneToSun : neptuneToSun
+            
+            if normalizedNeptune < 8 { // Neptune conjunction - ego dissolution
+                score -= 12 // Confusing but spiritually transformative
+            } else if (82...98).contains(normalizedNeptune) { // Square - deception, addiction
+                score -= 15 // Dangerous illusions
+            } else if (112...128).contains(normalizedNeptune) { // Trine - spiritual inspiration
+                score += 10
+            }
+        }
+        
+        // Pluto transits - death/rebirth, power struggles, transformation
+        if let plutoTransit = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToSun = abs(plutoTransit.longitude - chart.sun.longitude)
+            let normalizedPluto = plutoToSun > 180 ? 360 - plutoToSun : plutoToSun
+            
+            if normalizedPluto < 8 { // Pluto conjunction - total life transformation
+                score -= 20 // Intense but ultimately regenerative
+            } else if (82...98).contains(normalizedPluto) { // Square - power struggles
+                score -= 25 // Most difficult transit possible
+            } else if (172...188).contains(normalizedPluto) { // Opposition - external power conflicts
+                score -= 18
+            } else if (112...128).contains(normalizedPluto) { // Trine - empowerment
+                score += 15
+            }
+        }
+        
+        // === PERSONAL DATE VARIATION ===
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+        let personalVariation = Int((chart.sun.longitude + Double(dayOfYear * 3)).truncatingRemainder(dividingBy: 14)) - 7
+        score += personalVariation
+        
+        // === REALISTIC SCORING RANGES ===
+        return max(5, min(95, score)) // Allow genuinely difficult (5-20) and amazing (85-95) days
     }
     
     private func calculateDailyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 70 // Base love score
+        var score = 50 // Neutral love baseline
         
-        // Venus position is key for love
+        // === NATAL LOVE FOUNDATION ===
+        
+        // Venus sign affects how you love and attract
         let venusSign = chart.venus.position.sign
+        if [.libra, .taurus].contains(venusSign) { // Venus ruled signs
+            score += 15 // Natural grace in love
+        } else if [.pisces, .cancer].contains(venusSign) { // Emotional water signs
+            score += 12 // Deep emotional connection ability
+        } else if [.leo, .sagittarius].contains(venusSign) { // Passionate fire signs
+            score += 10 // Magnetic and enthusiastic
+        } else if [.virgo, .capricorn].contains(venusSign) { // Practical earth signs
+            score += 5 // Loyal but reserved
+        } else if [.scorpio].contains(venusSign) { // Intense water
+            score += 8 // Magnetic but complicated
+        } else if [.aries, .gemini, .aquarius].contains(venusSign) { // Independent signs
+            score += 3 // Loves freedom more than romance
+        }
         
-        // Venus in harmonious signs
-        if [.libra, .taurus, .pisces, .cancer].contains(venusSign) {
+        // Venus-Mars natal aspect affects passion and attraction
+        let venusMarsAngle = abs(chart.venus.longitude - chart.mars.longitude)
+        let normalizedVenusMars = venusMarsAngle > 180 ? 360 - venusMarsAngle : venusMarsAngle
+        
+        if normalizedVenusMars < 8 { // Conjunction - intense magnetism
+            score += 12
+        } else if (112...128).contains(normalizedVenusMars) { // Trine - natural charm
             score += 15
-        } else if [.leo, .gemini, .aquarius].contains(venusSign) {
+        } else if (52...68).contains(normalizedVenusMars) { // Sextile - attractive personality
             score += 10
+        } else if (82...98).contains(normalizedVenusMars) { // Square - passionate conflicts
+            score -= 5
+        } else if (172...188).contains(normalizedVenusMars) { // Opposition - relationship tension
+            score -= 8
         }
         
-        // Current Venus transit
+        // === TRANSIT INFLUENCES ON LOVE ===
+        
+        // Venus transits - relationship planet
         if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
-            let venusToNatalVenusAspect = abs(venusTransit.longitude - chart.venus.longitude)
-            let normalizedVenusAspect = venusToNatalVenusAspect > 180 ? 360 - venusToNatalVenusAspect : venusToNatalVenusAspect
+            let venusToNatalVenus = abs(venusTransit.longitude - chart.venus.longitude)
+            let normalizedVenusTransit = venusToNatalVenus > 180 ? 360 - venusToNatalVenus : venusToNatalVenus
             
-            if normalizedVenusAspect < 8 || (112...128).contains(normalizedVenusAspect) {
-                score += 12 // Venus return or trine
-            } else if (52...68).contains(normalizedVenusAspect) {
-                score += 8 // Venus sextile
+            if normalizedVenusTransit < 8 { // Venus return - renewed love
+                score += 20 // Major love renewal
+            } else if (112...128).contains(normalizedVenusTransit) { // Trine - flowing love
+                score += 15
+            } else if (52...68).contains(normalizedVenusTransit) { // Sextile - love opportunities
+                score += 12
+            } else if (82...98).contains(normalizedVenusTransit) { // Square - relationship tests
+                score -= 10
+            } else if (172...188).contains(normalizedVenusTransit) { // Opposition - relationship clarity
+                score -= 5
+            }
+            
+            // Venus to natal Mars - passion activation
+            let venusToNatalMars = abs(venusTransit.longitude - chart.mars.longitude)
+            let normalizedVenusToMars = venusToNatalMars > 180 ? 360 - venusToNatalMars : venusToNatalMars
+            
+            if normalizedVenusToMars < 8 || (112...128).contains(normalizedVenusToMars) {
+                score += 12 // Passionate attraction
             }
         }
         
-        // Moon in relationship-friendly signs affects emotional connection
-        let moonSign = chart.moon.position.sign
-        if [.cancer, .pisces, .libra, .taurus].contains(moonSign) {
-            score += 8
+        // Mars transits to Venus - sexual chemistry and conflicts
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToNatalVenus = abs(marsTransit.longitude - chart.venus.longitude)
+            let normalizedMarsToVenus = marsToNatalVenus > 180 ? 360 - marsToNatalVenus : marsToNatalVenus
+            
+            if normalizedMarsToVenus < 8 { // Conjunction - intense attraction
+                score += 15 // Very magnetic but possibly overwhelming
+            } else if (82...98).contains(normalizedMarsToVenus) { // Square - sexual tension/conflicts
+                score -= 12 // Fights and passion
+            } else if (172...188).contains(normalizedMarsToVenus) { // Opposition - sexual polarity
+                score -= 8
+            } else if (112...128).contains(normalizedMarsToVenus) { // Trine - healthy passion
+                score += 18 // Perfect sexual harmony
+            } else if (52...68).contains(normalizedMarsToVenus) { // Sextile - flirtation
+                score += 10
+            }
         }
         
-        // Current Moon transit to Venus
+        // Jupiter transits to Venus - love expansion and excess
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToVenus = abs(jupiterTransit.longitude - chart.venus.longitude)
+            let normalizedJupiterToVenus = jupiterToVenus > 180 ? 360 - jupiterToVenus : jupiterToVenus
+            
+            if normalizedJupiterToVenus < 8 { // Conjunction - major love expansion
+                score += 22 // Falling in love, engagement, marriage
+            } else if (112...128).contains(normalizedJupiterToVenus) { // Trine - joyful love
+                score += 18
+            } else if (52...68).contains(normalizedJupiterToVenus) { // Sextile - social love opportunities
+                score += 12
+            } else if (82...98).contains(normalizedJupiterToVenus) { // Square - overindulgence in love
+                score -= 5 // Too much of a good thing
+            }
+        }
+        
+        // Saturn transits to Venus - serious relationships and restrictions
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToVenus = abs(saturnTransit.longitude - chart.venus.longitude)
+            let normalizedSaturnToVenus = saturnToVenus > 180 ? 360 - saturnToVenus : saturnToVenus
+            
+            if normalizedSaturnToVenus < 8 { // Conjunction - serious commitment or loneliness
+                score -= 10 // Tests love's endurance
+            } else if (82...98).contains(normalizedSaturnToVenus) { // Square - relationship obstacles
+                score -= 18 // Serious relationship challenges
+            } else if (172...188).contains(normalizedSaturnToVenus) { // Opposition - commitment pressure
+                score -= 12
+            } else if (112...128).contains(normalizedSaturnToVenus) { // Trine - stable mature love
+                score += 15 // Committed lasting relationships
+            } else if (52...68).contains(normalizedSaturnToVenus) { // Sextile - building solid love
+                score += 8
+            }
+        }
+        
+        // Uranus transits to Venus - sudden attractions and breakups
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToVenus = abs(uranusTransit.longitude - chart.venus.longitude)
+            let normalizedUranusToVenus = uranusToVenus > 180 ? 360 - uranusToVenus : uranusToVenus
+            
+            if normalizedUranusToVenus < 8 { // Conjunction - revolutionary love
+                score -= 5 // Exciting but unstable
+            } else if (82...98).contains(normalizedUranusToVenus) { // Square - sudden breakups
+                score -= 20 // Shocking relationship changes
+            } else if (172...188).contains(normalizedUranusToVenus) { // Opposition - freedom vs commitment
+                score -= 15
+            } else if (112...128).contains(normalizedUranusToVenus) { // Trine - exciting unconventional love
+                score += 12
+            }
+        }
+        
+        // Neptune transits to Venus - romantic illusion and spiritual love
+        if let neptuneTransit = transits.first(where: { $0.name == "Neptune" }) {
+            let neptuneToVenus = abs(neptuneTransit.longitude - chart.venus.longitude)
+            let normalizedNeptuneToVenus = neptuneToVenus > 180 ? 360 - neptuneToVenus : neptuneToVenus
+            
+            if normalizedNeptuneToVenus < 8 { // Conjunction - idealized love
+                score -= 8 // Beautiful but unrealistic
+            } else if (82...98).contains(normalizedNeptuneToVenus) { // Square - deception in love
+                score -= 15 // Affairs, lies, delusions
+            } else if (112...128).contains(normalizedNeptuneToVenus) { // Trine - spiritual romantic love
+                score += 12 // Soulmate connections
+            }
+        }
+        
+        // Moon transit for daily emotional love tone
         if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
-            let moonToVenusAspect = abs(moonTransit.longitude - chart.venus.longitude)
-            let normalizedMoonVenusAspect = moonToVenusAspect > 180 ? 360 - moonToVenusAspect : moonToVenusAspect
+            let moonToVenus = abs(moonTransit.longitude - chart.venus.longitude)
+            let normalizedMoonToVenus = moonToVenus > 180 ? 360 - moonToVenus : moonToVenus
             
-            if normalizedMoonVenusAspect < 8 || (112...128).contains(normalizedMoonVenusAspect) {
-                score += 10 // Emotional harmony in love
+            if normalizedMoonToVenus < 8 || (112...128).contains(normalizedMoonToVenus) {
+                score += 8 // Emotionally receptive to love
+            } else if (82...98).contains(normalizedMoonToVenus) {
+                score -= 5 // Moody in relationships
             }
         }
         
-        // Add date-specific love energy variation
+        // === PERSONAL LOVE CYCLE ===
         let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
-        let venusPersonalization = (chart.venus.longitude + Double(dayOfYear * 3)).truncatingRemainder(dividingBy: 15) - 7
-        score += Int(venusPersonalization)
+        let venusPersonalization = Int((chart.venus.longitude + Double(dayOfYear * 5)).truncatingRemainder(dividingBy: 16)) - 8
+        score += venusPersonalization
         
-        return max(30, min(100, score))
+        return max(5, min(95, score)) // Allow very low (5-15) and very high (85-95) love scores
     }
     
     private func calculateDailyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 72 // Base career score
+        var score = 50 // Neutral career baseline
         
-        // Mars position affects drive and ambition
+        // === NATAL CAREER FOUNDATION ===
+        
+        // Mars sign affects drive, ambition, and energy
         let marsSign = chart.mars.position.sign
-        if [.aries, .capricorn, .scorpio, .leo].contains(marsSign) {
-            score += 12 // Strong Mars placement
-        } else if [.libra, .cancer, .pisces].contains(marsSign) {
-            score += 5 // Gentler Mars energy
+        if [.aries, .capricorn, .scorpio].contains(marsSign) { // Cardinal/Fixed power signs
+            score += 15 // Natural leadership and drive
+        } else if [.leo, .sagittarius].contains(marsSign) { // Fire signs
+            score += 12 // Enthusiastic and inspiring
+        } else if [.virgo, .taurus].contains(marsSign) { // Practical earth signs
+            score += 10 // Methodical and reliable
+        } else if [.gemini, .aquarius].contains(marsSign) { // Air signs
+            score += 8 // Innovative and networked
+        } else if [.libra, .cancer, .pisces].contains(marsSign) { // Gentle signs
+            score += 5 // Collaborative but less aggressive
         }
         
-        // Saturn transits affect career structure and discipline
-        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
-            let saturnToSunAspect = abs(saturnTransit.longitude - chart.sun.longitude)
-            let normalizedSaturnAspect = saturnToSunAspect > 180 ? 360 - saturnToSunAspect : saturnToSunAspect
-            
-            if (112...128).contains(normalizedSaturnAspect) {
-                score += 15 // Saturn trine - structured success
-            } else if (52...68).contains(normalizedSaturnAspect) {
-                score += 10 // Saturn sextile - steady progress
-            } else if (82...98).contains(normalizedSaturnAspect) {
-                score -= 8 // Saturn square - challenges to overcome
-            }
+        // Sun sign affects leadership style and career identity
+        let sunSign = chart.sunSign
+        if [.leo, .aries, .capricorn, .scorpio].contains(sunSign) { // Natural leaders
+            score += 8
+        } else if [.cancer, .libra, .pisces].contains(sunSign) { // People-oriented careers
+            score += 5
         }
         
         // Mercury affects communication and intellect in career
         let mercurySign = chart.mercury.position.sign
-        if [.gemini, .virgo, .aquarius, .libra].contains(mercurySign) {
-            score += 8 // Strong Mercury for career communication
+        if [.gemini, .virgo].contains(mercurySign) { // Mercury ruled signs
+            score += 10 // Excellent communication skills
+        } else if [.aquarius, .libra, .sagittarius].contains(mercurySign) { // Intellectual air/fire
+            score += 8 // Good at big picture thinking
         }
         
-        // Jupiter transits to career planets
-        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
-            let jupiterToMarsAspect = abs(jupiterTransit.longitude - chart.mars.longitude)
-            let normalizedJupiterMarsAspect = jupiterToMarsAspect > 180 ? 360 - jupiterToMarsAspect : jupiterToMarsAspect
+        // Saturn natal position affects career discipline and authority
+        let saturnSign = chart.saturn.position.sign
+        if [.capricorn, .aquarius].contains(saturnSign) { // Saturn ruled signs
+            score += 8 // Natural authority and structure
+        } else if [.libra].contains(saturnSign) { // Exalted
+            score += 6 // Diplomatic leadership
+        }
+        
+        // === MAJOR CAREER TRANSITS ===
+        
+        // Saturn transits - career structure, authority, tests
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
             
-            if normalizedJupiterMarsAspect < 8 || (112...128).contains(normalizedJupiterMarsAspect) {
-                score += 12 // Jupiter blessing on career drive
+            if normalizedSaturn < 8 { // Saturn return - major career restructuring
+                score -= 10 // Intense career pressure and change
+            } else if (82...98).contains(normalizedSaturn) { // Square - career obstacles
+                score -= 20 // Major professional challenges
+            } else if (172...188).contains(normalizedSaturn) { // Opposition - authority conflicts
+                score -= 15 // Boss problems, external pressure
+            } else if (112...128).contains(normalizedSaturn) { // Trine - earned recognition
+                score += 20 // Well-deserved career success
+            } else if (52...68).contains(normalizedSaturn) { // Sextile - steady progress
+                score += 12 // Building solid foundation
+            }
+            
+            // Saturn to Mars - action vs discipline
+            let saturnToMars = abs(saturnTransit.longitude - chart.mars.longitude)
+            let normalizedSaturnMars = saturnToMars > 180 ? 360 - saturnToMars : saturnToMars
+            
+            if (82...98).contains(normalizedSaturnMars) { // Square - frustrated ambition
+                score -= 12 // Blocked energy, delays
+            } else if (112...128).contains(normalizedSaturnMars) { // Trine - disciplined action
+                score += 15 // Productive, sustained effort
             }
         }
         
-        // Add date-specific career momentum variation
-        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
-        let careerPersonalization = (chart.mars.longitude + chart.sun.longitude + Double(dayOfYear * 2)).truncatingRemainder(dividingBy: 18) - 9
-        score += Int(careerPersonalization)
+        // Jupiter transits - career expansion and opportunities
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
+            
+            if normalizedJupiter < 8 { // Jupiter return - major career expansion
+                score += 25 // Promotions, new opportunities
+            } else if (112...128).contains(normalizedJupiter) { // Trine - natural success
+                score += 20 // Everything flows easily
+            } else if (52...68).contains(normalizedJupiter) { // Sextile - growth opportunities
+                score += 15 // Networking and learning
+            } else if (82...98).contains(normalizedJupiter) { // Square - overconfidence
+                score -= 8 // Taking on too much
+            }
+            
+            // Jupiter to Mars - amplified ambition
+            let jupiterToMars = abs(jupiterTransit.longitude - chart.mars.longitude)
+            let normalizedJupiterMars = jupiterToMars > 180 ? 360 - jupiterToMars : jupiterToMars
+            
+            if normalizedJupiterMars < 8 || (112...128).contains(normalizedJupiterMars) {
+                score += 15 // Successful action and expansion
+            }
+        }
         
-        return max(35, min(100, score))
+        // Mars transits - energy, initiative, conflicts at work
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if normalizedMars < 8 { // Mars return - energy surge
+                score += 10 // High energy and initiative
+            } else if (82...98).contains(normalizedMars) { // Square - workplace conflicts
+                score -= 15 // Arguments, accidents, impulsive decisions
+            } else if (172...188).contains(normalizedMars) { // Opposition - external conflicts
+                score -= 12 // Competition, confrontation
+            } else if (112...128).contains(normalizedMars) { // Trine - productive energy
+                score += 15 // Getting things done efficiently
+            }
+            
+            // Mars to natal Mars - action cycle
+            let marsToNatalMars = abs(marsTransit.longitude - chart.mars.longitude)
+            let normalizedMarsToMars = marsToNatalMars > 180 ? 360 - marsToNatalMars : marsToNatalMars
+            
+            if (82...98).contains(normalizedMarsToMars) { // Square - frustrated action
+                score -= 10 // Blocked initiatives
+            } else if (112...128).contains(normalizedMarsToMars) { // Trine - effective action
+                score += 12 // Projects move forward smoothly
+            }
+        }
+        
+        // Uranus transits - career innovation and disruption
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if normalizedUranus < 8 { // Conjunction - career revolution
+                score -= 8 // Sudden career changes
+            } else if (82...98).contains(normalizedUranus) { // Square - sudden disruptions
+                score -= 18 // Unexpected job loss or major changes
+            } else if (172...188).contains(normalizedUranus) { // Opposition - external disruption
+                score -= 12 // Industry changes affecting you
+            } else if (112...128).contains(normalizedUranus) { // Trine - innovative breakthroughs
+                score += 18 // Technological advancement, innovation
+            }
+        }
+        
+        // Mercury transits - communication, contracts, travel
+        if let mercuryTransit = transits.first(where: { $0.name == "Mercury" }) {
+            let mercuryToSun = abs(mercuryTransit.longitude - chart.sun.longitude)
+            let normalizedMercury = mercuryToSun > 180 ? 360 - mercuryToSun : mercuryToSun
+            
+            if normalizedMercury < 8 || (112...128).contains(normalizedMercury) {
+                score += 8 // Good communication day
+            } else if (82...98).contains(normalizedMercury) {
+                score -= 5 // Communication problems, delays
+            }
+        }
+        
+        // === PERSONAL CAREER CYCLE ===
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+        let careerPersonalization = Int((chart.mars.longitude + chart.sun.longitude + Double(dayOfYear * 4)).truncatingRemainder(dividingBy: 16)) - 8
+        score += careerPersonalization
+        
+        return max(5, min(95, score)) // Allow very low (5-15) and very high (85-95) career scores
     }
     
     private func calculateDailyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 68 // Base wealth score
+        var score = 50 // Neutral wealth baseline
         
-        // Jupiter represents abundance and expansion
+        // === NATAL WEALTH FOUNDATION ===
+        
+        // Jupiter represents abundance, luck, and expansion of resources
         let jupiterSign = chart.jupiter.position.sign
-        if [.sagittarius, .pisces, .cancer, .taurus].contains(jupiterSign) {
-            score += 15 // Strong Jupiter for wealth
-        } else if [.capricorn, .gemini].contains(jupiterSign) {
-            score -= 5 // Jupiter in more challenging signs for wealth
+        if [.sagittarius, .pisces].contains(jupiterSign) { // Jupiter ruled signs
+            score += 15 // Natural abundance and optimism
+        } else if [.cancer].contains(jupiterSign) { // Exalted
+            score += 18 // Excellent for emotional and material security
+        } else if [.taurus, .leo].contains(jupiterSign) { // Material signs
+            score += 12 // Good for accumulating wealth
+        } else if [.virgo, .gemini].contains(jupiterSign) { // Mutable earth/air
+            score += 8 // Wealth through skills and analysis
+        } else if [.capricorn].contains(jupiterSign) { // Fall
+            score -= 5 // Must work harder for expansion
+        } else if [.libra, .aquarius, .aries, .scorpio].contains(jupiterSign) {
+            score += 5 // Moderate wealth potential
         }
         
-        // Venus also rules money and material resources
+        // Venus rules money, possessions, and material pleasure
         let venusSign = chart.venus.position.sign
-        if [.taurus, .libra, .pisces].contains(venusSign) {
-            score += 10 // Venus in money-friendly signs
+        if [.taurus, .libra].contains(venusSign) { // Venus ruled signs
+            score += 12 // Natural ability to attract money
+        } else if [.pisces].contains(venusSign) { // Exalted
+            score += 10 // Intuitive money sense
+        } else if [.capricorn, .virgo].contains(venusSign) { // Practical signs
+            score += 8 // Good at managing money
+        } else if [.scorpio].contains(venusSign) { // Intense
+            score += 6 // Wealth through investments/joint resources
+        } else if [.aries, .leo, .sagittarius].contains(venusSign) { // Fire signs
+            score += 3 // Generous but spends freely
         }
         
-        // Current Jupiter transits affect financial opportunities
+        // Saturn represents wealth through discipline, savings, and long-term building
+        let saturnSign = chart.saturn.position.sign
+        if [.capricorn, .aquarius].contains(saturnSign) { // Saturn ruled
+            score += 8 // Good at building lasting wealth
+        } else if [.libra].contains(saturnSign) { // Exalted
+            score += 6 // Balanced approach to money
+        } else if [.taurus, .virgo].contains(saturnSign) { // Earth signs
+            score += 5 // Conservative wealth building
+        }
+        
+        // === MAJOR WEALTH TRANSITS ===
+        
+        // Jupiter transits - expansion of resources and opportunities
         if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
-            let jupiterToJupiterAspect = abs(jupiterTransit.longitude - chart.jupiter.longitude)
-            let normalizedJupiterAspect = jupiterToJupiterAspect > 180 ? 360 - jupiterToJupiterAspect : jupiterToJupiterAspect
+            let jupiterToNatalJupiter = abs(jupiterTransit.longitude - chart.jupiter.longitude)
+            let normalizedJupiterReturn = jupiterToNatalJupiter > 180 ? 360 - jupiterToNatalJupiter : jupiterToNatalJupiter
             
-            if normalizedJupiterAspect < 8 {
-                score += 20 // Jupiter return - major financial opportunity
-            } else if (112...128).contains(normalizedJupiterAspect) {
-                score += 15 // Jupiter trine - flowing abundance
-            } else if (52...68).contains(normalizedJupiterAspect) {
-                score += 10 // Jupiter sextile - growth opportunities
+            if normalizedJupiterReturn < 8 { // Jupiter return (every 12 years)
+                score += 30 // Major wealth expansion cycle
+            } else if (112...128).contains(normalizedJupiterReturn) { // Trine
+                score += 20 // Flowing abundance and opportunity
+            } else if (52...68).contains(normalizedJupiterReturn) { // Sextile
+                score += 15 // Growth opportunities through effort
+            } else if (82...98).contains(normalizedJupiterReturn) { // Square
+                score -= 8 // Overconfidence, overspending
+            } else if (172...188).contains(normalizedJupiterReturn) { // Opposition
+                score -= 5 // Conflicts over resources
+            }
+            
+            // Jupiter to Venus - money and pleasure
+            let jupiterToVenus = abs(jupiterTransit.longitude - chart.venus.longitude)
+            let normalizedJupiterVenus = jupiterToVenus > 180 ? 360 - jupiterToVenus : jupiterToVenus
+            
+            if normalizedJupiterVenus < 8 { // Conjunction
+                score += 25 // Major money luck, windfalls
+            } else if (112...128).contains(normalizedJupiterVenus) { // Trine
+                score += 18 // Easy money flow
+            } else if (52...68).contains(normalizedJupiterVenus) { // Sextile
+                score += 12 // Good financial opportunities
             }
         }
         
-        // Saturn can restrict or stabilize finances
+        // Saturn transits - wealth restriction, discipline, and long-term building
         if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
-            let saturnToVenusAspect = abs(saturnTransit.longitude - chart.venus.longitude)
-            let normalizedSaturnVenusAspect = saturnToVenusAspect > 180 ? 360 - saturnToVenusAspect : saturnToVenusAspect
+            let saturnToVenus = abs(saturnTransit.longitude - chart.venus.longitude)
+            let normalizedSaturnVenus = saturnToVenus > 180 ? 360 - saturnToVenus : saturnToVenus
             
-            if (112...128).contains(normalizedSaturnVenusAspect) {
-                score += 8 // Saturn trine Venus - stable wealth building
-            } else if (82...98).contains(normalizedSaturnVenusAspect) {
-                score -= 10 // Saturn square Venus - financial restrictions
+            if normalizedSaturnVenus < 8 { // Conjunction
+                score -= 15 // Financial restrictions and lessons
+            } else if (82...98).contains(normalizedSaturnVenus) { // Square
+                score -= 20 // Major financial challenges, debts
+            } else if (172...188).contains(normalizedSaturnVenus) { // Opposition
+                score -= 12 // Money stress from external sources
+            } else if (112...128).contains(normalizedSaturnVenus) { // Trine
+                score += 15 // Solid wealth building, financial maturity
+            } else if (52...68).contains(normalizedSaturnVenus) { // Sextile
+                score += 10 // Steady financial progress
+            }
+            
+            // Saturn to Jupiter - abundance vs restriction
+            let saturnToJupiter = abs(saturnTransit.longitude - chart.jupiter.longitude)
+            let normalizedSaturnJupiter = saturnToJupiter > 180 ? 360 - saturnToJupiter : saturnToJupiter
+            
+            if (82...98).contains(normalizedSaturnJupiter) { // Square
+                score -= 12 // Limited growth, pessimism about money
+            } else if (112...128).contains(normalizedSaturnJupiter) { // Trine
+                score += 12 // Wise investments, practical abundance
             }
         }
         
-        // Add date-specific wealth opportunity variation
-        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
-        let wealthPersonalization = (chart.jupiter.longitude + chart.venus.longitude + Double(dayOfYear * 5)).truncatingRemainder(dividingBy: 16) - 8
-        score += Int(wealthPersonalization)
+        // Uranus transits - sudden financial changes, technology income
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToVenus = abs(uranusTransit.longitude - chart.venus.longitude)
+            let normalizedUranusVenus = uranusToVenus > 180 ? 360 - uranusToVenus : uranusToVenus
+            
+            if normalizedUranusVenus < 8 { // Conjunction
+                score -= 10 // Sudden financial changes (could be gain or loss)
+            } else if (82...98).contains(normalizedUranusVenus) { // Square
+                score -= 18 // Unexpected financial shocks, losses
+            } else if (112...128).contains(normalizedUranusVenus) { // Trine
+                score += 15 // Innovative money-making, technology profits
+            }
+        }
         
-        return max(25, min(100, score))
+        // Pluto transits - wealth transformation, power over resources
+        if let plutoTransit = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToVenus = abs(plutoTransit.longitude - chart.venus.longitude)
+            let normalizedPlutoVenus = plutoToVenus > 180 ? 360 - plutoToVenus : plutoToVenus
+            
+            if normalizedPlutoVenus < 8 { // Conjunction
+                score -= 12 // Complete financial transformation
+            } else if (82...98).contains(normalizedPlutoVenus) { // Square
+                score -= 20 // Power struggles over money, major losses/gains
+            } else if (112...128).contains(normalizedPlutoVenus) { // Trine
+                score += 18 // Powerful wealth accumulation, investments
+            }
+        }
+        
+        // Mars transits - energy toward money, spending vs earning
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToVenus = abs(marsTransit.longitude - chart.venus.longitude)
+            let normalizedMarsVenus = marsToVenus > 180 ? 360 - marsToVenus : marsToVenus
+            
+            if normalizedMarsVenus < 8 || (112...128).contains(normalizedMarsVenus) {
+                score += 8 // Active earning, passion for making money
+            } else if (82...98).contains(normalizedMarsVenus) {
+                score -= 8 // Impulsive spending, money conflicts
+            }
+        }
+        
+        // === PERSONAL WEALTH CYCLE ===
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+        let wealthPersonalization = Int((chart.jupiter.longitude + chart.venus.longitude + Double(dayOfYear * 6)).truncatingRemainder(dividingBy: 18)) - 9
+        score += wealthPersonalization
+        
+        return max(5, min(95, score)) // Allow very low (5-15) and very high (85-95) wealth scores
     }
     
     // MARK: - Weekly Score Calculations
     private func calculateWeeklyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 78 // Slightly different base for weekly
+        var score = 50 // Neutral weekly baseline
         
-        // Week-long trends focus more on slower planets
-        let sunSign = chart.sunSign
-        let currentWeek = Calendar.current.component(.weekOfYear, from: Date())
+        // === WEEKLY FOCUS: SLOWER-MOVING PLANETS (More sustained influences) ===
         
-        // Jupiter weekly influence (expansion opportunities)
+        // Jupiter weekly trends - opportunity and expansion
         if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
-            let jupiterToSunAspect = abs(jupiterTransit.longitude - chart.sun.longitude)
-            let normalizedJupiterAspect = jupiterToSunAspect > 180 ? 360 - jupiterToSunAspect : jupiterToSunAspect
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
             
-            if normalizedJupiterAspect < 8 || (112...128).contains(normalizedJupiterAspect) {
-                score += 15 // Weekly Jupiter boost
-            } else if (52...68).contains(normalizedJupiterAspect) {
-                score += 10 // Supportive Jupiter week
+            if normalizedJupiter < 8 { // Jupiter return
+                score += 20 // Major weekly expansion
+            } else if (112...128).contains(normalizedJupiter) { // Trine
+                score += 15 // Flowing weekly growth
+            } else if (52...68).contains(normalizedJupiter) { // Sextile
+                score += 10 // Weekly opportunities
+            } else if (82...98).contains(normalizedJupiter) { // Square
+                score -= 5 // Weekly overexpansion
             }
         }
         
-        // Weekly lunar cycle influence (different from daily)
+        // Saturn weekly structure - discipline and challenges
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
+            
+            if normalizedSaturn < 8 { // Saturn conjunction/return
+                score -= 12 // Weekly pressure and restructuring
+            } else if (82...98).contains(normalizedSaturn) { // Square
+                score -= 15 // Weekly obstacles and tests
+            } else if (172...188).contains(normalizedSaturn) { // Opposition
+                score -= 10 // Weekly external pressure
+            } else if (112...128).contains(normalizedSaturn) { // Trine
+                score += 12 // Weekly structured success
+            } else if (52...68).contains(normalizedSaturn) { // Sextile
+                score += 8 // Weekly steady progress
+            }
+        }
+        
+        // Uranus weekly disruption - sudden changes over the week
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if (82...98).contains(normalizedUranus) { // Square
+                score -= 12 // Disruptive week
+            } else if (112...128).contains(normalizedUranus) { // Trine
+                score += 10 // Innovative week
+            }
+        }
+        
+        // Mars weekly energy - differs from daily intensity
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if (82...98).contains(normalizedMars) { // Square
+                score -= 8 // Conflicted week
+            } else if (112...128).contains(normalizedMars) { // Trine
+                score += 8 // Productive week
+            }
+        }
+        
+        // Weekly elemental harmony (sustained mood)
         if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
             let weeklyMoonSign = moonTransit.position.sign
-            if weeklyMoonSign.element == sunSign.element {
-                score += 8 // Weekly elemental harmony
+            if weeklyMoonSign.element == chart.sunSign.element {
+                score += 6 // Weekly emotional resonance
             }
         }
         
-        // Week-specific adjustments based on week number and birth chart
-        let weekAdjustment = (currentWeek % 4) * 2 - 3 // Varies by week in month
-        let personalWeeklyVariation = (chart.sun.longitude + Double(currentWeek * 7)).truncatingRemainder(dividingBy: 12) - 6
-        score += weekAdjustment + Int(personalWeeklyVariation)
+        // Personal weekly variation
+        let currentWeek = Calendar.current.component(.weekOfYear, from: date)
+        let weeklyPersonalization = Int((chart.sun.longitude + Double(currentWeek * 7)).truncatingRemainder(dividingBy: 16)) - 8
+        score += weeklyPersonalization
         
-        return max(45, min(100, score))
+        return max(5, min(95, score))
     }
     
     private func calculateWeeklyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 73 // Different base for weekly love
+        var score = 50 // Neutral weekly love baseline
         
-        // Weekly Venus patterns (different from daily focus)
-        let venusSign = chart.venus.position.sign
+        // === WEEKLY LOVE FOCUS: SUSTAINED RELATIONSHIP PATTERNS ===
         
-        // Venus weekly influence
+        // Venus weekly patterns - longer relationship trends
         if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
-            let venusToMarsAspect = abs(venusTransit.longitude - chart.mars.longitude)
-            let normalizedVenusAspect = venusToMarsAspect > 180 ? 360 - venusToMarsAspect : venusToMarsAspect
+            let venusToNatalVenus = abs(venusTransit.longitude - chart.venus.longitude)
+            let normalizedVenus = venusToNatalVenus > 180 ? 360 - venusToNatalVenus : venusToNatalVenus
             
-            if normalizedVenusAspect < 8 || (112...128).contains(normalizedVenusAspect) {
-                score += 14 // Weekly Venus-Mars harmony
+            if normalizedVenus < 8 { // Venus return (every 8 months)
+                score += 18 // Major weekly love renewal
+            } else if (112...128).contains(normalizedVenus) { // Trine
+                score += 14 // Flowing weekly love energy
+            } else if (52...68).contains(normalizedVenus) { // Sextile
+                score += 10 // Weekly love opportunities
+            } else if (82...98).contains(normalizedVenus) { // Square
+                score -= 8 // Weekly relationship tensions
+            } else if (172...188).contains(normalizedVenus) { // Opposition
+                score -= 5 // Weekly relationship clarity needed
             }
         }
         
-        // Weekly relationship patterns favor different signs
-        if [.libra, .pisces, .cancer, .leo].contains(venusSign) {
-            score += 12 // Weekly love boost for these signs
+        // Jupiter to Venus - weekly love expansion
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToVenus = abs(jupiterTransit.longitude - chart.venus.longitude)
+            let normalizedJupiterVenus = jupiterToVenus > 180 ? 360 - jupiterToVenus : jupiterToVenus
+            
+            if normalizedJupiterVenus < 8 { // Conjunction
+                score += 20 // Weekly love abundance
+            } else if (112...128).contains(normalizedJupiterVenus) { // Trine
+                score += 15 // Joyful weekly love
+            } else if (52...68).contains(normalizedJupiterVenus) { // Sextile
+                score += 10 // Weekly social love connections
+            }
         }
         
-        // Week-long romantic cycles
-        let weekOfMonth = Calendar.current.component(.weekOfMonth, from: Date())
-        if weekOfMonth == 2 || weekOfMonth == 3 { // Middle weeks better for love
-            score += 6
+        // Saturn to Venus - weekly relationship structure
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToVenus = abs(saturnTransit.longitude - chart.venus.longitude)
+            let normalizedSaturnVenus = saturnToVenus > 180 ? 360 - saturnToVenus : saturnToVenus
+            
+            if normalizedSaturnVenus < 8 { // Conjunction
+                score -= 8 // Weekly relationship lessons
+            } else if (82...98).contains(normalizedSaturnVenus) { // Square
+                score -= 15 // Weekly relationship challenges
+            } else if (172...188).contains(normalizedSaturnVenus) { // Opposition
+                score -= 10 // Weekly commitment pressure
+            } else if (112...128).contains(normalizedSaturnVenus) { // Trine
+                score += 12 // Weekly stable mature love
+            } else if (52...68).contains(normalizedSaturnVenus) { // Sextile
+                score += 8 // Weekly relationship building
+            }
         }
         
-        return max(35, min(100, score))
+        // Mars to Venus - weekly passion patterns
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToVenus = abs(marsTransit.longitude - chart.venus.longitude)
+            let normalizedMarsVenus = marsToVenus > 180 ? 360 - marsToVenus : marsToVenus
+            
+            if normalizedMarsVenus < 8 { // Conjunction
+                score += 12 // Weekly magnetic attraction
+            } else if (82...98).contains(normalizedMarsVenus) { // Square
+                score -= 10 // Weekly passion conflicts
+            } else if (112...128).contains(normalizedMarsVenus) { // Trine
+                score += 15 // Weekly sexual harmony
+            } else if (52...68).contains(normalizedMarsVenus) { // Sextile
+                score += 8 // Weekly flirtation and chemistry
+            }
+        }
+        
+        // Weekly personal love cycle
+        let currentWeek = Calendar.current.component(.weekOfYear, from: date)
+        let weeklyLovePersonalization = Int((chart.venus.longitude + Double(currentWeek * 5)).truncatingRemainder(dividingBy: 16)) - 8
+        score += weeklyLovePersonalization
+        
+        return max(5, min(95, score))
     }
     
     private func calculateWeeklyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 75 // Weekly career base
+        var score = 50 // Neutral weekly career baseline
         
-        // Saturn weekly influence (structure and discipline)
+        // === WEEKLY CAREER FOCUS: SUSTAINED PROFESSIONAL PROGRESS ===
+        
+        // Saturn weekly career structure and authority
         if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
-            let saturnToMarsAspect = abs(saturnTransit.longitude - chart.mars.longitude)
-            let normalizedSaturnAspect = saturnToMarsAspect > 180 ? 360 - saturnToMarsAspect : saturnToMarsAspect
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
             
-            if (112...128).contains(normalizedSaturnAspect) {
-                score += 18 // Weekly Saturn trine - excellent for career building
-            } else if (52...68).contains(normalizedSaturnAspect) {
-                score += 12 // Weekly Saturn sextile - steady progress
+            if normalizedSaturn < 8 { // Saturn return
+                score -= 8 // Weekly career restructuring pressure
+            } else if (82...98).contains(normalizedSaturn) { // Square
+                score -= 15 // Weekly professional obstacles
+            } else if (172...188).contains(normalizedSaturn) { // Opposition
+                score -= 10 // Weekly authority conflicts
+            } else if (112...128).contains(normalizedSaturn) { // Trine
+                score += 18 // Weekly earned recognition
+            } else if (52...68).contains(normalizedSaturn) { // Sextile
+                score += 12 // Weekly steady career building
+            }
+            
+            // Saturn to Mars - sustained action vs discipline
+            let saturnToMars = abs(saturnTransit.longitude - chart.mars.longitude)
+            let normalizedSaturnMars = saturnToMars > 180 ? 360 - saturnToMars : saturnToMars
+            
+            if (82...98).contains(normalizedSaturnMars) { // Square
+                score -= 10 // Weekly frustrated ambition
+            } else if (112...128).contains(normalizedSaturnMars) { // Trine
+                score += 12 // Weekly disciplined productivity
             }
         }
         
-        // Weekly Mars energy (different from daily quick actions)
-        let marsSign = chart.mars.position.sign
-        if [.capricorn, .aries, .leo, .virgo].contains(marsSign) {
-            score += 10 // Weekly career strength
+        // Jupiter weekly career expansion
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
+            
+            if normalizedJupiter < 8 { // Jupiter return
+                score += 20 // Weekly career opportunities
+            } else if (112...128).contains(normalizedJupiter) { // Trine
+                score += 15 // Weekly natural career success
+            } else if (52...68).contains(normalizedJupiter) { // Sextile
+                score += 12 // Weekly career growth opportunities
+            } else if (82...98).contains(normalizedJupiter) { // Square
+                score -= 5 // Weekly career overconfidence
+            }
         }
         
-        // First day of week affects weekly career energy
-        let weekday = Calendar.current.component(.weekday, from: Date())
-        if weekday == 2 || weekday == 3 { // Monday/Tuesday weeks start strong
-            score += 8
+        // Mars weekly career energy and initiative
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if normalizedMars < 8 { // Mars return
+                score += 8 // Weekly energy surge
+            } else if (82...98).contains(normalizedMars) { // Square
+                score -= 12 // Weekly workplace conflicts
+            } else if (172...188).contains(normalizedMars) { // Opposition
+                score -= 8 // Weekly career competition
+            } else if (112...128).contains(normalizedMars) { // Trine
+                score += 12 // Weekly productive action
+            } else if (52...68).contains(normalizedMars) { // Sextile
+                score += 8 // Weekly initiative opportunities
+            }
         }
         
-        return max(40, min(100, score))
+        // Uranus weekly career innovation and disruption
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if (82...98).contains(normalizedUranus) { // Square
+                score -= 12 // Weekly career disruptions
+            } else if (112...128).contains(normalizedUranus) { // Trine
+                score += 15 // Weekly innovative breakthroughs
+            }
+        }
+        
+        // Mercury weekly communication and contracts
+        if let mercuryTransit = transits.first(where: { $0.name == "Mercury" }) {
+            let mercuryToSun = abs(mercuryTransit.longitude - chart.sun.longitude)
+            let normalizedMercury = mercuryToSun > 180 ? 360 - mercuryToSun : mercuryToSun
+            
+            if normalizedMercury < 8 || (112...128).contains(normalizedMercury) {
+                score += 6 // Weekly communication flow
+            } else if (82...98).contains(normalizedMercury) {
+                score -= 3 // Weekly communication problems
+            }
+        }
+        
+        // Weekly personal career cycle
+        let currentWeek = Calendar.current.component(.weekOfYear, from: date)
+        let weeklyCareerPersonalization = Int((chart.mars.longitude + chart.sun.longitude + Double(currentWeek * 4)).truncatingRemainder(dividingBy: 16)) - 8
+        score += weeklyCareerPersonalization
+        
+        return max(5, min(95, score))
     }
     
     private func calculateWeeklyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 71 // Weekly wealth base
+        var score = 50 // Neutral weekly wealth baseline
         
-        // Jupiter weekly abundance (different timing than daily)
-        let jupiterSign = chart.jupiter.position.sign
-        if [.taurus, .sagittarius, .pisces, .leo].contains(jupiterSign) {
-            score += 16 // Weekly abundance boost
-        }
+        // === WEEKLY WEALTH FOCUS: SUSTAINED FINANCIAL PATTERNS ===
         
-        // Weekly Venus-Jupiter aspects for wealth
-        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }),
-           let venusTransit = transits.first(where: { $0.name == "Venus" }) {
-            let venusJupiterAspect = abs(venusTransit.longitude - jupiterTransit.longitude)
-            let normalizedAspect = venusJupiterAspect > 180 ? 360 - venusJupiterAspect : venusJupiterAspect
+        // Jupiter weekly abundance and expansion patterns
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToNatalJupiter = abs(jupiterTransit.longitude - chart.jupiter.longitude)
+            let normalizedJupiter = jupiterToNatalJupiter > 180 ? 360 - jupiterToNatalJupiter : jupiterToNatalJupiter
             
-            if normalizedAspect < 8 || (112...128).contains(normalizedAspect) {
-                score += 15 // Weekly wealth harmony
+            if normalizedJupiter < 8 { // Jupiter return (every 12 years)
+                score += 25 // Weekly wealth expansion period
+            } else if (112...128).contains(normalizedJupiter) { // Trine
+                score += 18 // Weekly flowing abundance
+            } else if (52...68).contains(normalizedJupiter) { // Sextile
+                score += 12 // Weekly growth opportunities
+            } else if (82...98).contains(normalizedJupiter) { // Square
+                score -= 6 // Weekly overexpansion with money
+            }
+            
+            // Jupiter to Venus - weekly money luck
+            let jupiterToVenus = abs(jupiterTransit.longitude - chart.venus.longitude)
+            let normalizedJupiterVenus = jupiterToVenus > 180 ? 360 - jupiterToVenus : jupiterToVenus
+            
+            if normalizedJupiterVenus < 8 { // Conjunction
+                score += 20 // Weekly financial windfalls
+            } else if (112...128).contains(normalizedJupiterVenus) { // Trine
+                score += 15 // Weekly easy money flow
+            } else if (52...68).contains(normalizedJupiterVenus) { // Sextile
+                score += 10 // Weekly financial opportunities
             }
         }
         
-        // Week of month affects financial energy
-        let weekOfMonth = Calendar.current.component(.weekOfMonth, from: Date())
-        if weekOfMonth == 1 || weekOfMonth == 4 { // First and last weeks better for money
-            score += 7
+        // Saturn weekly wealth discipline and restrictions
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToVenus = abs(saturnTransit.longitude - chart.venus.longitude)
+            let normalizedSaturnVenus = saturnToVenus > 180 ? 360 - saturnToVenus : saturnToVenus
+            
+            if normalizedSaturnVenus < 8 { // Conjunction
+                score -= 12 // Weekly financial restrictions
+            } else if (82...98).contains(normalizedSaturnVenus) { // Square
+                score -= 18 // Weekly financial challenges
+            } else if (172...188).contains(normalizedSaturnVenus) { // Opposition
+                score -= 10 // Weekly money stress
+            } else if (112...128).contains(normalizedSaturnVenus) { // Trine
+                score += 12 // Weekly solid wealth building
+            } else if (52...68).contains(normalizedSaturnVenus) { // Sextile
+                score += 8 // Weekly steady financial progress
+            }
         }
         
-        return max(30, min(100, score))
+        // Uranus weekly financial surprises and changes
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToVenus = abs(uranusTransit.longitude - chart.venus.longitude)
+            let normalizedUranusVenus = uranusToVenus > 180 ? 360 - uranusToVenus : uranusToVenus
+            
+            if (82...98).contains(normalizedUranusVenus) { // Square
+                score -= 15 // Weekly unexpected financial changes
+            } else if (112...128).contains(normalizedUranusVenus) { // Trine
+                score += 12 // Weekly innovative money-making
+            }
+        }
+        
+        // Mars weekly financial energy and spending
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToVenus = abs(marsTransit.longitude - chart.venus.longitude)
+            let normalizedMarsVenus = marsToVenus > 180 ? 360 - marsToVenus : marsToVenus
+            
+            if normalizedMarsVenus < 8 || (112...128).contains(normalizedMarsVenus) {
+                score += 6 // Weekly active earning
+            } else if (82...98).contains(normalizedMarsVenus) {
+                score -= 6 // Weekly impulsive spending
+            }
+        }
+        
+        // Weekly personal wealth cycle
+        let currentWeek = Calendar.current.component(.weekOfYear, from: date)
+        let weeklyWealthPersonalization = Int((chart.jupiter.longitude + chart.venus.longitude + Double(currentWeek * 6)).truncatingRemainder(dividingBy: 18)) - 9
+        score += weeklyWealthPersonalization
+        
+        return max(5, min(95, score))
     }
     
     // MARK: - Astrological Cycles
@@ -1305,42 +1945,139 @@ class AstrologyService {
     // MARK: - Monthly Score Calculations
     
     private func calculateMonthlyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 80 // Higher base for monthly perspective
+        var score = 50 // Neutral monthly baseline
         
-        // Major outer planet influences
-        if let saturn = transits.first(where: { $0.name == "Saturn" }) {
-            let saturnToSun = abs(saturn.longitude - chart.sun.longitude)
-            if saturnToSun < 8 || (112...128).contains(saturnToSun) {
-                score += 15 // Major structural support
-            } else if (82...98).contains(saturnToSun) {
-                score -= 8 // Growth through challenges
+        // === MONTHLY FOCUS: MAJOR LIFE THEME TRANSITS ===
+        
+        // Saturn monthly themes - life structure and major lessons
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
+            
+            if normalizedSaturn < 8 { // Saturn return or conjunction
+                score -= 15 // Major monthly life restructuring
+            } else if (82...98).contains(normalizedSaturn) { // Square
+                score -= 20 // Monthly challenges and obstacles
+            } else if (172...188).contains(normalizedSaturn) { // Opposition
+                score -= 12 // Monthly external pressure
+            } else if (112...128).contains(normalizedSaturn) { // Trine
+                score += 20 // Monthly earned achievements
+            } else if (52...68).contains(normalizedSaturn) { // Sextile
+                score += 12 // Monthly steady progress
             }
         }
         
-        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
-            let jupiterToSun = abs(jupiter.longitude - chart.sun.longitude)
-            if jupiterToSun < 8 || (112...128).contains(jupiterToSun) {
-                score += 18 // Major expansion
-            } else if (52...68).contains(jupiterToSun) {
-                score += 12 // Growth opportunities
+        // Jupiter monthly expansion - major opportunities and growth
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
+            
+            if normalizedJupiter < 8 { // Jupiter return (every 12 years)
+                score += 25 // Major monthly expansion cycle
+            } else if (112...128).contains(normalizedJupiter) { // Trine
+                score += 20 // Monthly flowing abundance
+            } else if (52...68).contains(normalizedJupiter) { // Sextile
+                score += 15 // Monthly growth opportunities
+            } else if (82...98).contains(normalizedJupiter) { // Square
+                score -= 8 // Monthly overexpansion problems
+            } else if (172...188).contains(normalizedJupiter) { // Opposition
+                score -= 5 // Monthly excess or conflicts
             }
         }
         
-        // Monthly cycle based on current month with personalization
+        // Uranus monthly revolution - sudden major changes
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if normalizedUranus < 8 { // Uranus conjunction
+                score -= 10 // Monthly life revolution
+            } else if (82...98).contains(normalizedUranus) { // Square
+                score -= 18 // Monthly shocking disruptions
+            } else if (172...188).contains(normalizedUranus) { // Opposition
+                score -= 12 // Monthly external upheaval
+            } else if (112...128).contains(normalizedUranus) { // Trine
+                score += 15 // Monthly positive breakthroughs
+            } else if (52...68).contains(normalizedUranus) { // Sextile
+                score += 10 // Monthly innovative opportunities
+            }
+        }
+        
+        // Neptune monthly themes - spiritual, confusion, inspiration
+        if let neptuneTransit = transits.first(where: { $0.name == "Neptune" }) {
+            let neptuneToSun = abs(neptuneTransit.longitude - chart.sun.longitude)
+            let normalizedNeptune = neptuneToSun > 180 ? 360 - neptuneToSun : neptuneToSun
+            
+            if normalizedNeptune < 8 { // Neptune conjunction
+                score -= 10 // Monthly ego dissolution and confusion
+            } else if (82...98).contains(normalizedNeptune) { // Square
+                score -= 15 // Monthly deception, addiction, illusion
+            } else if (172...188).contains(normalizedNeptune) { // Opposition
+                score -= 8 // Monthly reality vs dreams conflict
+            } else if (112...128).contains(normalizedNeptune) { // Trine
+                score += 12 // Monthly spiritual inspiration
+            } else if (52...68).contains(normalizedNeptune) { // Sextile
+                score += 8 // Monthly creative intuition
+            }
+        }
+        
+        // Pluto monthly transformation - deep psychological changes
+        if let plutoTransit = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToSun = abs(plutoTransit.longitude - chart.sun.longitude)
+            let normalizedPluto = plutoToSun > 180 ? 360 - plutoToSun : plutoToSun
+            
+            if normalizedPluto < 8 { // Pluto conjunction
+                score -= 20 // Monthly total life transformation
+            } else if (82...98).contains(normalizedPluto) { // Square
+                score -= 25 // Monthly power struggles and crisis
+            } else if (172...188).contains(normalizedPluto) { // Opposition
+                score -= 18 // Monthly external power conflicts
+            } else if (112...128).contains(normalizedPluto) { // Trine
+                score += 18 // Monthly empowerment and regeneration
+            } else if (52...68).contains(normalizedPluto) { // Sextile
+                score += 12 // Monthly deep positive change
+            }
+        }
+        
+        // Mars monthly energy patterns
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if normalizedMars < 8 { // Mars return (every 2 years)
+                score += 10 // Monthly energy renewal
+            } else if (82...98).contains(normalizedMars) { // Square
+                score -= 10 // Monthly conflicts and impatience
+            } else if (172...188).contains(normalizedMars) { // Opposition
+                score -= 8 // Monthly external confrontations
+            } else if (112...128).contains(normalizedMars) { // Trine
+                score += 12 // Monthly productive energy
+            }
+        }
+        
+        // === MONTHLY SEASONAL AND PERSONAL CYCLES ===
         let month = Calendar.current.component(.month, from: date)
+        
+        // Seasonal energy patterns
         switch month {
-        case 1, 3, 9: score += 8 // New beginning months
-        case 4, 5, 6: score += 10 // Growth months  
-        case 7, 8: score += 6 // Peak summer energy
-        case 10, 11, 12: score += 5 // Reflection months
-        default: score += 7
+        case 1: score += 8 // New Year renewal energy
+        case 2: score += 5 // Winter contemplation
+        case 3: score += 10 // Spring awakening
+        case 4, 5: score += 12 // Growth and expansion months
+        case 6: score += 8 // Peak spring energy
+        case 7, 8: score += 6 // Summer intensity (can be draining)
+        case 9: score += 10 // Harvest and new beginnings
+        case 10: score += 8 // Transformation month
+        case 11: score += 5 // Deep introspection
+        case 12: score += 7 // Completion and reflection
+        default: break
         }
         
-        // Add personalized monthly variation
-        let monthlyPersonalization = (chart.sun.longitude + chart.moon.longitude + Double(month * 30)).truncatingRemainder(dividingBy: 20) - 10
-        score += Int(monthlyPersonalization)
+        // Personal monthly variation based on birth chart
+        let monthlyPersonalization = Int((chart.sun.longitude + chart.moon.longitude + Double(month * 30)).truncatingRemainder(dividingBy: 20)) - 10
+        score += monthlyPersonalization
         
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     private func calculateMonthlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
@@ -1383,7 +2120,7 @@ class AstrologyService {
         let lovePersonalization = (chart.venus.longitude + Double(month * 15)).truncatingRemainder(dividingBy: 12) - 6
         score += Int(lovePersonalization)
         
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     private func calculateMonthlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
@@ -1421,7 +2158,7 @@ class AstrologyService {
         let careerPersonalization = (chart.mars.longitude + Double(month * 20)).truncatingRemainder(dividingBy: 14) - 7
         score += Int(careerPersonalization)
         
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     private func calculateMonthlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
@@ -1464,7 +2201,7 @@ class AstrologyService {
         let wealthPersonalization = (chart.jupiter.longitude + Double(month * 25)).truncatingRemainder(dividingBy: 16) - 8
         score += Int(wealthPersonalization)
         
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     // MARK: - Yearly Score Calculations
@@ -1515,7 +2252,7 @@ class AstrologyService {
         }
         
         score += personalYearlyInfluence
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     private func calculateYearlyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
@@ -1554,7 +2291,7 @@ class AstrologyService {
             }
         }
         
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     private func calculateYearlyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
@@ -1598,7 +2335,7 @@ class AstrologyService {
             }
         }
         
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     private func calculateYearlyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
@@ -1648,7 +2385,7 @@ class AstrologyService {
             }
         }
         
-        return max(0, min(100, score))
+        return max(5, min(95, score))
     }
     
     // MARK: - Timezone Conversion

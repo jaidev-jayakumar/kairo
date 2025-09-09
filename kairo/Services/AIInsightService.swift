@@ -418,57 +418,401 @@ private extension AIInsightService {
     }
     
     func getEnergyPattern(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
-        // Translate current transits into energy descriptions without astrology terms
-        let patterns = [
-            "focused energy for decision-making",
-            "creative and expressive energy",
-            "introspective and planning energy",
-            "collaborative and social energy",
-            "intense focus and determination",
-            "expansive and optimistic energy",
-            "grounding and practical energy",
-            "transformative and growth-oriented energy"
-        ]
+        // REAL ASTROLOGICAL ANALYSIS - matches the sophisticated scoring system
+        var energyDescriptions: [String] = []
+        var dominantEnergy = "balanced and steady energy"
+        var intensity = 0
         
-        // Use transit data to determine which pattern fits (safe from overflow)
-        let hash = transits.map { abs($0.name.hashValue % 10000) }.reduce(0) { $0 &+ $1 }
-        return patterns[Int(hash) % patterns.count]
+        // === MAJOR CHALLENGING TRANSITS ===
+        
+        // Saturn challenging aspects - restriction, discipline, tests
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
+            
+            if normalizedSaturn < 8 { // Saturn conjunction/return
+                energyDescriptions.append("serious restructuring and responsibility")
+                intensity += 3
+                dominantEnergy = "disciplined but pressured energy requiring patience"
+            } else if (82...98).contains(normalizedSaturn) { // Square
+                energyDescriptions.append("obstacles and important lessons")
+                intensity += 4
+                dominantEnergy = "challenging energy that builds character through perseverance"
+            } else if (172...188).contains(normalizedSaturn) { // Opposition
+                energyDescriptions.append("external pressure and authority challenges")
+                intensity += 3
+                dominantEnergy = "tense energy requiring maturity and careful decisions"
+            } else if (112...128).contains(normalizedSaturn) { // Trine
+                energyDescriptions.append("earned achievements and stable progress")
+                intensity += 1
+                dominantEnergy = "productive and structured energy"
+            }
+        }
+        
+        // Pluto transformational aspects - crisis, power, rebirth
+        if let plutoTransit = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToSun = abs(plutoTransit.longitude - chart.sun.longitude)
+            let normalizedPluto = plutoToSun > 180 ? 360 - plutoToSun : plutoToSun
+            
+            if normalizedPluto < 8 || (82...98).contains(normalizedPluto) { // Conjunction or Square
+                energyDescriptions.append("deep transformation and power dynamics")
+                intensity += 5
+                dominantEnergy = "intense transformational energy demanding psychological growth"
+            } else if (172...188).contains(normalizedPluto) { // Opposition
+                energyDescriptions.append("power struggles and external transformation pressure")
+                intensity += 4
+                dominantEnergy = "confrontational energy requiring inner strength"
+            } else if (112...128).contains(normalizedPluto) { // Trine
+                energyDescriptions.append("empowerment and positive regeneration")
+                intensity += 2
+                dominantEnergy = "powerfully transformative yet flowing energy"
+            }
+        }
+        
+        // Uranus disruptive aspects - sudden change, breakthrough, rebellion
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if normalizedUranus < 8 || (82...98).contains(normalizedUranus) { // Conjunction or Square
+                energyDescriptions.append("sudden changes and breakthrough moments")
+                intensity += 4
+                dominantEnergy = "unpredictable energy requiring flexibility and openness to change"
+            } else if (172...188).contains(normalizedUranus) { // Opposition
+                energyDescriptions.append("external disruptions and freedom conflicts")
+                intensity += 3
+                dominantEnergy = "restless energy seeking liberation from restrictions"
+            } else if (112...128).contains(normalizedUranus) { // Trine
+                energyDescriptions.append("innovative breakthroughs and exciting progress")
+                intensity += 1
+                dominantEnergy = "inventive and progressive energy"
+            }
+        }
+        
+        // === POSITIVE EXPANSIVE TRANSITS ===
+        
+        // Jupiter beneficial aspects - growth, opportunity, optimism
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
+            
+            if normalizedJupiter < 8 { // Jupiter return
+                energyDescriptions.append("major expansion and new opportunities")
+                dominantEnergy = "optimistic and expansive energy with abundant possibilities"
+            } else if (112...128).contains(normalizedJupiter) { // Trine
+                energyDescriptions.append("natural growth and flowing abundance")
+                dominantEnergy = "lucky and expansive energy supporting success"
+            } else if (52...68).contains(normalizedJupiter) { // Sextile
+                energyDescriptions.append("growth opportunities through effort")
+                dominantEnergy = "optimistic energy with opportunities for development"
+            } else if (82...98).contains(normalizedJupiter) { // Square
+                energyDescriptions.append("overconfidence and excess tendencies")
+                dominantEnergy = "overexpansive energy requiring moderation"
+            }
+        }
+        
+        // === DAILY ACTION AND EMOTION ===
+        
+        // Mars action energy
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if (82...98).contains(normalizedMars) { // Square
+                energyDescriptions.append("impatience and potential conflicts")
+                intensity += 2
+                if intensity <= 2 { dominantEnergy = "restless and impatient energy requiring careful action" }
+            } else if (172...188).contains(normalizedMars) { // Opposition
+                energyDescriptions.append("confrontational dynamics and competition")
+                intensity += 2
+                if intensity <= 2 { dominantEnergy = "competitive energy requiring diplomatic handling" }
+            } else if (112...128).contains(normalizedMars) { // Trine
+                energyDescriptions.append("productive action and clear direction")
+                if intensity <= 1 { dominantEnergy = "energetic and productive energy for taking action" }
+            }
+        }
+        
+        // Moon emotional flow
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let moonToSun = abs(moonTransit.longitude - chart.sun.longitude)
+            let normalizedMoon = moonToSun > 180 ? 360 - moonToSun : moonToSun
+            
+            if normalizedMoon < 8 { // New Moon energy
+                if intensity == 0 { dominantEnergy = "introspective and renewal-focused energy" }
+            } else if (172...188).contains(normalizedMoon) { // Full Moon energy
+                if intensity == 0 { dominantEnergy = "emotionally heightened and culminating energy" }
+            } else if (82...98).contains(normalizedMoon) { // Quarter Moon tension
+                if intensity == 0 { dominantEnergy = "emotionally complex energy requiring balance" }
+            }
+        }
+        
+        // === COMBINE DESCRIPTIONS ===
+        if energyDescriptions.isEmpty {
+            return dominantEnergy
+        } else if energyDescriptions.count == 1 {
+            return dominantEnergy
+        } else {
+            // Multiple influences - show complexity
+            let combinedDescriptions = energyDescriptions.prefix(2).joined(separator: ", plus ")
+            return "complex energy involving \(combinedDescriptions)"
+        }
     }
     
     func getWeeklyEnergyPattern(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
-        return "themes of " + getEnergyPattern(transits, chart) + " and relationship dynamics"
+        // WEEKLY FOCUS - emphasize faster-moving planets for week-long themes
+        var weeklyThemes: [String] = []
+        let baseEnergy = getEnergyPattern(transits, chart)
+        var weeklyFocus = baseEnergy
+        var intensity = 0
+        
+        // === WEEKLY RELATIONSHIP & COMMUNICATION THEMES ===
+        
+        // Venus weekly themes - relationships, values, creativity, money
+        if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
+            let venusToSun = abs(venusTransit.longitude - chart.sun.longitude)
+            let normalizedVenus = venusToSun > 180 ? 360 - venusToSun : venusToSun
+            
+            if normalizedVenus < 8 { // Venus conjunction
+                weeklyThemes.append("harmonious relationships and creative expression")
+                weeklyFocus = "loving and creative energy with enhanced social connections"
+                intensity += 2
+            } else if (82...98).contains(normalizedVenus) { // Square
+                weeklyThemes.append("relationship tensions and value conflicts")
+                weeklyFocus = "complex relationship dynamics requiring diplomatic balance"
+                intensity += 3
+            } else if (172...188).contains(normalizedVenus) { // Opposition
+                weeklyThemes.append("relationship polarities and partnership decisions")
+                weeklyFocus = "relationship-focused energy requiring compromise and understanding"
+                intensity += 2
+            } else if (112...128).contains(normalizedVenus) { // Trine
+                weeklyThemes.append("flowing social energy and creative abundance")
+                weeklyFocus = "harmonious creative and social energy supporting connections"
+                intensity += 1
+            }
+            
+            // Check Venus to Moon for emotional relationships
+            let venusToMoon = abs(venusTransit.longitude - chart.moon.longitude)
+            let normalizedVenusMoon = venusToMoon > 180 ? 360 - venusToMoon : venusToMoon
+            if normalizedVenusMoon < 8 || (112...128).contains(normalizedVenusMoon) {
+                weeklyThemes.append("emotional fulfillment in relationships")
+            }
+        }
+        
+        // Mercury weekly themes - communication, decisions, learning
+        if let mercuryTransit = transits.first(where: { $0.name == "Mercury" }) {
+            let mercuryToSun = abs(mercuryTransit.longitude - chart.sun.longitude)
+            let normalizedMercury = mercuryToSun > 180 ? 360 - mercuryToSun : mercuryToSun
+            
+            if normalizedMercury < 8 { // Mercury conjunction
+                weeklyThemes.append("clear communication and mental clarity")
+                if intensity <= 1 { weeklyFocus = "mentally stimulating energy perfect for planning and communication" }
+            } else if (82...98).contains(normalizedMercury) { // Square
+                weeklyThemes.append("communication challenges and decision pressure")
+                if intensity <= 2 { weeklyFocus = "mentally complex energy requiring careful communication" }
+                intensity += 2
+            } else if (172...188).contains(normalizedMercury) { // Opposition
+                weeklyThemes.append("differing perspectives and negotiation needs")
+                if intensity <= 1 { weeklyFocus = "mentally active energy requiring balance between different viewpoints" }
+            } else if (112...128).contains(normalizedMercury) { // Trine
+                weeklyThemes.append("smooth communication and easy learning")
+                if intensity == 0 { weeklyFocus = "mentally harmonious energy supporting clear thinking" }
+            }
+        }
+        
+        // Mars weekly themes - action, energy, initiative, conflicts
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if normalizedMars < 8 { // Mars conjunction
+                weeklyThemes.append("high energy and bold initiatives")
+                weeklyFocus = "dynamic action-oriented energy perfect for starting new projects"
+                intensity += 2
+            } else if (82...98).contains(normalizedMars) { // Square
+                weeklyThemes.append("impatience and potential conflicts")
+                weeklyFocus = "restless and confrontational energy requiring patience and strategy"
+                intensity += 3
+            } else if (172...188).contains(normalizedMars) { // Opposition
+                weeklyThemes.append("external challenges and competitive dynamics")
+                weeklyFocus = "competitive energy requiring careful navigation of conflicts"
+                intensity += 2
+            } else if (112...128).contains(normalizedMars) { // Trine
+                weeklyThemes.append("productive action and successful initiatives")
+                weeklyFocus = "energetic and successful energy supporting bold moves"
+                intensity += 1
+            }
+        }
+        
+        // === COMBINE WEEKLY THEMES ===
+        if weeklyThemes.isEmpty {
+            return baseEnergy + " with steady weekly progression"
+        } else if weeklyThemes.count == 1 {
+            return weeklyFocus
+        } else {
+            // Multiple weekly influences - show the complexity
+            let primaryThemes = weeklyThemes.prefix(2).joined(separator: " combined with ")
+            return "multifaceted energy involving " + primaryThemes
+        }
     }
     
     func getMonthlyTheme(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
-        let themes = [
-            "building foundations and planning ahead",
-            "creative self-expression and personal growth",
-            "relationship development and communication",
-            "career advancement and goal achievement",
-            "inner reflection and emotional healing",
-            "learning new skills and expanding horizons",
-            "financial planning and resource management",
-            "personal transformation and releasing old patterns"
-        ]
+        // REAL ASTROLOGICAL MONTHLY THEMES - focus on slower planets for sustained themes
+        var monthlyThemes: [String] = []
         
-        let hash = transits.map { abs($0.name.hashValue % 10000) }.reduce(0) { $0 &+ $1 }
-        return themes[Int(hash) % themes.count]
+        // Saturn monthly themes - structure, responsibility, lessons
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
+            
+            if normalizedSaturn < 8 || (82...98).contains(normalizedSaturn) {
+                monthlyThemes.append("restructuring your life foundations and learning important lessons")
+            } else if (172...188).contains(normalizedSaturn) {
+                monthlyThemes.append("dealing with external pressure and authority challenges")
+            } else if (112...128).contains(normalizedSaturn) {
+                monthlyThemes.append("building solid foundations and achieving well-earned recognition")
+            }
+        }
+        
+        // Jupiter monthly themes - growth, opportunity, expansion
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
+            
+            if normalizedJupiter < 8 {
+                monthlyThemes.append("major expansion and seizing abundant new opportunities")
+            } else if (112...128).contains(normalizedJupiter) {
+                monthlyThemes.append("natural growth and expanding your horizons")
+            } else if (52...68).contains(normalizedJupiter) {
+                monthlyThemes.append("learning new skills and developing your potential")
+            } else if (82...98).contains(normalizedJupiter) {
+                monthlyThemes.append("moderating excess and avoiding overcommitment")
+            }
+        }
+        
+        // Uranus monthly themes - change, innovation, freedom
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if normalizedUranus < 8 || (82...98).contains(normalizedUranus) {
+                monthlyThemes.append("embracing revolutionary changes and breaking free from limitations")
+            } else if (112...128).contains(normalizedUranus) {
+                monthlyThemes.append("innovative breakthroughs and progressive personal development")
+            }
+        }
+        
+        // Pluto monthly themes - transformation, power, regeneration
+        if let plutoTransit = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToSun = abs(plutoTransit.longitude - chart.sun.longitude)
+            let normalizedPluto = plutoToSun > 180 ? 360 - plutoToSun : plutoToSun
+            
+            if normalizedPluto < 8 || (82...98).contains(normalizedPluto) {
+                monthlyThemes.append("deep personal transformation and releasing old patterns")
+            } else if (112...128).contains(normalizedPluto) {
+                monthlyThemes.append("empowerment and positive regeneration of your life direction")
+            }
+        }
+        
+        // Venus themes for relationship and money focus
+        if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
+            let venusToNatalVenus = abs(venusTransit.longitude - chart.venus.longitude)
+            let normalizedVenus = venusToNatalVenus > 180 ? 360 - venusToNatalVenus : venusToNatalVenus
+            
+            if normalizedVenus < 8 {
+                monthlyThemes.append("relationship development and financial planning")
+            } else if (112...128).contains(normalizedVenus) {
+                monthlyThemes.append("harmonious relationship dynamics and creative self-expression")
+            }
+        }
+        
+        // Return the most significant theme or combination
+        if monthlyThemes.isEmpty {
+            return "inner reflection and steady personal development"
+        } else if monthlyThemes.count == 1 {
+            return monthlyThemes[0]
+        } else {
+            // Multiple themes - show the most significant
+            return monthlyThemes[0] + ", alongside " + monthlyThemes[1]
+        }
     }
     
     func getYearlyTheme(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
-        let themes = [
-            "stepping into authentic personal power and leadership",
-            "deepening relationships and emotional intelligence",
-            "career evolution and professional development",
-            "creative expression and finding your unique voice",
-            "building lasting foundations for future growth",
-            "expanding your worldview and learning new perspectives",
-            "healing old patterns and embracing personal transformation",
-            "developing your intuition and spiritual understanding"
-        ]
+        // REAL ASTROLOGICAL YEARLY THEMES - focus on major life cycle transits
+        var yearlyThemes: [String] = []
         
-        let hash = transits.map { abs($0.name.hashValue % 10000) }.reduce(0) { $0 &+ $1 }
-        return themes[Int(hash) % themes.count]
+        // Jupiter yearly themes - 12-year expansion cycles
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
+            
+            if normalizedJupiter < 8 { // Jupiter return (every 12 years)
+                yearlyThemes.append("stepping into a major expansion cycle and embracing abundant new opportunities")
+            } else if (112...128).contains(normalizedJupiter) {
+                yearlyThemes.append("expanding your worldview and achieving natural growth through flowing opportunities")
+            } else if (52...68).contains(normalizedJupiter) {
+                yearlyThemes.append("developing your potential and learning new perspectives through focused effort")
+            }
+        }
+        
+        // Saturn yearly themes - 29-year maturity cycles
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
+            
+            if normalizedSaturn < 8 { // Saturn return (every 29 years)
+                yearlyThemes.append("completing a major life chapter and building lasting foundations for the next phase")
+            } else if (82...98).contains(normalizedSaturn) {
+                yearlyThemes.append("learning essential life lessons and developing authentic personal power through challenges")
+            } else if (112...128).contains(normalizedSaturn) {
+                yearlyThemes.append("building lasting foundations and achieving well-earned recognition for your efforts")
+            }
+        }
+        
+        // Uranus yearly themes - 84-year revolution cycles
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if normalizedUranus < 8 || (82...98).contains(normalizedUranus) {
+                yearlyThemes.append("embracing revolutionary personal change and breaking free from limiting patterns")
+            } else if (112...128).contains(normalizedUranus) {
+                yearlyThemes.append("innovative breakthroughs and finding your unique voice through progressive change")
+            }
+        }
+        
+        // Neptune yearly themes - 165-year spiritual cycles
+        if let neptuneTransit = transits.first(where: { $0.name == "Neptune" }) {
+            let neptuneToSun = abs(neptuneTransit.longitude - chart.sun.longitude)
+            let normalizedNeptune = neptuneToSun > 180 ? 360 - neptuneToSun : neptuneToSun
+            
+            if normalizedNeptune < 8 || (82...98).contains(normalizedNeptune) {
+                yearlyThemes.append("developing your intuition and navigating spiritual transformation with discernment")
+            } else if (112...128).contains(normalizedNeptune) {
+                yearlyThemes.append("developing your spiritual understanding and creative expression through inspiration")
+            }
+        }
+        
+        // Pluto yearly themes - 248-year regeneration cycles
+        if let plutoTransit = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToSun = abs(plutoTransit.longitude - chart.sun.longitude)
+            let normalizedPluto = plutoToSun > 180 ? 360 - plutoToSun : plutoToSun
+            
+            if normalizedPluto < 8 || (82...98).contains(normalizedPluto) {
+                yearlyThemes.append("healing old patterns and embracing profound personal transformation")
+            } else if (112...128).contains(normalizedPluto) {
+                yearlyThemes.append("stepping into authentic personal power through positive regeneration")
+            }
+        }
+        
+        // Return the most significant yearly theme
+        if yearlyThemes.isEmpty {
+            return "deepening relationships and developing emotional intelligence through steady growth"
+        } else if yearlyThemes.count == 1 {
+            return yearlyThemes[0]
+        } else {
+            // Multiple major themes - show the most transformational
+            return yearlyThemes[0]
+        }
     }
     
     func getCycleTheme(_ cycles: [AstrologicalCycle], _ chart: BirthChart) -> String {
@@ -545,23 +889,71 @@ private extension AIInsightService {
 private extension AIInsightService {
     
     func createFallbackDailyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        return "Today brings an opportunity to trust your natural instincts and focus on what truly matters to you."
+        // Use the SAME real astrological analysis as our scoring system
+        let energyPattern = getEnergyPattern(transits, chart)
+        let personalityTraits = getPersonalityTraits(chart)
+        
+        // Generate insight based on actual planetary energies
+        if energyPattern.contains("challenging") || energyPattern.contains("obstacles") || energyPattern.contains("pressure") {
+            return "Today's energy brings important lessons and challenges that will ultimately strengthen your character. Trust your \(personalityTraits) nature to navigate this with wisdom and patience."
+        } else if energyPattern.contains("expansive") || energyPattern.contains("abundant") || energyPattern.contains("opportunities") {
+            return "Today offers wonderful opportunities for growth and expansion. Your \(personalityTraits) approach will help you make the most of these favorable conditions."
+        } else if energyPattern.contains("transformational") || energyPattern.contains("power") || energyPattern.contains("intense") {
+            return "Today's intense energy supports deep personal transformation. Your \(personalityTraits) nature gives you the strength to embrace these powerful changes."
+        } else if energyPattern.contains("unpredictable") || energyPattern.contains("breakthrough") || energyPattern.contains("sudden") {
+            return "Today brings unexpected developments that could lead to exciting breakthroughs. Your \(personalityTraits) flexibility will help you adapt and thrive."
+        } else {
+            return "Today's \(energyPattern) supports steady progress and inner reflection. Trust your \(personalityTraits) instincts to guide you toward what truly matters."
+        }
     }
     
     func createFallbackWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        return "This week asks you to balance your personal goals with the needs of those around you."
+        let weeklyTheme = getEnergyPattern(transits, chart)
+        let personalityTraits = getPersonalityTraits(chart)
+        
+        if weeklyTheme.contains("challenging") || weeklyTheme.contains("obstacles") {
+            return "This week presents important learning opportunities that will build lasting strength. Your \(personalityTraits) nature will help you turn challenges into wisdom."
+        } else if weeklyTheme.contains("expansive") || weeklyTheme.contains("abundant") {
+            return "This week offers excellent opportunities for growth and new beginnings. Your \(personalityTraits) approach will attract positive developments."
+        } else {
+            return "This week's \(weeklyTheme) encourages steady progress toward your goals. Trust your \(personalityTraits) judgment to make the right decisions."
+        }
     }
     
     func createFallbackMonthlyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        return "This month is about building something meaningful while staying true to your core values."
+        let monthlyTheme = getMonthlyTheme(transits, chart)
+        let personalityTraits = getPersonalityTraits(chart)
+        
+        return "This month focuses on \(monthlyTheme). Your \(personalityTraits) nature will be essential in navigating this period with grace and achieving meaningful progress."
     }
     
     func createFallbackYearlyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        return "This year represents a significant step in your personal evolution and authentic self-expression."
+        let yearlyTheme = getYearlyTheme(transits, chart)
+        let personalityTraits = getPersonalityTraits(chart)
+        
+        return "This year is about \(yearlyTheme). Your \(personalityTraits) essence will guide you through this significant period of development and authentic self-expression."
     }
     
     func createFallbackCycleInsight(cycles: [AstrologicalCycle], chart: BirthChart) -> String {
-        return "This period invites you to embrace change while honoring your natural strengths and wisdom."
+        let personalityTraits = getPersonalityTraits(chart)
+        
+        if cycles.isEmpty {
+            return "This is a time for steady progress and inner development. Trust your \(personalityTraits) nature to guide your decisions."
+        }
+        
+        let dominantCycle = cycles[0]
+        let influence = dominantCycle.influence
+        
+        switch influence {
+        case .positive:
+            return "Current planetary cycles support growth and positive development. Your \(personalityTraits) approach will help you maximize these favorable influences."
+        case .challenging:
+            return "Current cycles bring important lessons and character-building experiences. Your \(personalityTraits) strength will help you navigate these challenges with wisdom."
+        case .transformative:
+            return "Powerful transformational cycles are reshaping your path forward. Your \(personalityTraits) nature provides the foundation for embracing these deep changes."
+        case .neutral:
+            return "Current cycles support balanced progress and thoughtful decision-making. Your \(personalityTraits) perspective will guide you toward the right choices."
+        }
     }
     
     func createFallbackChatResponse(question: String, chart: BirthChart) -> String {
