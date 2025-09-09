@@ -53,11 +53,12 @@ struct ProfileView: View {
                         
                         // Zodiac summary
                         if let chart = birthChart {
-                            HStack(spacing: 20) {
-                                ZodiacInfo(label: "Sun", sign: chart.sunSign.rawValue, symbol: chart.sun.symbol)
-                                ZodiacInfo(label: "Moon", sign: chart.moonSign.rawValue, symbol: chart.moon.symbol)
-                                ZodiacInfo(label: "Rising", sign: chart.risingSign.rawValue, symbol: chart.risingSign.symbol)
+                            HStack(spacing: 30) {
+                                ZodiacInfo(label: "Sun", sign: chart.sunSign)
+                                ZodiacInfo(label: "Moon", sign: chart.moonSign)
+                                ZodiacInfo(label: "Rising", sign: chart.risingSign)
                             }
+                            .padding(.horizontal, 10)
                         }
                         
                         Button(action: { showEditProfile = true }) {
@@ -196,22 +197,37 @@ struct ProfileView: View {
 
 struct ZodiacInfo: View {
     let label: String
-    let sign: String
-    let symbol: String
+    let sign: ZodiacSign
     
     var body: some View {
         VStack(spacing: 8) {
-            Text(symbol)
-                .font(.system(size: 28))
-                .foregroundColor(.white.opacity(0.8))
+            contextualIcon
             
             Text(label)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.white.opacity(0.5))
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white.opacity(0.6))
+                .textCase(.uppercase)
+                .tracking(0.5)
             
-            Text(sign)
-                .font(.system(size: 14))
+            Text(sign.rawValue)
+                .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.white.opacity(0.9))
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    private var contextualIcon: some View {
+        Image(systemName: contextualIconName)
+            .font(.system(size: 24, weight: .light))
+            .foregroundColor(.white.opacity(0.9))
+    }
+    
+    private var contextualIconName: String {
+        switch label.lowercased() {
+        case "sun": return "sun.max"
+        case "moon": return "moon"
+        case "rising": return "arrow.up"
+        default: return "star"
         }
     }
 }
