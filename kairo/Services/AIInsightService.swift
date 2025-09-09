@@ -957,7 +957,18 @@ private extension AIInsightService {
     }
     
     func createFallbackChatResponse(question: String, chart: BirthChart) -> String {
-        return "Trust your natural wisdom and consider both your logical mind and intuitive feelings about this situation."
+        let personalityTraits = getPersonalityTraits(chart)
+        let transits = AstrologyService.shared.calculateCurrentTransits()
+        let todaysEnergy = getEnergyPattern(transits, chart)
+        
+        // Create an accurate fallback that uses real astrological data
+        if todaysEnergy.contains("challenging") || todaysEnergy.contains("obstacles") {
+            return "Given your \(personalityTraits) nature and today's challenging energy, approach this situation with patience and trust your inner strength to guide you through."
+        } else if todaysEnergy.contains("expansive") || todaysEnergy.contains("abundant") {
+            return "With your \(personalityTraits) qualities and today's positive energy, this is a great time to trust your instincts and move forward confidently."
+        } else {
+            return "Your \(personalityTraits) nature combined with today's \(todaysEnergy) suggests taking a thoughtful approach to this situation."
+        }
     }
 }
 
