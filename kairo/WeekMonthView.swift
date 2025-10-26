@@ -3,6 +3,9 @@ import SwiftUI
 struct WeekMonthView: View {
     @State private var selectedTimeframe: TimeFrame = .week
     @State private var selectedDate = Date()
+    @State private var selectedWeekStart = Date()
+    @State private var selectedMonth = Date()
+    @State private var selectedYear = Date()
     @State private var currentTransits: [CelestialBody] = []
     @State private var userBirthChart: BirthChart?
     @State private var weeklyInsight = ""
@@ -12,6 +15,11 @@ struct WeekMonthView: View {
     @State private var monthlyHoroscopeScores: HoroscopeScores? = nil
     @State private var yearlyHoroscopeScores: HoroscopeScores? = nil
     @State private var currentCycles: [AstrologicalCycle] = []
+    
+    // Task management to prevent crashes
+    @State private var weeklyTask: Task<Void, Never>?
+    @State private var monthlyTask: Task<Void, Never>?
+    @State private var yearlyTask: Task<Void, Never>?
     
     enum TimeFrame {
         case week, month, year
@@ -58,6 +66,7 @@ struct WeekMonthView: View {
                 
                 if selectedTimeframe == .week {
                     WeekView(
+                        selectedWeekStart: $selectedWeekStart,
                         weeklyInsight: weeklyInsight, 
                         weeklyThemes: getWeeklyThemes(),
                         horoscopeScores: horoscopeScores,
@@ -65,12 +74,14 @@ struct WeekMonthView: View {
                     )
                 } else if selectedTimeframe == .month {
                     MonthView(
+                        selectedMonth: $selectedMonth,
                         monthlyInsight: monthlyInsight,
                         horoscopeScores: monthlyHoroscopeScores,
                         cycles: currentCycles
                     )
                 } else {
                     YearView(
+                        selectedYear: $selectedYear,
                         yearlyInsight: yearlyInsight,
                         horoscopeScores: yearlyHoroscopeScores,
                         cycles: currentCycles
@@ -82,36 +93,132 @@ struct WeekMonthView: View {
         }
         .background(Color.black)
         .onAppear {
+            initializeSelectedPeriods()
             loadAstrologicalData()
+        }
+        .onDisappear {
+            // Cancel all pending tasks to prevent crashes
+            weeklyTask?.cancel()
+            monthlyTask?.cancel()
+            yearlyTask?.cancel()
+        }
+        .onChange(of: selectedWeekStart) { _ in
+            loadWeeklyData()
+        }
+        .onChange(of: selectedMonth) { _ in
+            loadMonthlyData()
+        }
+        .onChange(of: selectedYear) { _ in
+            loadYearlyData()
         }
     }
     
-    private func loadAstrologicalData() {
-        // Load current transits
-        currentTransits = AstrologyService.shared.calculateCurrentTransits()
+    private func initializeSelectedPeriods() {
+        // Initialize selected week start (Sunday of current week)
+        let calendar = Calendar.current
+        let today = Date()
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromSunday = weekday - 1
         
-        // Load user birth chart
-        if let birthData = UserDataManager.shared.getBirthData() {
-            userBirthChart = AstrologyService.shared.calculateBirthChart(for: birthData)
-            if let chart = userBirthChart {
-                // Use AI-powered fresh insights for all timeframes
-                Task {
-                    let freshWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart)
-                    let freshMonthlyInsight = await AstrologyService.shared.generateMonthlyInsight(for: chart)
-                    let freshYearlyInsight = await AstrologyService.shared.generateYearlyInsight(for: chart)
-                    
-                    await MainActor.run {
-                        weeklyInsight = freshWeeklyInsight
-                        monthlyInsight = freshMonthlyInsight
-                        yearlyInsight = freshYearlyInsight
-                    }
-                }
+        if let weekStart = calendar.date(byAdding: .day, value: -daysFromSunday, to: today) {
+            selectedWeekStart = weekStart
+        }
+        
+        selectedMonth = today
+        selectedYear = today
+    }
+    
+    private func loadAstrologicalData() {
+        // Load user birth chart safely
+        guard let birthData = UserDataManager.shared.getBirthData() else {
+            print("⚠️ No birth data available")
+            return
+        }
+        
+        // Calculate birth chart on background thread to avoid blocking UI
+        Task {
+            guard let chart = AstrologyService.shared.calculateBirthChart(for: birthData) else {
+                print("⚠️ Failed to calculate birth chart")
+                return
+            }
+            
+            await MainActor.run {
+                userBirthChart = chart
                 
-                // Calculate horoscope scores for all timeframes
-                horoscopeScores = AstrologyService.shared.calculateWeeklyHoroscopeScores(for: chart)
-                monthlyHoroscopeScores = AstrologyService.shared.calculateMonthlyHoroscopeScores(for: chart)
-                yearlyHoroscopeScores = AstrologyService.shared.calculateYearlyHoroscopeScores(for: chart)
+                // Load all timeframe data
+                loadWeeklyData()
+                loadMonthlyData()
+                loadYearlyData()
+                
+                // Calculate current cycles (stays the same for all timeframes)
                 currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart)
+                currentTransits = AstrologyService.shared.calculateCurrentTransits()
+            }
+        }
+    }
+    
+    private func loadWeeklyData() {
+        guard let chart = userBirthChart else { return }
+        
+        // Cancel any previous weekly task
+        weeklyTask?.cancel()
+        
+        // Generate insights for this specific week
+        weeklyTask = Task {
+            do {
+                let freshWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart, date: selectedWeekStart)
+                
+                // Check if task was cancelled before updating state
+                guard !Task.isCancelled else { return }
+                
+                await MainActor.run {
+                    weeklyInsight = freshWeeklyInsight
+                    horoscopeScores = AstrologyService.shared.calculateWeeklyHoroscopeScores(for: chart, date: selectedWeekStart)
+                }
+            }
+        }
+    }
+    
+    private func loadMonthlyData() {
+        guard let chart = userBirthChart else { return }
+        
+        // Cancel any previous monthly task
+        monthlyTask?.cancel()
+        
+        // Generate insights for this specific month
+        monthlyTask = Task {
+            do {
+                let freshMonthlyInsight = await AstrologyService.shared.generateMonthlyInsight(for: chart, date: selectedMonth)
+                
+                // Check if task was cancelled before updating state
+                guard !Task.isCancelled else { return }
+                
+                await MainActor.run {
+                    monthlyInsight = freshMonthlyInsight
+                    monthlyHoroscopeScores = AstrologyService.shared.calculateMonthlyHoroscopeScores(for: chart, date: selectedMonth)
+                }
+            }
+        }
+    }
+    
+    private func loadYearlyData() {
+        guard let chart = userBirthChart else { return }
+        
+        // Cancel any previous yearly task
+        yearlyTask?.cancel()
+        
+        // Generate insights for this specific year
+        yearlyTask = Task {
+            do {
+                let freshYearlyInsight = await AstrologyService.shared.generateYearlyInsight(for: chart, date: selectedYear)
+                
+                // Check if task was cancelled before updating state
+                guard !Task.isCancelled else { return }
+                
+                await MainActor.run {
+                    yearlyInsight = freshYearlyInsight
+                    yearlyHoroscopeScores = AstrologyService.shared.calculateYearlyHoroscopeScores(for: chart, date: selectedYear)
+                }
             }
         }
     }
@@ -284,7 +391,16 @@ struct WeekMonthView: View {
         ]
         
         let allThemes = universalThemes + signSpecificThemes
-        return Array(allThemes.shuffled().prefix(3))
+        
+        // Use deterministic selection instead of shuffle to prevent threading issues
+        let weekOfYear = Calendar.current.component(.weekOfYear, from: Date())
+        let seed = weekOfYear % allThemes.count
+        var selectedThemes: [String] = []
+        for i in 0..<min(3, allThemes.count) {
+            let index = (seed + i) % allThemes.count
+            selectedThemes.append(allThemes[index])
+        }
+        return selectedThemes
     }
     
     private func getThemeForSun(_ sunSign: ZodiacSign) -> String {
@@ -483,28 +599,20 @@ struct WeekMonthView: View {
 // MARK: - Weekly Insight Sections
 struct WeeklyInsightSections: View {
     let weeklyInsight: String
+    let selectedWeekStart: Date
     
     private var currentWeekRange: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd"
         
-        let today = Date()
         let calendar = Calendar.current
         
-        // Get start of current week (Sunday to Saturday week)
-        let weekday = calendar.component(.weekday, from: today)
-        let daysFromSunday = weekday - 1 // Sunday = 1, so this gives us days since Sunday
-        
-        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromSunday, to: today) else {
+        // Get end of selected week (Saturday)
+        guard let weekEnd = calendar.date(byAdding: .day, value: 6, to: selectedWeekStart) else {
             return "This Week"
         }
         
-        // Get end of current week (Saturday)
-        guard let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) else {
-            return "This Week"
-        }
-        
-        return "\(formatter.string(from: weekStart)) - \(formatter.string(from: weekEnd))"
+        return "\(formatter.string(from: selectedWeekStart)) - \(formatter.string(from: weekEnd))"
     }
     
     var body: some View {
@@ -621,6 +729,7 @@ struct WeeklyInsightCard: View {
 }
 
 struct WeekView: View {
+    @Binding var selectedWeekStart: Date
     let weeklyInsight: String
     let weeklyThemes: [String]
     let horoscopeScores: HoroscopeScores?
@@ -628,15 +737,50 @@ struct WeekView: View {
     
     var body: some View {
         VStack(spacing: 24) {
+            // Week Selector
+            WeekSelector(selectedWeekStart: $selectedWeekStart)
+            
             // Horoscope Scores
             if let scores = horoscopeScores {
-                HoroscopeScoresView(scores: scores)
+                VStack(spacing: 24) {
+                    // Four progress circles
+                    HStack(spacing: 20) {
+                        ProgressCircle(
+                            title: "Overall",
+                            score: scores.overall,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Love",
+                            score: scores.love,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Career",
+                            score: scores.career,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Wealth",
+                            score: scores.wealth,
+                            color: .white,
+                            animate: true
+                        )
+                    }
+                    
+                    // Cosmic divider
+                    CosmicDivider()
+                }
             }
             
-
-            
             // Weekly insight sections
-            WeeklyInsightSections(weeklyInsight: weeklyInsight)
+            WeeklyInsightSections(weeklyInsight: weeklyInsight, selectedWeekStart: selectedWeekStart)
             
             // Cycles
             if !cycles.isEmpty {
@@ -669,11 +813,12 @@ struct WeekView: View {
 // MARK: - Monthly Insight Sections
 struct MonthlyInsightSections: View {
     let monthlyInsight: String
+    let selectedMonth: Date
 
     private var currentMonthYear: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: Date())
+        return formatter.string(from: selectedMonth)
     }
     
     var body: some View {
@@ -803,19 +948,57 @@ struct MonthlyInsightCard: View {
 }
 
 struct MonthView: View {
+    @Binding var selectedMonth: Date
     let monthlyInsight: String
     let horoscopeScores: HoroscopeScores?
     let cycles: [AstrologicalCycle]
     
     var body: some View {
         VStack(spacing: 24) {
+            // Month Selector
+            MonthSelector(selectedMonth: $selectedMonth)
+            
             // Horoscope Scores
             if let scores = horoscopeScores {
-                HoroscopeScoresView(scores: scores)
+                VStack(spacing: 24) {
+                    // Four progress circles
+                    HStack(spacing: 20) {
+                        ProgressCircle(
+                            title: "Overall",
+                            score: scores.overall,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Love",
+                            score: scores.love,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Career",
+                            score: scores.career,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Wealth",
+                            score: scores.wealth,
+                            color: .white,
+                            animate: true
+                        )
+                    }
+                    
+                    // Cosmic divider
+                    CosmicDivider()
+                }
             }
             
             // Monthly insight sections
-            MonthlyInsightSections(monthlyInsight: monthlyInsight)
+            MonthlyInsightSections(monthlyInsight: monthlyInsight, selectedMonth: selectedMonth)
             
             // Cycles
             if !cycles.isEmpty {
@@ -939,11 +1122,12 @@ struct MonthView: View {
 // MARK: - Yearly Insight Sections
 struct YearlyInsightSections: View {
     let yearlyInsight: String
+    let selectedYear: Date
 
     private var currentYear: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy"
-        return formatter.string(from: Date())
+        return formatter.string(from: selectedYear)
     }
 
     var body: some View {
@@ -1080,19 +1264,57 @@ struct YearlyInsightCard: View {
 }
 
 struct YearView: View {
+    @Binding var selectedYear: Date
     let yearlyInsight: String
     let horoscopeScores: HoroscopeScores?
     let cycles: [AstrologicalCycle]
     
     var body: some View {
         VStack(spacing: 24) {
+            // Year Selector
+            YearSelector(selectedYear: $selectedYear)
+            
             // Horoscope Scores
             if let scores = horoscopeScores {
-                HoroscopeScoresView(scores: scores)
+                VStack(spacing: 24) {
+                    // Four progress circles
+                    HStack(spacing: 20) {
+                        ProgressCircle(
+                            title: "Overall",
+                            score: scores.overall,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Love",
+                            score: scores.love,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Career",
+                            score: scores.career,
+                            color: .white,
+                            animate: true
+                        )
+                        
+                        ProgressCircle(
+                            title: "Wealth",
+                            score: scores.wealth,
+                            color: .white,
+                            animate: true
+                        )
+                    }
+                    
+                    // Cosmic divider
+                    CosmicDivider()
+                }
             }
             
             // Yearly insight sections
-            YearlyInsightSections(yearlyInsight: yearlyInsight)
+            YearlyInsightSections(yearlyInsight: yearlyInsight, selectedYear: selectedYear)
             
             // Cycles
             if !cycles.isEmpty {

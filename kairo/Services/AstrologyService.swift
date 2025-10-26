@@ -114,12 +114,11 @@ class AstrologyService {
         return calculatePlanet(planet, date: date)
     }
     
-    func calculateCurrentTransits() -> [CelestialBody] {
-        print("🌍 Using SwissEphemeris for current planetary transits")
-        let now = Date()
+    func calculateCurrentTransits(for date: Date = Date()) -> [CelestialBody] {
+        print("🌍 Using SwissEphemeris for planetary transits on \(date)")
         let planets: [SwissEphemeris.Planet] = [.sun, .moon, .mercury, .venus, .mars, .jupiter, .saturn, .uranus, .neptune, .pluto]
         
-        let transits = planets.compactMap { calculatePlanet($0, date: now) }
+        let transits = planets.compactMap { calculatePlanet($0, date: date) }
         
         // If SwissEphemeris fails, fallback to simplified service
         if transits.isEmpty {
@@ -127,7 +126,7 @@ class AstrologyService {
             return SimplifiedAstrologyService.shared.calculateCurrentTransits()
         }
         
-        print("✅ SwissEphemeris transit calculations completed successfully!")
+        print("✅ SwissEphemeris transit calculations completed for \(date)!")
         return transits
     }
     
@@ -481,21 +480,21 @@ class AstrologyService {
     }
     
     // MARK: - Weekly Insights (AI-Powered)
-    func generateWeeklyInsight(for chart: BirthChart) async -> String {
-        let transits = calculateCurrentTransits()
-        return await AIInsightService.shared.generateWeeklyInsight(for: chart, transits: transits)
+    func generateWeeklyInsight(for chart: BirthChart, date: Date = Date()) async -> String {
+        let transits = calculateCurrentTransits(for: date)
+        return await AIInsightService.shared.generateWeeklyInsight(for: chart, transits: transits, date: date)
     }
     
     // MARK: - Monthly Insights (AI-Powered)
-    func generateMonthlyInsight(for chart: BirthChart) async -> String {
-        let transits = calculateCurrentTransits()
-        return await AIInsightService.shared.generateMonthlyInsight(for: chart, transits: transits)
+    func generateMonthlyInsight(for chart: BirthChart, date: Date = Date()) async -> String {
+        let transits = calculateCurrentTransits(for: date)
+        return await AIInsightService.shared.generateMonthlyInsight(for: chart, transits: transits, date: date)
     }
     
     // MARK: - Yearly Insights (AI-Powered)
-    func generateYearlyInsight(for chart: BirthChart) async -> String {
-        let transits = calculateCurrentTransits()
-        return await AIInsightService.shared.generateYearlyInsight(for: chart, transits: transits)
+    func generateYearlyInsight(for chart: BirthChart, date: Date = Date()) async -> String {
+        let transits = calculateCurrentTransits(for: date)
+        return await AIInsightService.shared.generateYearlyInsight(for: chart, transits: transits, date: date)
     }
     
     // MARK: - Cycle Insights (AI-Powered)
@@ -571,14 +570,16 @@ class AstrologyService {
         }
         
         print("🎯 Calculating NEW daily horoscope scores for \(date) using birth chart and current transits")
-        let transits = calculateCurrentTransits()
+        let transits = calculateCurrentTransits(for: date)
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on SPECIFIC DATE's astrological factors
-        let overallScore = calculateDailyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        // Calculate each specific life area score
         let loveScore = calculateDailyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let careerScore = calculateDailyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let wealthScore = calculateDailyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        
+        // Overall is the average of life areas - ensures logical consistency
+        let overallScore = Int(round(Double(loveScore + careerScore + wealthScore) / 3.0))
         
         let scores = HoroscopeScores(
             overall: overallScore,
@@ -601,14 +602,16 @@ class AstrologyService {
         }
         
         print("📅 Calculating NEW weekly horoscope scores for \(date) using birth chart and week-ahead transits")
-        let transits = calculateCurrentTransits()
+        let transits = calculateCurrentTransits(for: date)
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on SPECIFIC WEEK'S astrological factors
-        let overallScore = calculateWeeklyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        // Calculate each specific life area score
         let loveScore = calculateWeeklyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let careerScore = calculateWeeklyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let wealthScore = calculateWeeklyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        
+        // Overall is the average of life areas - ensures logical consistency
+        let overallScore = Int(round(Double(loveScore + careerScore + wealthScore) / 3.0))
         
         let scores = HoroscopeScores(
             overall: overallScore,
@@ -631,14 +634,17 @@ class AstrologyService {
         }
         
         print("📅 Calculating NEW monthly horoscope scores for \(date) using birth chart and month-ahead transits")
-        let transits = calculateCurrentTransits()
+        let transits = calculateCurrentTransits(for: date)
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on SPECIFIC MONTH'S astrological factors
-        let overallScore = calculateMonthlyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        // Calculate each specific life area score
         let loveScore = calculateMonthlyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let careerScore = calculateMonthlyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let wealthScore = calculateMonthlyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        
+        // Overall should be the weighted average of life areas - not a separate calculation
+        // This ensures logical consistency (if Love/Career/Wealth are high, Overall is high)
+        let overallScore = Int(round(Double(loveScore + careerScore + wealthScore) / 3.0))
         
         let scores = HoroscopeScores(
             overall: overallScore,
@@ -661,14 +667,16 @@ class AstrologyService {
         }
         
         print("📅 Calculating NEW yearly horoscope scores for \(date) using birth chart and year-ahead transits")
-        let transits = calculateCurrentTransits()
+        let transits = calculateCurrentTransits(for: date)
         let aspects = calculateAspects(for: chart)
         
-        // Calculate each score based on SPECIFIC YEAR'S astrological factors
-        let overallScore = calculateYearlyOverallScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        // Calculate each specific life area score
         let loveScore = calculateYearlyLoveScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let careerScore = calculateYearlyCareerScore(chart: chart, transits: transits, aspects: aspects, date: date)
         let wealthScore = calculateYearlyWealthScore(chart: chart, transits: transits, aspects: aspects, date: date)
+        
+        // Overall is the average of life areas - ensures logical consistency
+        let overallScore = Int(round(Double(loveScore + careerScore + wealthScore) / 3.0))
         
         let scores = HoroscopeScores(
             overall: overallScore,
@@ -684,7 +692,7 @@ class AstrologyService {
     }
     
     private func calculateDailyOverallScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 50 // Neutral baseline - true middle ground
+        var score = 55 // Slightly optimistic baseline - everyone starts with decent energy
         
         // === NATAL CHART FOUNDATION (affects baseline) ===
         let sunMoonAngle = abs(chart.sun.longitude - chart.moon.longitude)
@@ -692,15 +700,18 @@ class AstrologyService {
         
         // Natal sun-moon aspect sets your general life harmony
         if normalizedSunMoon < 8 { // Conjunction - unified personality
-            score += 12
-        } else if (112...128).contains(normalizedSunMoon) { // Trine - natural harmony
             score += 15
+        } else if (112...128).contains(normalizedSunMoon) { // Trine - natural harmony
+            score += 18
         } else if (52...68).contains(normalizedSunMoon) { // Sextile - cooperative energy
-            score += 8
+            score += 12
         } else if (82...98).contains(normalizedSunMoon) { // Square - creative tension
-            score -= 5
+            score -= 3 // Less harsh
         } else if (172...188).contains(normalizedSunMoon) { // Opposition - internal polarity
-            score -= 8
+            score -= 5 // Less harsh
+        } else {
+            // No major aspect - still add something for baseline personality
+            score += 5
         }
         
         // === MAJOR TRANSITS (can dramatically shift scores) ===
@@ -831,7 +842,7 @@ class AstrologyService {
     }
     
     private func calculateDailyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 50 // Neutral love baseline
+        var score = 55 // Slightly optimistic love baseline - everyone has love potential
         
         // === NATAL LOVE FOUNDATION ===
         
@@ -998,7 +1009,7 @@ class AstrologyService {
     }
     
     private func calculateDailyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 50 // Neutral career baseline
+        var score = 55 // Slightly optimistic career baseline - everyone has career potential
         
         // === NATAL CAREER FOUNDATION ===
         
@@ -1157,7 +1168,7 @@ class AstrologyService {
     }
     
     private func calculateDailyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 50 // Neutral wealth baseline
+        var score = 55 // Slightly optimistic wealth baseline - everyone has abundance potential
         
         // === NATAL WEALTH FOUNDATION ===
         
@@ -1390,7 +1401,7 @@ class AstrologyService {
     }
     
     private func calculateWeeklyLoveScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 50 // Neutral weekly love baseline
+        var score = 65 // Higher baseline for weekly scores (aligned with daily/monthly)
         
         // === WEEKLY LOVE FOCUS: SUSTAINED RELATIONSHIP PATTERNS ===
         
@@ -1469,7 +1480,7 @@ class AstrologyService {
     }
     
     private func calculateWeeklyCareerScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 50 // Neutral weekly career baseline
+        var score = 65 // Higher baseline for weekly scores (aligned with daily/monthly)
         
         // === WEEKLY CAREER FOCUS: SUSTAINED PROFESSIONAL PROGRESS ===
         
@@ -1568,7 +1579,7 @@ class AstrologyService {
     }
     
     private func calculateWeeklyWealthScore(chart: BirthChart, transits: [CelestialBody], aspects: [Aspect], date: Date) -> Int {
-        var score = 50 // Neutral weekly wealth baseline
+        var score = 65 // Higher baseline for weekly scores (aligned with daily/monthly)
         
         // === WEEKLY WEALTH FOCUS: SUSTAINED FINANCIAL PATTERNS ===
         
@@ -1651,9 +1662,9 @@ class AstrologyService {
     }
     
     // MARK: - Astrological Cycles
-    func calculateCurrentCycles(for chart: BirthChart) -> [AstrologicalCycle] {
-        print("🔄 Calculating current astrological cycles and aspects")
-        let transits = calculateCurrentTransits()
+    func calculateCurrentCycles(for chart: BirthChart, date: Date = Date()) -> [AstrologicalCycle] {
+        print("🔄 Calculating astrological cycles for \(date)")
+        let transits = calculateCurrentTransits(for: date)
         var cycles: [AstrologicalCycle] = []
         
         // Calculate significant transit aspects
@@ -1685,7 +1696,8 @@ class AstrologyService {
                     let cycle = createCycleFromAspect(
                         transitPlanet: transitPlanet,
                         natalPlanet: natalPlanet,
-                        aspectType: aspectType
+                        aspectType: aspectType,
+                        chart: chart
                     )
                     cycles.append(cycle)
                 }
@@ -1698,7 +1710,7 @@ class AstrologyService {
             let normalizedVenusAngle = venusToSunAngle > 180 ? 360 - venusToSunAngle : venusToSunAngle
             
             if let aspectType = getAspectType(for: normalizedVenusAngle) {
-                cycles.append(createLoveCycle(aspectType: aspectType))
+                cycles.append(createLoveCycle(aspectType: aspectType, sunSign: chart.sunSign))
             }
         }
         
@@ -1716,36 +1728,55 @@ class AstrologyService {
         switch normalizedAngle {
         case 0...15:
             phase = "New Moon Energy"
-            description = "Perfect time for new beginnings and setting intentions. Your emotional and identity are aligned."
+            description = "This is your perfect time for new beginnings and setting intentions. Your emotional world and identity are aligned, creating powerful manifesting energy. What you plant now will grow. Trust your instincts and start fresh."
             influence = .positive
             
         case 75...105:
             phase = "First Quarter Tension"
-            description = "Dynamic energy that pushes you to take action. Use this creative tension constructively."
+            description = "Dynamic energy that pushes you to take action. Use this creative tension constructively. You're feeling pressure to move forward—that's exactly what this phase is for. Channel the restlessness into progress."
             influence = .challenging
             
         case 165...195:
             phase = "Full Moon Illumination"
-            description = "Time of heightened awareness and emotional clarity. Relationships and patterns become visible."
+            description = "You're experiencing heightened awareness and emotional clarity. Relationships and patterns that were hidden are now visible. This illumination is showing you the truth. Accept what you see and make decisions from this place of clarity."
             influence = .transformative
             
         case 255...285:
             phase = "Last Quarter Release"
-            description = "Perfect time to let go of what no longer serves you. Clear space for new growth."
+            description = "This is your perfect time to let go of what no longer serves you. You're being asked to clear space for new growth. Release what's complete. The more you surrender now, the more room you create for what's coming."
             influence = .neutral
             
         default:
             phase = "Lunar Flow"
-            description = "Gentle lunar energy supporting your natural rhythms and emotional processing."
+            description = "You're flowing with gentle lunar energy supporting your natural rhythms and emotional processing. Trust your feelings and honor your pace. There's no rush—let things unfold naturally."
             influence = .neutral
+        }
+        
+        // Calculate progress based on lunar phase
+        let lunarProgress: Double
+        switch normalizedAngle {
+        case 0...15: lunarProgress = 0.05 // Just starting new moon
+        case 75...105: lunarProgress = 0.25 // First quarter
+        case 165...195: lunarProgress = 0.5 // Full moon - peak
+        case 255...285: lunarProgress = 0.75 // Last quarter
+        default: lunarProgress = (normalizedAngle / 360.0) // Proportional to phase
+        }
+        
+        // Get aspect name for display
+        let aspectName: String
+        if let aspectType = getAspectType(for: normalizedAngle) {
+            aspectName = aspectType.word
+        } else {
+            aspectName = "to" // fallback
         }
         
         return AstrologicalCycle(
             title: phase,
-            planetaryAspect: "Moon \(getAspectSymbol(for: normalizedAngle)) Sun",
+            planetaryAspect: "Moon \(aspectName) Sun",
             duration: "< 3 days",
             description: description,
-            influence: influence
+            influence: influence,
+            progressPercentage: lunarProgress
         )
     }
     
@@ -1765,47 +1796,96 @@ class AstrologyService {
         return "∠" // Generic angle symbol
     }
     
-    private func createCycleFromAspect(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> AstrologicalCycle {
+    private func createCycleFromAspect(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType, chart: BirthChart) -> AstrologicalCycle {
         let title = generateCycleTitle(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType)
         let duration = getCycleDuration(for: transitPlanet.name)
-        let description = generateCycleDescription(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType)
+        let description = generateCycleDescription(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType, sunSign: chart.sunSign)
         let influence = getCycleInfluence(aspectType: aspectType, transitPlanet: transitPlanet.name)
+        let progress = calculateCycleProgress(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType)
+        
+        // Use text word instead of symbol for aspect
+        let aspectWord = aspectType.word
         
         return AstrologicalCycle(
             title: title,
-            planetaryAspect: "\(transitPlanet.name) \(aspectType.symbol) \(natalPlanet.name)",
+            planetaryAspect: "\(transitPlanet.name) \(aspectWord) \(natalPlanet.name)",
             duration: duration,
             description: description,
-            influence: influence
+            influence: influence,
+            progressPercentage: progress
         )
     }
     
-    private func createLoveCycle(aspectType: AspectType) -> AstrologicalCycle {
-        let titles = [
-            "Heart Opening", "Romantic Alignment", "Love's Gentle Touch", "Attraction Amplified"
-        ]
-        let title = titles.randomElement() ?? "Venus Influence"
+    private func createLoveCycle(aspectType: AspectType, sunSign: ZodiacSign) -> AstrologicalCycle {
+        let isHarsh = aspectType == .square || aspectType == .opposition
+        let title = isHarsh ? "Patience in Love" : "Love Awakens"
+        
+        let description = isHarsh 
+            ? "You'll find yourself being impatient in the ways you pursue romantic interests. To navigate this, patience is key. \(sunSign.rawValue), it's crucial to be mindful of how you treat those you're dating. Exercise patience with them and yourself. Remember, you have nothing to prove."
+            : "Venus energy enhances your attractiveness and ability to connect with others on a heart level. You'll find opportunities for meaningful connections flowing naturally. Embrace this period of romantic possibility."
         
         return AstrologicalCycle(
             title: title,
-            planetaryAspect: "Venus \(aspectType.symbol) Sun",
-            duration: "> 30 days",
-            description: "Venus energy enhances your attractiveness and ability to connect with others on a heart level.",
-            influence: aspectType == .square || aspectType == .opposition ? .challenging : .positive
+            planetaryAspect: "Venus \(aspectType.word) Sun",
+            duration: "< 3 days",
+            description: description,
+            influence: isHarsh ? .challenging : .positive,
+            progressPercentage: 0.6 + Double.random(in: 0...0.25) // Fast planet, likely past peak
         )
     }
     
     private func generateCycleTitle(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
-        let titles: [String: [String]] = [
-            "Jupiter": ["Expand Your Horizons", "Growth Opportunity", "Lucky Break Ahead", "Abundance Flows"],
-            "Saturn": ["Build Foundation", "Lesson in Discipline", "Structure Your Goals", "Wisdom Through Challenge"],
-            "Uranus": ["Break Free", "Revolutionary Change", "Unexpected Breakthrough", "Innovation Required"],
-            "Neptune": ["Spiritual Awakening", "Intuitive Insights", "Dream Into Reality", "Mystical Connection"],
-            "Pluto": ["Deep Transformation", "Phoenix Rising", "Power Shift", "Soul Evolution"]
-        ]
+        // Generate life-area focused titles based on planet combinations
+        let isHarsh = aspectType == .square || aspectType == .opposition
         
-        let planetTitles = titles[transitPlanet.name] ?? ["Cosmic Influence"]
-        return planetTitles.randomElement() ?? "Planetary Alignment"
+        switch (transitPlanet.name, natalPlanet.name) {
+        // Love & Relationships (Venus combinations)
+        case ("Venus", "Sun"), ("Venus", "Moon"), ("Neptune", "Venus"):
+            return isHarsh ? "Patience in Love" : "Love Awakens"
+        case ("Venus", "Mars"):
+            return isHarsh ? "Romantic Tension" : "Passion Ignites"
+            
+        // Communication & Mind (Mercury combinations)
+        case ("Mercury", "Sun"), ("Mercury", "Moon"), ("Uranus", "Mercury"):
+            return isHarsh ? "Patience in Turmoil" : "Mental Clarity"
+        case ("Mercury", "Mars"):
+            return isHarsh ? "Words as Weapons" : "Sharp Communication"
+            
+        // Career & Action (Mars, Saturn to Sun/Mars)
+        case ("Saturn", "Sun"), ("Saturn", "Mars"):
+            return isHarsh ? "Career Challenges" : "Building Success"
+        case ("Mars", "Sun"):
+            return isHarsh ? "Energy Drain" : "Vitality Boost"
+            
+        // Personal Growth (Jupiter combinations)
+        case ("Jupiter", "Sun"), ("Jupiter", "Moon"):
+            return "Unlock Your Potential"
+        case ("Jupiter", "Venus"):
+            return "Abundance Flows"
+        case ("Jupiter", "Mercury"):
+            return "Expand Your Mind"
+            
+        // Transformation (Pluto combinations)
+        case ("Pluto", "Sun"), ("Pluto", "Moon"):
+            return isHarsh ? "Deep Soul Work" : "Power Emerges"
+        case ("Pluto", "Venus"):
+            return isHarsh ? "Love Transforms" : "Magnetic Attraction"
+            
+        // Social & Friendship (Uranus, Neptune to Air planets)
+        case ("Uranus", "Venus"), ("Uranus", "Moon"):
+            return isHarsh ? "Unexpected Changes" : "Friendship Unlocks Future"
+        case ("Neptune", "Sun"), ("Neptune", "Moon"):
+            return isHarsh ? "Confusion Clears" : "Intuition Heightens"
+            
+        // Creativity & Expression
+        case ("Neptune", "Mercury"):
+            return isHarsh ? "Dream vs Reality" : "Creative Flow"
+        case ("Uranus", "Sun"):
+            return isHarsh ? "Break the Mold" : "Authenticity Shines"
+            
+        default:
+            return isHarsh ? "Navigate Tension" : "Embrace Growth"
+        }
     }
     
     private func getCycleDuration(for planetName: String) -> String {
@@ -1823,77 +1903,88 @@ class AstrologyService {
         }
     }
     
-    private func generateCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
-        // Create specific, unique descriptions for each planet-planet combination
-        // Generate cycle description based on specific planetary combinations
+    private func generateCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType, sunSign: ZodiacSign) -> String {
+        // Create personalized, direct-address descriptions based on planetary combinations
         
         switch (transitPlanet.name, natalPlanet.name, aspectType) {
-        // Uranus combinations
-        case ("Uranus", "Mercury", .sextile):
-            return "Revolutionary thinking emerges as Uranus awakens new perspectives in your mind. Breakthrough insights about communication, technology, or learning are highlighted. Your mental processes are being upgraded."
+        // Venus - Love cycles
+        case ("Venus", "Sun", .trine), ("Venus", "Moon", .trine):
+            return "A period of opportunity is on the horizon, focusing on your natural talents and creativity. This is your chance to express yourself as you've always wanted, without stress. Seize this moment. A touch of luck will complement your skills, but it's your authenticity that will truly make a difference. The world is ready to embrace you. Just taking a step is better than standing still. You'll find your path."
             
-        case ("Uranus", "Venus", .sextile):
-            return "Unexpected developments in relationships or creative endeavors bring exciting possibilities. You're attracting unconventional beauty and unique connections. Embrace the unusual in love and art."
+        case ("Venus", "Sun", .square), ("Venus", "Moon", .square):
+            return "You'll find yourself being impatient in the ways you pursue romantic interests. To navigate this, patience is key. \(sunSign.rawValue), it's crucial to be mindful of how you treat those you're dating. Exercise patience with them and yourself. Remember, you have nothing to prove."
             
-        case ("Uranus", "Mercury", .conjunction):
-            return "A lightning bolt of innovation strikes your thinking patterns. Revolutionary ideas demand expression. Your communication style undergoes a dramatic transformation that opens new possibilities."
+        // Mercury - Communication cycles
+        case ("Mercury", "Moon", .square), ("Mercury", "Sun", .square):
+            return "You might find your sense of humor offbeat lately, leading to frustration in how you perceive the world. This impatience originates from how you interpret and handle your emotions, leading to frustration over the time it takes to accomplish tasks. Be patient with your process and communicate your needs clearly."
             
-        case ("Uranus", "Venus", .conjunction):
-            return "Sudden attractions or creative breakthroughs electrify your world. Traditional relationship patterns are being revolutionized. Expect the unexpected in matters of the heart."
+        case ("Mercury", "Sun", .trine), ("Mercury", "Moon", .trine):
+            return "Your communication flows effortlessly now. You'll find the right words at the right time, making this an ideal period for important conversations, negotiations, or creative projects. Trust your mental clarity and express yourself freely."
             
-        case ("Uranus", "Sun", .square):
-            return "Your individuality clashes with external pressures for conformity. This tension catalyzes authentic self-expression. Break free from limiting identities that no longer serve you."
+        // Uranus - Friendship & Change cycles
+        case ("Uranus", "Venus", .trine), ("Uranus", "Moon", .trine), ("Uranus", "Venus", .sextile), ("Uranus", "Moon", .sextile):
+            return "A period of harmony in your friendships awaits. You'll find opportunities stemming from a significant relationship with a friend. These opportunities will be unique, often coming through unexpected social connections. Stay open to new people and unconventional alliances."
             
-        case ("Uranus", "Moon", .opposition):
-            return "Emotional independence battles with security needs. This push-pull dynamic reveals where you've been playing it too safe. Trust your intuitive urges for freedom."
+        case ("Uranus", "Mercury", _):  // Catch ALL Uranus-Mercury aspects
+            return "Revolutionary thinking emerges as new perspectives awaken in your mind. Breakthrough insights about communication, technology, or learning are highlighted. \(sunSign.rawValue), you're being mentally upgraded—embrace innovative ideas that challenge old patterns."
             
-        // Saturn combinations  
-        case ("Saturn", "Sun", .trine):
-            return "Disciplined effort yields lasting recognition and achievement. Your authority and leadership skills are being refined through practical experience. Build something that will endure."
+        case ("Uranus", "Sun", .square), ("Uranus", "Sun", .opposition):
+            return "You're feeling pressure to break free from expectations others have placed on you. This tension is catalyzing your most authentic self-expression. \(sunSign.rawValue), trust that this discomfort is pushing you toward necessary change. Break the mold that no longer fits."
             
-        case ("Saturn", "Mars", .square):
-            return "Obstacles test your determination and force you to develop patience. Each challenge is strengthening your character and teaching strategic thinking. Persist through resistance."
+        case ("Uranus", "Sun", .conjunction), ("Uranus", "Sun", .trine), ("Uranus", "Sun", .sextile):
+            return "You're experiencing a powerful awakening of your authentic self. This is your time to break free and express your unique individuality. \(sunSign.rawValue), the universe is supporting your revolutionary self-expression. Embrace what makes you different—it's your power."
             
-        case ("Saturn", "Venus", .sextile):
-            return "Commitment and structure bring stability to relationships and finances. Mature love is favored over superficial attractions. Invest in what has lasting value."
+        // Saturn - Career & Discipline cycles
+        case ("Saturn", "Sun", .square), ("Saturn", "Mars", .square), ("Saturn", "Sun", .opposition), ("Saturn", "Mars", .opposition):
+            return "You're facing significant challenges in your career or long-term goals. Authority figures may be testing you, or you may feel restricted. \(sunSign.rawValue), this is your moment to build character through persistence. Every obstacle is strengthening your foundation for future success."
             
-        // Jupiter combinations
-        case ("Jupiter", "Sun", .conjunction):
-            return "A year of expansion, opportunity, and increased confidence begins. Your natural talents are magnified and recognized. Think bigger than you ever have before."
+        case ("Saturn", "Sun", .trine), ("Saturn", "Sun", .sextile), ("Saturn", "Sun", .conjunction):
+            return "Your disciplined efforts are paying off. You're building something lasting, and others are recognizing your leadership and commitment. This is prime time for career advancement and establishing your authority. Keep building—your work will endure."
             
-        case ("Jupiter", "Mercury", .trine):
-            return "Learning accelerates and communication becomes more persuasive. Publishing, teaching, or travel opportunities arise. Your ideas have broader reach and impact."
+        case ("Saturn", _, _):  // Catch all other Saturn transits
+            return "You're learning important lessons about responsibility and structure in your life. \(sunSign.rawValue), this period is teaching you discipline and maturity. The challenges you face now are building your character and preparing you for future leadership. Stay committed to the process."
             
-        case ("Jupiter", "Venus", .sextile):
-            return "Generosity in love and creativity brings abundance. Social connections expand your horizons. Beautiful experiences and romantic opportunities flourish."
+        // Jupiter - Growth & Expansion cycles
+        case ("Jupiter", "Sun", .conjunction), ("Jupiter", "Sun", .trine), ("Jupiter", "Sun", .sextile):
+            return "A period of expansion, opportunity, and increased confidence is here. Your natural talents are magnified and recognized. \(sunSign.rawValue), think bigger than you ever have before. This is your time to grow beyond previous limitations."
             
-        // Neptune combinations
-        case ("Neptune", "Sun", .square):
-            return "Illusions about your identity are dissolving, creating temporary confusion but ultimate clarity. Surrender ego-driven goals that lack spiritual authenticity."
+        case ("Jupiter", "Venus", .sextile), ("Jupiter", "Venus", .trine), ("Jupiter", "Venus", .conjunction):
+            return "Generosity in love and abundance in resources are flowing your way. Social connections are expanding your horizons. Beautiful experiences and romantic opportunities flourish. Be open to receiving the good coming your way."
             
-        case ("Neptune", "Mercury", .conjunction):
-            return "Intuitive perception blends with logical thinking, enhancing creativity and psychic sensitivity. Dreams and symbols carry important messages. Trust your hunches."
+        case ("Jupiter", _, _):  // Catch all other Jupiter transits
+            return "You're in a period of growth and expansion. Opportunities are presenting themselves, and your confidence is increasing. \(sunSign.rawValue), this is your time to reach beyond your current limits. Say yes to new possibilities and trust in your ability to grow."
             
-        case ("Neptune", "Venus", .trine):
-            return "Unconditional love and artistic inspiration flow naturally. Romantic idealism is beautifully expressed. Spiritual partnership or creative collaboration is highlighted."
+        // Neptune - Spirituality & Dreams cycles
+        case ("Neptune", "Sun", .square), ("Neptune", "Sun", .opposition):
+            return "This period will have its most significant impact on your sense of identity. You may feel confused about your direction, but this fog is actually dissolving illusions. Surrender what isn't authentically you. Clarity arrives through letting go, not pushing harder."
             
-        // Pluto combinations
-        case ("Pluto", "Sun", .conjunction):
-            return "A profound identity transformation begins that will reshape your entire life direction. Death of old self enables birth of authentic power. Embrace the metamorphosis."
+        case ("Neptune", "Venus", .trine), ("Neptune", "Venus", .sextile), ("Neptune", "Venus", .conjunction):
+            return "Unconditional love and artistic inspiration flow naturally now. Your romantic idealism is beautifully expressed. Spiritual connections in relationships are highlighted. Trust your heart's deeper wisdom and creative intuition."
             
-        case ("Pluto", "Mars", .square):
-            return "Power struggles reveal where you need to transform your approach to conflict and assertion. Channel intense energy into constructive change rather than destruction."
+        case ("Neptune", _, _):  // Catch all other Neptune transits
+            return "You're being called to trust your intuition and spiritual guidance. \(sunSign.rawValue), this is a time to honor your dreams and creative imagination. What feels intangible now is actually leading you to deeper truth. Trust the unseen and let go of rigid control."
             
-        case ("Pluto", "Venus", .opposition):
-            return "Relationships undergo deep transformation as hidden dynamics surface. Possessiveness and control issues require honest examination. Love evolves or ends."
+        // Pluto - Transformation cycles
+        case ("Pluto", "Sun", .square), ("Pluto", "Sun", .opposition), ("Pluto", "Sun", .conjunction):
+            return "You're undergoing a profound transformation of identity. This period demands you release an old version of yourself that no longer serves your soul's evolution. \(sunSign.rawValue), embrace this death-rebirth process. Your authentic power emerges through surrender, not control."
+            
+        case ("Pluto", "Venus", .square), ("Pluto", "Venus", .opposition), ("Pluto", "Venus", .conjunction):
+            return "Your relationships are undergoing deep transformation as hidden dynamics surface. Issues around possessiveness, control, or intensity require honest examination. Love is evolving—let what needs to end complete its cycle so something more authentic can emerge."
+            
+        case ("Pluto", _, _):  // Catch all other Pluto transits
+            return "You're experiencing deep transformation in your life. Old patterns are dying to make room for authentic power. \(sunSign.rawValue), this intensity is your soul's evolution in action. Let go of what's ready to transform. Your true strength emerges from embracing change."
+            
+        // Uranus - Catch remaining Uranus transits
+        case ("Uranus", _, _):
+            return "You're experiencing breakthrough energy and the call for change. Unexpected developments are awakening new possibilities. \(sunSign.rawValue), embrace the unconventional and stay open to surprise. Your liberation comes through accepting what's different and new."
             
         // Generic fallbacks for less common combinations
         default:
-            return generateGenericCycleDescription(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType)
+            return generateGenericCycleDescription(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType, sunSign: sunSign)
         }
     }
     
-    private func generateGenericCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
+    private func generateGenericCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType, sunSign: ZodiacSign) -> String {
         let planetMeanings: [String: String] = [
             "Jupiter": "growth and opportunity",
             "Saturn": "discipline and responsibility", 
@@ -1917,15 +2008,15 @@ class AstrologyService {
         
         switch aspectType {
         case .conjunction:
-            return "\(transitPlanet.name) merges with \(natalMeaning), creating intense focus on \(transitMeaning). A new cycle begins with powerful potential for transformation."
+            return "You're experiencing an intense merging of \(transitMeaning) with \(natalMeaning). A new cycle begins with powerful potential for transformation. \(sunSign.rawValue), this is your moment to embrace what's being born in your life. Stay present with this powerful shift."
         case .trine:
-            return "\(transitPlanet.name) harmonizes with \(natalMeaning), bringing easy access to \(transitMeaning). Natural talents flow without resistance."
+            return "You're flowing naturally with \(transitMeaning) enhancing \(natalMeaning). Your natural talents are working without resistance. This is a time to embrace ease and let things unfold organically. Trust what comes naturally to you now."
         case .sextile:
-            return "\(transitPlanet.name) supports \(natalMeaning) through opportunities involving \(transitMeaning). Gentle progress through conscious effort."
+            return "You'll find opportunities emerging around \(transitMeaning) that support \(natalMeaning). Gentle progress is available through conscious effort. Take action on the possibilities you're sensing—they're aligned with your path."
         case .square:
-            return "\(transitPlanet.name) challenges \(natalMeaning), creating productive tension around \(transitMeaning). Growth through overcoming obstacles."
+            return "You're facing challenges with \(transitMeaning) creating productive tension around \(natalMeaning). \(sunSign.rawValue), this friction is your growth edge. Every obstacle you overcome now builds lasting strength. Persist through the resistance."
         case .opposition:
-            return "\(transitPlanet.name) illuminates \(natalMeaning) by highlighting themes of \(transitMeaning). Balance and integration are required."
+            return "You're being called to find balance between \(transitMeaning) and \(natalMeaning). This illumination reveals where integration is needed. The tension you feel is showing you what needs to be brought into harmony. Seek the middle path."
         }
     }
     
@@ -1940,6 +2031,43 @@ class AstrologyService {
         case .opposition:
             return .transformative
         }
+    }
+    
+    private func calculateCycleProgress(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> Double {
+        // Calculate how close the aspect is to exact
+        let angle = abs(transitPlanet.longitude - natalPlanet.longitude)
+        let normalizedAngle = angle > 180 ? 360 - angle : angle
+        let exactAngle = aspectType.angle
+        let orb = aspectType.orb
+        
+        // How far from exact (0 = exact, orb = at edge)
+        let distanceFromExact = abs(normalizedAngle - exactAngle)
+        
+        // Progress: aspects start forming (0%), become exact (50%), then separate (100%)
+        // If we're within orb, calculate progress based on planet's motion direction
+        if distanceFromExact < orb {
+            // If planet is moving forward (positive speed), it's applying (forming) = 0.2-0.5
+            // If it's close to exact = 0.4-0.6
+            // If moving away (would need ephemeris to know) = 0.6-0.9
+            
+            if distanceFromExact < 1.0 {
+                // Very close to exact - peak of cycle
+                return 0.45 + (Double.random(in: 0...0.1))
+            } else {
+                // Calculate based on how far through the orb
+                let orbProgress = distanceFromExact / orb
+                // Assuming we're in the applying phase for outer planets
+                if ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"].contains(transitPlanet.name) {
+                    return 0.3 + (orbProgress * 0.3) // 0.3 to 0.6
+                } else {
+                    // Fast planets - assume further through cycle
+                    return 0.5 + (orbProgress * 0.3) // 0.5 to 0.8
+                }
+            }
+        }
+        
+        // Default fallback
+        return 0.4
     }
     
     // MARK: - Monthly Score Calculations

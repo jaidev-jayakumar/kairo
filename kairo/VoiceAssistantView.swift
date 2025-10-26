@@ -2,9 +2,9 @@ import SwiftUI
 import Speech
 
 struct VoiceAssistantView: View {
-    @StateObject private var speechService = SpeechRecognitionService.shared
-    @StateObject private var openAIService = OpenAIService.shared
-    @StateObject private var elevenLabsService = ElevenLabsService.shared
+    @ObservedObject private var speechService = SpeechRecognitionService.shared
+    @ObservedObject private var openAIService = OpenAIService.shared
+    @ObservedObject private var elevenLabsService = ElevenLabsService.shared
     
     @State private var isRecording = false
     @State private var isProcessing = false
@@ -39,6 +39,15 @@ struct VoiceAssistantView: View {
         .onAppear {
             pulseAnimation = true
             requestPermissions()
+        }
+        .onDisappear {
+            // Clean up resources when leaving the tab
+            if speechService.isRecording {
+                speechService.stopRecording()
+            }
+            if elevenLabsService.isPlaying {
+                elevenLabsService.stopPlayback()
+            }
         }
         .alert("Permissions Required", isPresented: $showPermissionAlert) {
             Button("Settings") {

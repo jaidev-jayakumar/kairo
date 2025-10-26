@@ -187,6 +187,16 @@ enum AspectType: String {
         }
     }
     
+    var word: String {
+        switch self {
+        case .conjunction: return "conjunct"
+        case .sextile: return "sextile"
+        case .square: return "square"
+        case .trine: return "trine"
+        case .opposition: return "opposite"
+        }
+    }
+    
     var orb: Double {
         switch self {
         case .conjunction: return 8.0
@@ -254,6 +264,7 @@ struct AstrologicalCycle {
     let duration: String
     let description: String
     let influence: CycleInfluence
+    let progressPercentage: Double // 0.0 to 1.0 - how far through the cycle
     
     enum CycleInfluence {
         case positive

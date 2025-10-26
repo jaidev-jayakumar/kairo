@@ -9,6 +9,10 @@ struct TodayView: View {
     @State private var userBirthData: BirthData? = nil
     @State private var horoscopeScores: HoroscopeScores? = nil
     @State private var currentCycles: [AstrologicalCycle] = []
+    @State private var selectedDate: Date = Date()
+    
+    // Task management to prevent crashes
+    @State private var insightTask: Task<Void, Never>?
     
     var body: some View {
         ZStack {
@@ -30,7 +34,7 @@ struct TodayView: View {
                     
                     // Horoscope Scores
                     if let scores = horoscopeScores {
-                        HoroscopeScoresView(scores: scores)
+                        HoroscopeScoresView(scores: scores, selectedDate: $selectedDate)
                             .padding(.top, 40)
                             .opacity(showContent ? 1 : 0)
                             .offset(y: showContent ? 0 : 30)
@@ -74,27 +78,51 @@ struct TodayView: View {
             // Load user birth data
             userBirthData = UserDataManager.shared.getBirthData()
             
-            // Calculate daily insight and scores
-            if let birthData = userBirthData,
-               let chart = AstrologyService.shared.calculateBirthChart(for: birthData) {
+            // Calculate for initial date (today)
+            calculateForDate(selectedDate)
+        }
+        .onDisappear {
+            // Cancel pending tasks to prevent crashes
+            insightTask?.cancel()
+        }
+        .onChange(of: selectedDate) { newDate in
+            // Recalculate everything when date changes
+            calculateForDate(newDate)
+        }
+    }
+    
+    private func calculateForDate(_ date: Date) {
+        // Calculate daily insight and scores for the selected date
+        guard let birthData = userBirthData,
+              let chart = AstrologyService.shared.calculateBirthChart(for: birthData) else {
+            return
+        }
+        
+        // Calculate transits for the SELECTED date, not today
+        currentTransits = AstrologyService.shared.calculateCurrentTransits(for: date)
+        
+        // Cancel any previous insight task
+        insightTask?.cancel()
+        
+        // Use AI-powered fresh daily insight FOR THE SELECTED DATE
+        insightTask = Task {
+            do {
+                let freshInsight = await AIInsightService.shared.generateDailyInsight(for: chart, transits: currentTransits, date: date)
                 
-                currentTransits = AstrologyService.shared.calculateCurrentTransits()
+                // Check if task was cancelled before updating state
+                guard !Task.isCancelled else { return }
                 
-                // Use AI-powered fresh daily insight
-                Task {
-                    let freshInsight = await AstrologyService.shared.generateDailyInsight(for: chart)
-                    await MainActor.run {
-                        dailyInsight = freshInsight
-                    }
+                await MainActor.run {
+                    dailyInsight = freshInsight
                 }
-                
-                // Calculate DAILY horoscope scores based on user's birth chart
-                horoscopeScores = AstrologyService.shared.calculateDailyHoroscopeScores(for: chart)
-                
-                // Calculate current astrological cycles
-                currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart)
             }
         }
+        
+        // Calculate DAILY horoscope scores based on user's birth chart and selected date
+        horoscopeScores = AstrologyService.shared.calculateDailyHoroscopeScores(for: chart, date: date)
+        
+        // Calculate astrological cycles for the selected date
+        currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart, date: date)
     }
 }
 

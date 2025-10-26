@@ -36,29 +36,15 @@ class AIInsightService: ObservableObject {
     // MARK: - Public Interface
     
     /// Generate a personalized daily insight
-    func generateDailyInsight(for chart: BirthChart, transits: [CelestialBody]) async -> String {
-        let cacheKey = createCacheKey(type: "daily", chart: chart, date: Date())
-        
-        // Check cache first
-        if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
-            return String(cachedInsight)
-        }
-        
-        let prompt = createDailyInsightPrompt(chart: chart, transits: transits)
-        
-        do {
-            let insight = try await callOpenAIAPI(prompt: prompt, maxTokens: 300)
-            cache.setObject(insight as NSString, forKey: cacheKey as NSString)
-            return insight
-        } catch {
-            print("Failed to generate AI daily insight: \(error)")
-            return createFallbackDailyInsight(chart: chart, transits: transits)
-        }
+    func generateDailyInsight(for chart: BirthChart, transits: [CelestialBody], date: Date = Date()) async -> String {
+        // USE DATA-DRIVEN INSIGHTS ONLY - they're specific, truthful, and based on actual transits
+        // AI was making them too generic and similar, so we skip AI enhancement entirely
+        return DataDrivenInsightGenerator.shared.generateDailyInsight(chart: chart, transits: transits, date: date)
     }
     
     /// Generate a personalized weekly insight
-    func generateWeeklyInsight(for chart: BirthChart, transits: [CelestialBody]) async -> String {
-        let cacheKey = createCacheKey(type: "weekly", chart: chart, date: Date())
+    func generateWeeklyInsight(for chart: BirthChart, transits: [CelestialBody], date: Date = Date()) async -> String {
+        let cacheKey = createCacheKey(type: "weekly", chart: chart, date: date)
         
         if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
             return String(cachedInsight)
@@ -77,8 +63,8 @@ class AIInsightService: ObservableObject {
     }
     
     /// Generate a personalized monthly insight
-    func generateMonthlyInsight(for chart: BirthChart, transits: [CelestialBody]) async -> String {
-        let cacheKey = createCacheKey(type: "monthly", chart: chart, date: Date())
+    func generateMonthlyInsight(for chart: BirthChart, transits: [CelestialBody], date: Date = Date()) async -> String {
+        let cacheKey = createCacheKey(type: "monthly", chart: chart, date: date)
         
         if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
             return String(cachedInsight)
@@ -97,8 +83,8 @@ class AIInsightService: ObservableObject {
     }
     
     /// Generate a personalized yearly insight
-    func generateYearlyInsight(for chart: BirthChart, transits: [CelestialBody]) async -> String {
-        let cacheKey = createCacheKey(type: "yearly", chart: chart, date: Date())
+    func generateYearlyInsight(for chart: BirthChart, transits: [CelestialBody], date: Date = Date()) async -> String {
+        let cacheKey = createCacheKey(type: "yearly", chart: chart, date: date)
         
         if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
             return String(cachedInsight)
@@ -160,7 +146,7 @@ private extension AIInsightService {
             let system = OpenAIMessage(
                 role: "system", 
                 content: """
-                You're giving thoughtful life guidance to someone. Write in a calm, grounded tone like the reference examples. Focus on real-life situations and personal growth, not astrological concepts. Use their personality insights to give relevant advice, but translate everything into everyday language about confidence, intuition, planning, communication, etc. Never mention planets, signs, or astrological terms in your response.
+                You're an astrology translator. Take the astrological insight and make it even more direct and human. 2 sentences max. Be honest, specific, and grounded. No planets or astrology jargon in output - translate to real life experiences. No fluff.
                 """
             )
             
@@ -224,56 +210,53 @@ private extension AIInsightService {
 
 private extension AIInsightService {
     
-    func createDailyInsightPrompt(chart: BirthChart, transits: [CelestialBody]) -> String {
+    func createDailyInsightPrompt(chart: BirthChart, transits: [CelestialBody], baseInsight: String) -> String {
         let personalityTraits = getPersonalityTraits(chart)
-        let energyPattern = getEnergyPattern(transits, chart)
-        let currentDate = formatCurrentDate()
-        let dayOfWeek = getDayOfWeekContext()
-        let seasonalContext = getSeasonalContext()
         
         return """
-        You're giving daily life guidance to someone with these personality traits: \(personalityTraits)
+        Base insight from actual planetary transits: "\(baseInsight)"
         
-        Today's energy pattern suggests: \(energyPattern)
+        Person's traits: \(personalityTraits)
         
-        Context: \(currentDate), \(dayOfWeek), \(seasonalContext.lowercased())
+        Rewrite this in 2 short sentences maximum. Keep it direct and truthful. No fluff, no emojis. Speak plainly about what's happening.
         
-        Write 2-3 sentences of thoughtful daily guidance in this exact style:
+        Examples of the tone:
+        - "You're being tested on your core identity. What you're facing now is showing you where you need to grow stronger."
+        - "Doors are opening. Your confidence is high. This is your moment to expand."
+        - "Your emotional needs are clashing with reality. Time to mature how you handle feelings."
         
-        "Today, you may find your plans for the future wavering as you seek support and understanding from friends. Unfortunately, they might not fully grasp your points, leaving their encouragement feeling somewhat hollow. It's a day to seek clarity within yourself and not rely solely on external validation."
-        
-        Focus on:
-        - Real-life situations (work, relationships, decisions, self-reflection)
-        - Their natural personality strengths and tendencies
-        - What today's energy supports or challenges
-        - Internal vs external focus
-        - Practical emotional or life guidance
-        
-        Use the same thoughtful, grounded tone. No astrology terms, no emojis. Write as if you understand both their personality and what today brings.
+        Make it specific, honest, and grounded in what the planets are actually doing.
         """
     }
     
     func createWeeklyInsightPrompt(chart: BirthChart, transits: [CelestialBody]) -> String {
         let personalityTraits = getPersonalityTraits(chart)
         let weeklyEnergyPattern = getWeeklyEnergyPattern(transits, chart)
+        let specificTransitEffects = getSpecificTransitEffects(transits, chart)
         let weekDates = getWeekDateRange()
         let seasonalContext = getSeasonalContext()
         
         return """
         Weekly guidance for someone with these traits: \(personalityTraits)
         
-        This week's energy pattern (\(weekDates)): \(weeklyEnergyPattern)
+        This week's cosmic weather (\(weekDates)): \(weeklyEnergyPattern)
+        
+        Specific life impacts this week: \(specificTransitEffects)
         
         Context: \(seasonalContext.lowercased())
         
-        Write 3-4 sentences about their week ahead in this thoughtful, grounded style. Focus on:
-        - Weekly themes and patterns
-        - How their personality navigates this week's challenges/opportunities  
-        - Relationships, work decisions, personal growth
-        - Planning and goal-setting
-        - What to focus on or be mindful of
+        Write 3-4 sentences about their week ahead in this thoughtful, grounded style:
         
-        Match this tone - thoughtful and specific to real life, not abstract. No astrology terms.
+        Example: "This week, you may find that unexpected situations arise, prompting you to embrace flexibility and remain open to new possibilities. Your intuitive and empathetic nature will serve you well as you navigate these changes; trust your gut feelings when making decisions, especially in your relationships and at work. Use this time to connect deeply with those around you, as your emotional sensitivity can foster meaningful conversations and strengthen bonds."
+        
+        Focus on:
+        - Specific weekly themes (communication patterns, relationship dynamics, work challenges, energy levels)
+        - How their personality strengths help them navigate this week
+        - Concrete situations they might encounter (difficult conversations, opportunities, obstacles, breakthroughs)
+        - What days or moments might be pivotal
+        - Practical weekly guidance (what to prioritize, what to avoid, what to prepare for)
+        
+        Be specific to what's happening this week astrologically. Make it feel personally relevant and actionable. No astrology jargon, no emojis. Write like a wise friend who knows them well.
         """
     }
     
@@ -286,18 +269,23 @@ private extension AIInsightService {
         return """
         Monthly guidance for someone with these traits: \(personalityTraits)
         
-        This month's theme (\(monthYear)): \(monthlyTheme)
+        This month's major theme (\(monthYear)): \(monthlyTheme)
         
         Context: \(seasonalContext.lowercased())
         
-        Write 4-5 sentences about their month ahead. Focus on:
-        - Major themes and longer-term patterns
-        - Career, relationships, personal development
-        - How their natural strengths serve them this month
-        - What to build toward or release
-        - Practical monthly focus areas
+        Write 4-5 sentences about their month ahead in this thoughtful, specific style:
         
-        Keep the tone grounded and specific to real life situations. No astrology jargon.
+        Example: "As you step into October, this month invites you to embrace change and recognize the power of your intuition and empathetic nature. In your career, consider how your sensitivity can guide you in navigating team dynamics—trust your instincts when it comes to collaboration and communication, as they can lead to innovative solutions. In relationships, focus on deepening connections; vulnerability to understand others' emotions will strengthen your bonds. This is also a time to reflect on what you truly need from these connections, focusing on your own emotional well-being and growth."
+        
+        Focus on:
+        - Major monthly themes (career development, relationship patterns, personal transformation, financial focus)
+        - How their personality traits interact with this month's energy
+        - Specific areas of life that need attention (work projects, relationship decisions, health, finances)
+        - What to build toward and what to let go of
+        - Practical monthly strategies and focus areas
+        - Timeline guidance (early month vs. late month if relevant)
+        
+        Make it specific to what's happening this month astrologically. Be concrete about life areas and actions. No astrology jargon. Write like a mentor who understands their journey.
         """
     }
     
@@ -414,6 +402,133 @@ private extension AIInsightService {
         case .capricorn: return "structured, achievement-focused approach to life"
         case .aquarius: return "innovative, group-minded approach to life"
         case .pisces: return "intuitive, compassionate approach to life"
+        }
+    }
+    
+    func getSpecificTransitEffects(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
+        // Translate planetary transits into specific life area effects (in natural language for AI)
+        var effects: [String] = []
+        
+        // Saturn effects - career, responsibility, structure, tests
+        if let saturnTransit = transits.first(where: { $0.name == "Saturn" }) {
+            let saturnToSun = abs(saturnTransit.longitude - chart.sun.longitude)
+            let normalizedSaturn = saturnToSun > 180 ? 360 - saturnToSun : saturnToSun
+            
+            if normalizedSaturn < 8 || (82...98).contains(normalizedSaturn) {
+                effects.append("facing serious pressure or obstacles at work or in long-term goals; authority figures may be challenging; feeling restricted or tested")
+            } else if (172...188).contains(normalizedSaturn) {
+                effects.append("external pressure from responsibilities or commitments; others demanding accountability; tension between personal needs and obligations")
+            } else if (112...128).contains(normalizedSaturn) {
+                effects.append("hard work paying off; recognition for discipline and effort; solid progress in career or goals")
+            }
+        }
+        
+        // Jupiter effects - opportunity, growth, expansion, optimism
+        if let jupiterTransit = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterToSun = abs(jupiterTransit.longitude - chart.sun.longitude)
+            let normalizedJupiter = jupiterToSun > 180 ? 360 - jupiterToSun : jupiterToSun
+            
+            if normalizedJupiter < 8 {
+                effects.append("major opportunities arriving; feeling optimistic and expansive; doors opening in career or personal growth")
+            } else if (112...128).contains(normalizedJupiter) {
+                effects.append("things flowing easily; luck on your side; natural growth and positive developments")
+            } else if (52...68).contains(normalizedJupiter) {
+                effects.append("opportunities available if you take action; learning and growth through new experiences")
+            } else if (82...98).contains(normalizedJupiter) {
+                effects.append("tendency to overcommit or be overconfident; watch for excess spending or overpromising")
+            }
+        }
+        
+        // Mars effects - action, energy, conflicts, passion
+        if let marsTransit = transits.first(where: { $0.name == "Mars" }) {
+            let marsToSun = abs(marsTransit.longitude - chart.sun.longitude)
+            let normalizedMars = marsToSun > 180 ? 360 - marsToSun : marsToSun
+            
+            if (82...98).contains(normalizedMars) {
+                effects.append("feeling irritable or impatient; potential for arguments or conflicts; need to move carefully to avoid accidents or mistakes")
+            } else if (172...188).contains(normalizedMars) {
+                effects.append("confrontational energy with others; competition or power struggles; others pushing your buttons")
+            } else if (112...128).contains(normalizedMars) {
+                effects.append("high productive energy; taking decisive action feels natural; physical vitality and confidence")
+            } else if normalizedMars < 8 {
+                effects.append("surge of motivation and drive; ready to initiate new projects; bold energy")
+            }
+        }
+        
+        // Venus effects - relationships, love, money, values, aesthetics
+        if let venusTransit = transits.first(where: { $0.name == "Venus" }) {
+            let venusToNatalVenus = abs(venusTransit.longitude - chart.venus.longitude)
+            let normalizedVenus = venusToNatalVenus > 180 ? 360 - venusToNatalVenus : venusToNatalVenus
+            
+            if normalizedVenus < 8 {
+                effects.append("relationships feel renewed; attraction and magnetism heightened; clarity about what you value in love and money")
+            } else if (82...98).contains(normalizedVenus) {
+                effects.append("relationship tensions or value conflicts; what you want vs. what others want feels misaligned; financial decisions need care")
+            } else if (112...128).contains(normalizedVenus) {
+                effects.append("love and connection flowing naturally; good time for relationships and financial decisions; feeling attractive and valued")
+            }
+        }
+        
+        // Mercury effects - communication, thinking, decisions, plans
+        if let mercuryTransit = transits.first(where: { $0.name == "Mercury" }) {
+            let mercuryToSun = abs(mercuryTransit.longitude - chart.sun.longitude)
+            let normalizedMercury = mercuryToSun > 180 ? 360 - mercuryToSun : mercuryToSun
+            
+            if normalizedMercury < 8 {
+                effects.append("mental clarity and good communication; ideas flowing; good day for important conversations or decisions")
+            } else if (82...98).contains(normalizedMercury) {
+                effects.append("miscommunication likely; plans may get complicated; mental stress or overthinking; be extra clear in messages")
+            } else if (112...128).contains(normalizedMercury) {
+                effects.append("easy communication and mental flow; learning and sharing ideas feels natural")
+            }
+        }
+        
+        // Uranus effects - sudden change, breakthroughs, disruption, freedom
+        if let uranusTransit = transits.first(where: { $0.name == "Uranus" }) {
+            let uranusToSun = abs(uranusTransit.longitude - chart.sun.longitude)
+            let normalizedUranus = uranusToSun > 180 ? 360 - uranusToSun : uranusToSun
+            
+            if normalizedUranus < 8 || (82...98).contains(normalizedUranus) {
+                effects.append("unexpected changes or disruptions; feeling restless or rebellious; breakthroughs possible but through chaos; need for freedom intensified")
+            } else if (112...128).contains(normalizedUranus) {
+                effects.append("innovative breakthroughs and fresh perspectives; exciting changes that feel liberating; ready to try something new")
+            }
+        }
+        
+        // Pluto effects - transformation, power, intensity, letting go
+        if let plutoTransit = transits.first(where: { $0.name == "Pluto" }) {
+            let plutoToSun = abs(plutoTransit.longitude - chart.sun.longitude)
+            let normalizedPluto = plutoToSun > 180 ? 360 - plutoToSun : plutoToSun
+            
+            if normalizedPluto < 8 || (82...98).contains(normalizedPluto) {
+                effects.append("intense pressure to transform or let go of old patterns; power dynamics in relationships or work; deep psychological work happening")
+            } else if (112...128).contains(normalizedPluto) {
+                effects.append("feeling empowered and regenerated; able to transform situations positively; deep insight into yourself")
+            }
+        }
+        
+        // Moon effects - daily emotional tone
+        if let moonTransit = transits.first(where: { $0.name == "Moon" }) {
+            let moonToSun = abs(moonTransit.longitude - chart.sun.longitude)
+            let normalizedMoon = moonToSun > 180 ? 360 - moonToSun : moonToSun
+            
+            if normalizedMoon < 8 {
+                effects.append("emotionally introspective; good time for new beginnings and fresh starts")
+            } else if (172...188).contains(normalizedMoon) {
+                effects.append("emotions running high; things coming to culmination; increased sensitivity")
+            } else if (82...98).contains(normalizedMoon) {
+                effects.append("emotional complexity; internal tension between different needs")
+            }
+        }
+        
+        // Return combined effects or neutral if nothing major
+        if effects.isEmpty {
+            return "a relatively calm day with steady energy, good for routine activities and internal reflection"
+        } else if effects.count == 1 {
+            return effects[0]
+        } else {
+            // Show the 2 most significant effects
+            return effects.prefix(2).joined(separator: "; ALSO: ")
         }
     }
     
@@ -889,22 +1004,8 @@ private extension AIInsightService {
 private extension AIInsightService {
     
     func createFallbackDailyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        // Use the SAME real astrological analysis as our scoring system
-        let energyPattern = getEnergyPattern(transits, chart)
-        let personalityTraits = getPersonalityTraits(chart)
-        
-        // Generate insight based on actual planetary energies
-        if energyPattern.contains("challenging") || energyPattern.contains("obstacles") || energyPattern.contains("pressure") {
-            return "Today's energy brings important lessons and challenges that will ultimately strengthen your character. Trust your \(personalityTraits) nature to navigate this with wisdom and patience."
-        } else if energyPattern.contains("expansive") || energyPattern.contains("abundant") || energyPattern.contains("opportunities") {
-            return "Today offers wonderful opportunities for growth and expansion. Your \(personalityTraits) approach will help you make the most of these favorable conditions."
-        } else if energyPattern.contains("transformational") || energyPattern.contains("power") || energyPattern.contains("intense") {
-            return "Today's intense energy supports deep personal transformation. Your \(personalityTraits) nature gives you the strength to embrace these powerful changes."
-        } else if energyPattern.contains("unpredictable") || energyPattern.contains("breakthrough") || energyPattern.contains("sudden") {
-            return "Today brings unexpected developments that could lead to exciting breakthroughs. Your \(personalityTraits) flexibility will help you adapt and thrive."
-        } else {
-            return "Today's \(energyPattern) supports steady progress and inner reflection. Trust your \(personalityTraits) instincts to guide you toward what truly matters."
-        }
+        // Use data-driven insight generator - it's better than generic fallbacks
+        return DataDrivenInsightGenerator.shared.generateDailyInsight(chart: chart, transits: transits, date: Date())
     }
     
     func createFallbackWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
