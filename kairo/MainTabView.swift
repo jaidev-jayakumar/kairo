@@ -25,8 +25,8 @@ struct MainTabView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             
-            // Custom tab bar
-            HStack(spacing: 0) {
+            // Custom tab bar with individual floating pills
+            HStack(spacing: 10) {
                 TabBarButton(icon: "sun.max", title: "Today", isSelected: selectedTab == 0)
                     .onTapGesture {
                         guard !isTransitioning else { return }
@@ -51,18 +51,8 @@ struct MainTabView: View {
                         changeTab(to: 3)
                     }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.white.opacity(0.05))
-                    .background(
-                        RoundedRectangle(cornerRadius: 25)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    )
-            )
-            .padding(.horizontal, 20)
-            .padding(.bottom, 10)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 20)
         }
         .preferredColorScheme(.dark)
     }
@@ -86,28 +76,57 @@ struct TabBarButton: View {
     
     var body: some View {
         VStack(spacing: 6) {
-            if isSelected {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 4, height: 4)
-                    .transition(.scale.combined(with: .opacity))
-            } else {
-                Circle()
-                    .fill(Color.clear)
-                    .frame(width: 4, height: 4)
-            }
-            
             Image(systemName: icon)
-                .font(.system(size: isSelected ? 22 : 20, weight: isSelected ? .medium : .regular))
-                .foregroundColor(isSelected ? .white : .white.opacity(0.3))
+                .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? .white : .white.opacity(0.5))
             
             Text(title)
-                .font(.system(size: 10, weight: isSelected ? .medium : .regular))
-                .foregroundColor(isSelected ? .white.opacity(0.8) : .white.opacity(0.3))
-                .opacity(isSelected ? 1 : 0.7)
+                .font(.system(size: 10, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? .white.opacity(0.95) : .white.opacity(0.5))
         }
         .frame(maxWidth: .infinity)
-        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isSelected)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 8)
+        .background(
+            ZStack {
+                if isSelected {
+                    // Individual floating pill
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.18),
+                                    Color.white.opacity(0.12)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.25),
+                                            Color.white.opacity(0.08)
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 0.8
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 6)
+                        .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
+                } else {
+                    // Subtle background for unselected
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white.opacity(0.03))
+                }
+            }
+        )
+        .scaleEffect(isSelected ? 1.0 : 0.96)
+        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isSelected)
     }
 }
 
