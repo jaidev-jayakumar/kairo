@@ -1681,6 +1681,7 @@ class AstrologyService {
     
     private func calculateTransitCycles(chart: BirthChart, transits: [CelestialBody]) -> [AstrologicalCycle] {
         var cycles: [AstrologicalCycle] = []
+        var seenCombinations: Set<String> = []
         
         // Check for significant outer planet transits
         let outerPlanets = transits.filter { ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"].contains($0.name) }
@@ -1693,13 +1694,20 @@ class AstrologyService {
                 
                 // Check for major aspects
                 if let aspectType = getAspectType(for: normalizedAngle) {
-                    let cycle = createCycleFromAspect(
-                        transitPlanet: transitPlanet,
-                        natalPlanet: natalPlanet,
-                        aspectType: aspectType,
-                        chart: chart
-                    )
-                    cycles.append(cycle)
+                    // Create unique identifier for this combination
+                    let combinationKey = "\(transitPlanet.name)-\(natalPlanet.name)-\(aspectType.rawValue)"
+                    
+                    // Only add if we haven't seen this combination
+                    if !seenCombinations.contains(combinationKey) {
+                        let cycle = createCycleFromAspect(
+                            transitPlanet: transitPlanet,
+                            natalPlanet: natalPlanet,
+                            aspectType: aspectType,
+                            chart: chart
+                        )
+                        cycles.append(cycle)
+                        seenCombinations.insert(combinationKey)
+                    }
                 }
             }
         }
@@ -1710,7 +1718,13 @@ class AstrologyService {
             let normalizedVenusAngle = venusToSunAngle > 180 ? 360 - venusToSunAngle : venusToSunAngle
             
             if let aspectType = getAspectType(for: normalizedVenusAngle) {
-                cycles.append(createLoveCycle(aspectType: aspectType, sunSign: chart.sunSign))
+                let combinationKey = "Venus-Sun-\(aspectType.rawValue)-Love"
+                
+                // Only add if we haven't seen this Venus-Sun combination already
+                if !seenCombinations.contains(combinationKey) && !seenCombinations.contains("Venus-Sun-\(aspectType.rawValue)") {
+                    cycles.append(createLoveCycle(aspectType: aspectType, sunSign: chart.sunSign))
+                    seenCombinations.insert(combinationKey)
+                }
             }
         }
         
@@ -1871,9 +1885,15 @@ class AstrologyService {
         case ("Pluto", "Venus"):
             return isHarsh ? "Love Transforms" : "Magnetic Attraction"
             
-        // Social & Friendship (Uranus, Neptune to Air planets)
-        case ("Uranus", "Venus"), ("Uranus", "Moon"):
+        // Uranus transits - Break free & Change
+        case ("Uranus", "Venus"):
             return isHarsh ? "Unexpected Changes" : "Friendship Unlocks Future"
+        case ("Uranus", "Moon"):
+            return isHarsh ? "Emotional Breakthrough" : "Intuitive Liberation"
+        case ("Uranus", "Mars"):
+            return isHarsh ? "Restless Energy" : "Bold Innovation"
+            
+        // Neptune transits - Spiritual & Intuitive
         case ("Neptune", "Sun"), ("Neptune", "Moon"):
             return isHarsh ? "Confusion Clears" : "Intuition Heightens"
             
@@ -1933,6 +1953,24 @@ class AstrologyService {
             
         case ("Uranus", "Sun", .conjunction), ("Uranus", "Sun", .trine), ("Uranus", "Sun", .sextile):
             return "You're experiencing a powerful awakening of your authentic self. This is your time to break free and express your unique individuality. \(sunSign.rawValue), the universe is supporting your revolutionary self-expression. Embrace what makes you different—it's your power."
+            
+        case ("Uranus", "Moon", .square), ("Uranus", "Moon", .opposition):
+            return "Your emotional patterns are being disrupted and liberated. \(sunSign.rawValue), you're breaking free from old security needs that have been limiting you. This restlessness is your psyche asking for more freedom. Honor your need for emotional independence while staying grounded."
+            
+        case ("Uranus", "Moon", .conjunction):
+            return "A revolutionary shift in your emotional life is underway. Your intuition is electric and unpredictable insights about your needs are emerging. \(sunSign.rawValue), trust these sudden realizations about what truly makes you feel secure. Your emotional authenticity is awakening."
+            
+        case ("Uranus", "Venus", .square), ("Uranus", "Venus", .opposition):
+            return "Your relationships and values are undergoing unexpected transformation. \(sunSign.rawValue), you're craving more freedom and authenticity in connections. Sudden attractions or relationship changes reflect your evolving needs. Embrace unconventional expressions of love and creativity."
+            
+        case ("Uranus", "Venus", .conjunction):
+            return "You're experiencing awakening in love and creative expression. Magnetic attraction to what's unique and unconventional pulls you forward. \(sunSign.rawValue), this is your time to express your individuality through relationships and art. Let your authentic taste and values emerge."
+            
+        case ("Uranus", "Mars", .square), ("Uranus", "Mars", .opposition):
+            return "Explosive energy and impatience with obstacles define this period. Your desire for action conflicts with external restrictions. \(sunSign.rawValue), channel this rebellious drive constructively. Take bold action, but avoid impulsive decisions. Your courage is being tested and strengthened."
+            
+        case ("Uranus", "Mars", .trine), ("Uranus", "Mars", .sextile), ("Uranus", "Mars", .conjunction):
+            return "Dynamic breakthroughs in how you assert yourself and take action. Your courage meets innovation, creating exciting new directions. \(sunSign.rawValue), this is your time to pioneer new approaches. Take bold, unconventional action with confidence."
             
         // Saturn - Career & Discipline cycles
         case ("Saturn", "Sun", .square), ("Saturn", "Mars", .square), ("Saturn", "Sun", .opposition), ("Saturn", "Mars", .opposition):
