@@ -105,17 +105,13 @@ struct TodayView: View {
         insightTask?.cancel()
         
         // Use AI-powered fresh daily insight FOR THE SELECTED DATE
-        insightTask = Task {
-            do {
-                let freshInsight = await AIInsightService.shared.generateDailyInsight(for: chart, transits: currentTransits, date: date)
-                
-                // Check if task was cancelled before updating state
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    dailyInsight = freshInsight
-                }
-            }
+        insightTask = Task { @MainActor in
+            let freshInsight = await AIInsightService.shared.generateDailyInsight(for: chart, transits: currentTransits, date: date)
+            
+            // Check if task was cancelled before updating state
+            guard !Task.isCancelled else { return }
+            
+            dailyInsight = freshInsight
         }
         
         // Calculate DAILY horoscope scores based on user's birth chart and selected date

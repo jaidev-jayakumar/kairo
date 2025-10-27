@@ -54,9 +54,9 @@ class SpeechRecognitionService: NSObject, ObservableObject {
     
     func requestAuthorization() async -> Bool {
         return await withCheckedContinuation { continuation in
-            SFSpeechRecognizer.requestAuthorization { authStatus in
-                DispatchQueue.main.async {
-                    self.isAuthorized = authStatus == .authorized
+            SFSpeechRecognizer.requestAuthorization { [weak self] authStatus in
+                Task { @MainActor [weak self] in
+                    self?.isAuthorized = authStatus == .authorized
                     continuation.resume(returning: authStatus == .authorized)
                 }
             }
@@ -150,15 +150,17 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         
         // Start recognition task first
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
-            DispatchQueue.main.async {
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                
                 if let result = result {
-                    self?.lastTranscription = result.bestTranscription.formattedString
+                    self.lastTranscription = result.bestTranscription.formattedString
                 }
                 
                 if let error = error {
                     print("Speech recognition error: \(error)")
-                    self?.error = .recognitionFailed(error)
-                    self?.stopRecording()
+                    self.error = .recognitionFailed(error)
+                    self.stopRecording()
                 }
             }
         }
@@ -166,7 +168,7 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         // Configure audio engine with robust format handling
         try await configureAudioEngine(recognitionRequest: recognitionRequest)
         
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.isRecording = true
             self.error = .none
         }
@@ -177,15 +179,28 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         
         // Stop and reset audio engine if it's already running
         if audioEngine.isRunning {
-            audioEngine.stop()
-            inputNode.removeTap(onBus: 0)
+            do {
+                audioEngine.stop()
+            } catch {
+                print("⚠️ Error stopping audio engine during config: \(error)")
+            }
+            // CRITICAL: Only remove tap if one exists (prevent crash)
+            do {
+                inputNode.removeTap(onBus: 0)
+            } catch {
+                print("⚠️ No tap to remove during config (this is OK): \(error)")
+            }
             // Small delay to ensure complete cleanup
             try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         }
         
-        // Force the audio engine to reset completely
-        audioEngine.reset()
-        try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+        // Force the audio engine to reset completely - WRAPPED IN TRY/CATCH
+        do {
+            audioEngine.reset()
+            try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+        } catch {
+            print("⚠️ Audio engine reset failed (continuing anyway): \(error)")
+        }
         
         // Get fresh input node after reset
         let freshInputNode = audioEngine.inputNode
@@ -216,7 +231,12 @@ class SpeechRecognitionService: NSObject, ObservableObject {
                                     inputNode: AVAudioInputNode,
                                     recognitionRequest: SFSpeechAudioBufferRecognitionRequest) async throws {
         do {
-            inputNode.removeTap(onBus: 0)
+            // CRITICAL: Only remove tap if one exists (prevent crash)
+            do {
+                inputNode.removeTap(onBus: 0)
+            } catch {
+                print("⚠️ No tap to remove before install (this is OK): \(error)")
+            }
 
             // Create converter if needed for speech recognition (prefers 16kHz or 44.1kHz)
             let preferredSampleRate: Double = 16000  // Speech recognition optimal rate
@@ -268,18 +288,44 @@ class SpeechRecognitionService: NSObject, ObservableObject {
 
             print("✅ Audio engine started with: \(nodeFormat.sampleRate) Hz, \(nodeFormat.channelCount) ch")
         } catch {
-            if audioEngine.isRunning { audioEngine.stop() }
-            inputNode.removeTap(onBus: 0)
+            // CRITICAL: Safe cleanup on error
+            if audioEngine.isRunning {
+                do {
+                    audioEngine.stop()
+                } catch {
+                    print("⚠️ Error stopping audio engine after install error: \(error)")
+                }
+            }
+            do {
+                inputNode.removeTap(onBus: 0)
+            } catch {
+                print("⚠️ No tap to remove after error (this is OK): \(error)")
+            }
             throw SpeechRecognitionError.audioEngineError
         }
     }
     
     func stopRecording() {
-        // Stop audio engine first
-        if audioEngine.isRunning {
-            audioEngine.stop()
+        // GUARD: Don't try to stop if we're not recording
+        guard isRecording || audioEngine.isRunning else {
+            return
         }
-        audioEngine.inputNode.removeTap(onBus: 0)
+        
+        // Stop audio engine first - with error handling
+        if audioEngine.isRunning {
+            do {
+                audioEngine.stop()
+            } catch {
+                print("⚠️ Error stopping audio engine: \(error)")
+            }
+        }
+        
+        // CRITICAL: Only remove tap if one exists (prevent crash)
+        do {
+            audioEngine.inputNode.removeTap(onBus: 0)
+        } catch {
+            print("⚠️ No tap to remove (this is OK): \(error)")
+        }
         
         // Clean up recognition components
         recognitionRequest?.endAudio()
@@ -288,15 +334,17 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         recognitionTask?.cancel()
         recognitionTask = nil
         
-        // Properly deactivate audio session to prevent conflicts
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("⚠️ Failed to deactivate audio session: \(error)")
-            // Continue cleanup anyway
+        // Properly deactivate audio session to prevent conflicts - in background to avoid blocking
+        Task.detached {
+            do {
+                try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            } catch {
+                print("⚠️ Failed to deactivate audio session: \(error)")
+                // Continue cleanup anyway
+            }
         }
         
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.isRecording = false
         }
     }
@@ -306,9 +354,9 @@ class SpeechRecognitionService: NSObject, ObservableObject {
 
 extension SpeechRecognitionService: SFSpeechRecognizerDelegate {
     func speechRecognizer(_ speechRecognizer: SFSpeechRecognizer, availabilityDidChange available: Bool) {
-        DispatchQueue.main.async {
+        Task { @MainActor [weak self] in
             if !available {
-                self.stopRecording()
+                self?.stopRecording()
             }
         }
     }

@@ -4,6 +4,9 @@ import SwissEphemeris
 class AstrologyService {
     static let shared = AstrologyService()
     
+    // CRITICAL: SwissEphemeris is NOT thread-safe! Must serialize all access
+    private let ephemerisQueue = DispatchQueue(label: "com.kairo.swissephemeris", qos: .userInitiated)
+    
     // Cache for horoscope scores
     private var cachedDailyScores: HoroscopeScores?
     private var cachedWeeklyScores: HoroscopeScores?
@@ -53,59 +56,64 @@ class AstrologyService {
             return SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
         }
         
-        // Calculate houses
-        do {
-            let houseCusps = try HouseCusps(
-                date: utcDate,
-                latitude: birthData.latitude,
-                longitude: birthData.longitude,
-                houseSystem: .placidus
-            )
-            
-            let houses = (1...12).map { houseNumber in
-                House(number: houseNumber, cusp: getHouseCusp(houseCusps, house: houseNumber))
+        // Calculate houses - CRITICAL: Serialize access to SwissEphemeris
+        return ephemerisQueue.sync {
+            do {
+                let houseCusps = try HouseCusps(
+                    date: utcDate,
+                    latitude: birthData.latitude,
+                    longitude: birthData.longitude,
+                    houseSystem: .placidus
+                )
+                
+                let houses = (1...12).map { houseNumber in
+                    House(number: houseNumber, cusp: getHouseCusp(houseCusps, house: houseNumber))
+                }
+                
+                print("✅ SwissEphemeris calculation completed successfully!")
+                return BirthChart(
+                    birthData: birthData,
+                    sun: sun,
+                    moon: moon,
+                    mercury: mercury,
+                    venus: venus,
+                    mars: mars,
+                    jupiter: jupiter,
+                    saturn: saturn,
+                    uranus: uranus,
+                    neptune: neptune,
+                    pluto: pluto,
+                    ascendant: getAscendant(houseCusps),
+                    midheaven: getMidheaven(houseCusps),
+                    houses: houses
+                )
+            } catch {
+                print("House calculation failed: \(error)")
+                // Fallback to simplified service
+                return SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
             }
-            
-            print("✅ SwissEphemeris calculation completed successfully!")
-            return BirthChart(
-                birthData: birthData,
-                sun: sun,
-                moon: moon,
-                mercury: mercury,
-                venus: venus,
-                mars: mars,
-                jupiter: jupiter,
-                saturn: saturn,
-                uranus: uranus,
-                neptune: neptune,
-                pluto: pluto,
-                ascendant: getAscendant(houseCusps),
-                midheaven: getMidheaven(houseCusps),
-                houses: houses
-            )
-        } catch {
-            print("House calculation failed: \(error)")
-            // Fallback to simplified service
-            return SimplifiedAstrologyService.shared.calculateBirthChart(for: birthData)
         }
     }
     
     // MARK: - Planet Calculation
     private func calculatePlanet(_ planet: SwissEphemeris.Planet, date: Date) -> CelestialBody? {
-        do {
-            let coordinate = try Coordinate<SwissEphemeris.Planet>(body: planet, date: date)
-            
-            return CelestialBody(
-                name: planetName(planet),
-                symbol: planetSymbol(planet),
-                longitude: coordinate.longitude,
-                latitude: coordinate.latitude,
-                distance: coordinate.distance,
-                speedLongitude: coordinate.speedLongitude
-            )
-        } catch {
-            print("Error calculating planet \(planet): \(error)")
-            return nil
+        // CRITICAL: Serialize access to SwissEphemeris (C library is not thread-safe)
+        return ephemerisQueue.sync {
+            do {
+                let coordinate = try Coordinate<SwissEphemeris.Planet>(body: planet, date: date)
+                
+                return CelestialBody(
+                    name: planetName(planet),
+                    symbol: planetSymbol(planet),
+                    longitude: coordinate.longitude,
+                    latitude: coordinate.latitude,
+                    distance: coordinate.distance,
+                    speedLongitude: coordinate.speedLongitude
+                )
+            } catch {
+                print("Error calculating planet \(planet): \(error)")
+                return nil
+            }
         }
     }
     

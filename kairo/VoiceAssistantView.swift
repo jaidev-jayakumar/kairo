@@ -41,12 +41,25 @@ struct VoiceAssistantView: View {
             requestPermissions()
         }
         .onDisappear {
-            // Clean up resources when leaving the tab
-            if speechService.isRecording {
-                speechService.stopRecording()
-            }
-            if elevenLabsService.isPlaying {
-                elevenLabsService.stopPlayback()
+            // CRITICAL: Clean up resources when leaving the tab - with proper error handling
+            Task { @MainActor in
+                do {
+                    // Stop playback first if playing
+                    if elevenLabsService.isPlaying {
+                        elevenLabsService.stopPlayback()
+                        // Small delay to let audio session cleanup
+                        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                    }
+                    
+                    // Then stop recording if active
+                    if speechService.isRecording {
+                        speechService.stopRecording()
+                        // Extra delay for audio engine cleanup
+                        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                    }
+                } catch {
+                    print("⚠️ Error during cleanup: \(error)")
+                }
             }
         }
         .alert("Permissions Required", isPresented: $showPermissionAlert) {
@@ -229,7 +242,7 @@ struct VoiceAssistantView: View {
         isProcessing = true
         errorMessage = ""
         
-        Task {
+        Task { @MainActor in
             do {
                 print("🗣️ User said: \(text)")
                 
@@ -243,10 +256,8 @@ struct VoiceAssistantView: View {
                 try await elevenLabsService.synthesizeAndPlay(text: response)
                 
             } catch {
-                DispatchQueue.main.async {
-                    self.errorMessage = "Sorry, I couldn't process that request: \(error.localizedDescription)"
-                    self.isProcessing = false
-                }
+                errorMessage = "Sorry, I couldn't process that request: \(error.localizedDescription)"
+                isProcessing = false
                 print("Voice processing error: \(error)")
             }
         }

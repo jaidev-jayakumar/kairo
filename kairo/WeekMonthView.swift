@@ -164,18 +164,14 @@ struct WeekMonthView: View {
         weeklyTask?.cancel()
         
         // Generate insights for this specific week
-        weeklyTask = Task {
-            do {
-                let freshWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart, date: selectedWeekStart)
-                
-                // Check if task was cancelled before updating state
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    weeklyInsight = freshWeeklyInsight
-                    horoscopeScores = AstrologyService.shared.calculateWeeklyHoroscopeScores(for: chart, date: selectedWeekStart)
-                }
-            }
+        weeklyTask = Task { @MainActor in
+            let freshWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart, date: selectedWeekStart)
+            
+            // Check if task was cancelled before updating state
+            guard !Task.isCancelled else { return }
+            
+            weeklyInsight = freshWeeklyInsight
+            horoscopeScores = AstrologyService.shared.calculateWeeklyHoroscopeScores(for: chart, date: selectedWeekStart)
         }
     }
     
@@ -186,18 +182,14 @@ struct WeekMonthView: View {
         monthlyTask?.cancel()
         
         // Generate insights for this specific month
-        monthlyTask = Task {
-            do {
-                let freshMonthlyInsight = await AstrologyService.shared.generateMonthlyInsight(for: chart, date: selectedMonth)
-                
-                // Check if task was cancelled before updating state
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    monthlyInsight = freshMonthlyInsight
-                    monthlyHoroscopeScores = AstrologyService.shared.calculateMonthlyHoroscopeScores(for: chart, date: selectedMonth)
-                }
-            }
+        monthlyTask = Task { @MainActor in
+            let freshMonthlyInsight = await AstrologyService.shared.generateMonthlyInsight(for: chart, date: selectedMonth)
+            
+            // Check if task was cancelled before updating state
+            guard !Task.isCancelled else { return }
+            
+            monthlyInsight = freshMonthlyInsight
+            monthlyHoroscopeScores = AstrologyService.shared.calculateMonthlyHoroscopeScores(for: chart, date: selectedMonth)
         }
     }
     
@@ -208,18 +200,14 @@ struct WeekMonthView: View {
         yearlyTask?.cancel()
         
         // Generate insights for this specific year
-        yearlyTask = Task {
-            do {
-                let freshYearlyInsight = await AstrologyService.shared.generateYearlyInsight(for: chart, date: selectedYear)
-                
-                // Check if task was cancelled before updating state
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    yearlyInsight = freshYearlyInsight
-                    yearlyHoroscopeScores = AstrologyService.shared.calculateYearlyHoroscopeScores(for: chart, date: selectedYear)
-                }
-            }
+        yearlyTask = Task { @MainActor in
+            let freshYearlyInsight = await AstrologyService.shared.generateYearlyInsight(for: chart, date: selectedYear)
+            
+            // Check if task was cancelled before updating state
+            guard !Task.isCancelled else { return }
+            
+            yearlyInsight = freshYearlyInsight
+            yearlyHoroscopeScores = AstrologyService.shared.calculateYearlyHoroscopeScores(for: chart, date: selectedYear)
         }
     }
     

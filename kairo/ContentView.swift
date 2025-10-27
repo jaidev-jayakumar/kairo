@@ -25,7 +25,11 @@ struct ContentView: View {
     }
     
     private func checkForFirstLaunch() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        Task { @MainActor in
+            // Wait for launch screen
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            
+            // Safely check birth data
             if !UserDataManager.shared.hasBirthData {
                 showOnboarding = true
             }

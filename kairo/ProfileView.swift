@@ -187,11 +187,13 @@ struct ProfileView: View {
             return "No location data"
         }
         
-        if birthData.locationName?.isEmpty != false {
+        // Safely unwrap and check location name
+        guard let locationName = birthData.locationName,
+              !locationName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return "Location"
         }
         
-        return birthData.locationName ?? "Unknown Location"
+        return locationName
     }
 }
 

@@ -84,7 +84,7 @@ class ElevenLabsService: NSObject, ObservableObject {
             throw ElevenLabsError.emptyText
         }
         
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.isSynthesizing = true
         }
         
@@ -92,7 +92,7 @@ class ElevenLabsService: NSObject, ObservableObject {
             let audioData = try await synthesizeSpeech(text: text)
             await playAudio(data: audioData)
         } catch {
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.isSynthesizing = false
             }
             throw error
@@ -183,22 +183,30 @@ class ElevenLabsService: NSObject, ObservableObject {
     // MARK: - Playback Control
     
     func stopPlayback() {
-        audioPlayer?.stop()
-        DispatchQueue.main.async {
+        // GUARD: Safely stop only if player exists
+        guard let player = audioPlayer else {
+            Task { @MainActor in
+                self.isPlaying = false
+            }
+            return
+        }
+        
+        player.stop()
+        Task { @MainActor in
             self.isPlaying = false
         }
     }
     
     func pausePlayback() {
         audioPlayer?.pause()
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.isPlaying = false
         }
     }
     
     func resumePlayback() {
         audioPlayer?.play()
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.isPlaying = true
         }
     }
@@ -255,28 +263,32 @@ class ElevenLabsService: NSObject, ObservableObject {
 
 extension ElevenLabsService: AVAudioPlayerDelegate {
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        DispatchQueue.main.async {
-            self.isPlaying = false
+        Task { @MainActor [weak self] in
+            self?.isPlaying = false
         }
         
-        // Deactivate audio session to allow recording again
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("⚠️ Warning: Failed to deactivate audio session after playback: \(error)")
+        // Deactivate audio session to allow recording again - in background to prevent blocking
+        Task.detached {
+            do {
+                try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            } catch {
+                print("⚠️ Warning: Failed to deactivate audio session after playback: \(error)")
+            }
         }
     }
     
     func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
-        DispatchQueue.main.async {
-            self.isPlaying = false
+        Task { @MainActor [weak self] in
+            self?.isPlaying = false
         }
         
-        // Also deactivate on error
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("⚠️ Warning: Failed to deactivate audio session after error: \(error)")
+        // Also deactivate on error - in background to prevent blocking
+        Task.detached {
+            do {
+                try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            } catch {
+                print("⚠️ Warning: Failed to deactivate audio session after error: \(error)")
+            }
         }
         
         if let error = error {
