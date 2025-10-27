@@ -226,11 +226,46 @@ class OpenAIService: ObservableObject {
     }
     
     private func generatePredictiveGeneralResponse(for chart: BirthChart, question: String) async -> String {
-        // Get major transits happening now and in the next 2 years
-        let majorTransits = await calculateMajorUpcomingTransits(for: chart, years: 2)
+        // Get current transits and ONLY near-term major transits (next 2 months)
+        // We don't want to talk about events 6+ months away in casual conversation
+        let majorTransits = await calculateUpcomingTransits(for: chart, months: 2)
+        let currentTransits = AstrologyService.shared.calculateCurrentTransits()
         
-        // Create a comprehensive astrological prediction
-        return await generateSpecificPrediction(chart: chart, transits: majorTransits, context: question)
+        // Create a natural, human astrological response
+        return await generateHumanAstrologerResponse(chart: chart, transits: majorTransits, currentTransits: currentTransits, question: question)
+    }
+    
+    private func calculateUpcomingTransits(for chart: BirthChart, months: Int) async -> [TransitEvent] {
+        let startDate = Date()
+        let endDate = Calendar.current.date(byAdding: .month, value: months, to: startDate)!
+        
+        var majorEvents: [TransitEvent] = []
+        
+        // Check for major outer planet transits (these create life events)
+        let outerPlanets = ["jupiter", "saturn", "mars"] // Removed slower planets - they're too slow for 2-month window
+        let personalPoints = [
+            ("sun", chart.sun.longitude),
+            ("moon", chart.moon.longitude), 
+            ("ascendant", chart.ascendant),
+            ("venus", chart.venus.longitude),
+            ("mars", chart.mars.longitude)
+        ]
+        
+        for planet in outerPlanets {
+            for (pointName, natalPosition) in personalPoints {
+                let transits = await findMajorTransits(
+                    planet: planet,
+                    toNatalPoint: natalPosition,
+                    pointName: pointName,
+                    startDate: startDate,
+                    endDate: endDate
+                )
+                majorEvents.append(contentsOf: transits)
+            }
+        }
+        
+        // Sort by date and return most significant ones
+        return Array(majorEvents.sorted { $0.significance > $1.significance }.prefix(5))
     }
     
     private func calculateMajorUpcomingTransits(for chart: BirthChart, years: Int) async -> [TransitEvent] {
@@ -351,77 +386,251 @@ class OpenAIService: ObservableObject {
         return significance
     }
     
-    private func generateSpecificPrediction(chart: BirthChart, transits: [TransitEvent], context: String) async -> String {
-        if transits.isEmpty {
-            return "You're in a relatively stable period with no major planetary transits disrupting your chart. This is actually a great time to consolidate gains and prepare for future growth cycles."
+    private func generateHumanAstrologerResponse(chart: BirthChart, transits: [TransitEvent], currentTransits: [CelestialBody], question: String) async -> String {
+        // Build astrological context for the AI
+        var astrologyContext = ""
+        
+        // Current planetary weather
+        let todaysEnergy = getDetailedCurrentEnergy(currentTransits, chart)
+        astrologyContext += "Current cosmic weather: \(todaysEnergy)\n"
+        
+        // Only show VERY near-term transits (next 6 weeks max)
+        let now = Date()
+        let sixWeeksFromNow = Calendar.current.date(byAdding: .weekOfYear, value: 6, to: now)!
+        
+        let nearTermTransits = transits.filter { 
+            $0.date >= now && $0.date <= sixWeeksFromNow
+        }.prefix(2) // Only top 2 most significant
+        
+        if !nearTermTransits.isEmpty {
+            astrologyContext += "\nVery near future (next 6 weeks):\n"
+            for transit in nearTermTransits {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MMMM d"
+                let date = dateFormatter.string(from: transit.date)
+                
+                // Calculate days from now
+                let daysAway = Calendar.current.dateComponents([.day], from: now, to: transit.date).day ?? 0
+                let timing = daysAway < 7 ? "this week" : daysAway < 14 ? "next week" : "in \(daysAway / 7) weeks"
+                
+                let meaning = getTransitMeaning(transit)
+                astrologyContext += "- \(timing) (\(date)): \(meaning)\n"
+            }
         }
         
-        // Group transits by timeframe
-        let nextSixMonths = transits.filter { $0.date <= Calendar.current.date(byAdding: .month, value: 6, to: Date())! }
-        let nextYear = transits.filter { 
-            let sixMonthsFromNow = Calendar.current.date(byAdding: .month, value: 6, to: Date())!
-            let oneYearFromNow = Calendar.current.date(byAdding: .year, value: 1, to: Date())!
-            return $0.date > sixMonthsFromNow && $0.date <= oneYearFromNow
-        }
-        let secondYear = transits.filter {
-            let oneYearFromNow = Calendar.current.date(byAdding: .year, value: 1, to: Date())!
-            return $0.date > oneYearFromNow
-        }
+        // Now call OpenAI with natural astrologer prompt
+        return await callOpenAIForHumanResponse(
+            question: question,
+            chart: chart,
+            astrologyContext: astrologyContext
+        )
+    }
+    
+    private func getDetailedCurrentEnergy(_ transits: [CelestialBody], _ chart: BirthChart) -> String {
+        var energies: [String] = []
         
-        var prediction = ""
+        // Check for current major aspects
+        let natalPoints = [
+            ("Sun", chart.sun.longitude),
+            ("Moon", chart.moon.longitude),
+            ("Venus", chart.venus.longitude),
+            ("Mars", chart.mars.longitude)
+        ]
         
-        // Current major theme
-        if let mostSignificant = transits.sorted(by: { $0.significance > $1.significance }).first {
-            prediction += generateLifeThemePrediction(mostSignificant, chart: chart) + "\n\n"
-        }
-        
-        // Next 6 months
-        if !nextSixMonths.isEmpty {
-            prediction += "Over the next 6 months: "
-            prediction += generateTimeframePrediction(nextSixMonths, chart: chart) + "\n\n"
-        }
-        
-        // Next year  
-        if !nextYear.isEmpty {
-            prediction += "In 2025: "
-            prediction += generateTimeframePrediction(nextYear, chart: chart) + "\n\n"
-        }
-        
-        // Year 2
-        if !secondYear.isEmpty {
-            prediction += "Looking ahead to 2026: "
-            prediction += generateTimeframePrediction(secondYear, chart: chart)
+        for transit in transits {
+            for (pointName, natalLong) in natalPoints {
+                let angle = abs(transit.longitude - natalLong)
+                let normalized = angle > 180 ? 360 - angle : angle
+                
+                if normalized < 8 {
+                    energies.append("\(transit.name) is activating your \(pointName) - this affects \(getPointLifeArea(pointName))")
+                } else if abs(normalized - 90) < 8 {
+                    energies.append("\(transit.name) is challenging your \(pointName) - testing your \(getPointLifeArea(pointName))")
+                } else if abs(normalized - 120) < 8 {
+                    energies.append("\(transit.name) is supporting your \(pointName) - helping with \(getPointLifeArea(pointName))")
+                }
+            }
         }
         
-        return prediction.trimmingCharacters(in: .whitespacesAndNewlines)
+        return energies.isEmpty ? "Relatively calm planetary weather today" : energies.prefix(2).joined(separator: "; ")
+    }
+    
+    private func getPointLifeArea(_ point: String) -> String {
+        switch point {
+        case "Sun": return "identity, confidence, and life direction"
+        case "Moon": return "emotions, instincts, and needs"
+        case "Venus": return "relationships, values, and what you love"
+        case "Mars": return "drive, action, and how you go after what you want"
+        default: return "personal development"
+        }
+    }
+    
+    private func getTransitMeaning(_ transit: TransitEvent) -> String {
+        let planet = transit.planet.capitalized
+        let point = transit.natalPoint
+        let aspect = transit.aspect
+        
+        switch (planet.lowercased(), aspect.lowercased(), point.lowercased()) {
+        case ("jupiter", _, "sun"):
+            return "Jupiter brings expansion and opportunities to your core identity - doors opening"
+        case ("jupiter", _, "venus"):
+            return "Jupiter blessing your love life and finances - expect good things"
+        case ("saturn", "conjunction", _), ("saturn", "square", _):
+            return "Saturn bringing reality checks and important life lessons"
+        case ("saturn", "trine", _):
+            return "Saturn helping you build something solid and lasting"
+        case ("uranus", _, _):
+            return "Uranus bringing unexpected changes and breakthroughs"
+        case ("pluto", _, _):
+            return "Pluto bringing deep transformation in how you approach life"
+        default:
+            return "\(planet) influencing your \(point) - creating change"
+        }
+    }
+    
+    private func callOpenAIForHumanResponse(question: String, chart: BirthChart, astrologyContext: String) async -> String {
+        do {
+            guard let url = URL(string: baseURL) else { 
+                return "I'm having trouble connecting right now. Can you ask me again?"
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            
+            // Get current date for context
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "EEEE, MMMM d, yyyy"
+            let todayFormatted = dateFormatter.string(from: Date())
+            
+            let systemPrompt = """
+            You are Kaira, a highly skilled and intuitive astrologer who speaks like a real person, not a bot. You blend deep astrological knowledge with genuine human warmth and directness.
+            
+            TODAY'S DATE: \(todayFormatted)
+            IMPORTANT: When you see months mentioned in the astrology data, be aware of how far away they are from today. Don't talk about distant future events as if they're happening now.
+
+            YOUR VOICE:
+            - Talk like you're texting a friend who needs real advice
+            - Be direct, honest, and specific - no generic platitudes
+            - Use "you" and "your" freely - make it personal
+            - Keep responses SHORT (2-3 sentences max)
+            - Sound natural, not corporate or overly spiritual
+            - Give clear YES/NO guidance when appropriate, not just "it depends"
+            
+            ASTROLOGY APPROACH:
+            - Focus on what's happening NOW and in the very near future (next few weeks)
+            - If an event is more than 2 months away, don't mention it unless specifically asked
+            - Translate astrology into practical advice, not vague cosmic talk
+            - Don't mention planet names unless it adds value - focus on MEANING
+            - When you see a clear answer in the chart, say it confidently
+            
+            FORBIDDEN:
+            - Never mention months that are far in the future as if they're relevant today
+            - Never say generic shit like "a significant life shift is happening"
+            - Never use words like "cosmic journey" or "universe has plans"
+            - Never be vague when you can be specific
+            - Never give wishy-washy "only you can decide" answers if the astrology is clear
+            
+            RESPONSE STYLE:
+            - If the chart says YES → tell them yes and why
+            - If the chart says NO → tell them no and why  
+            - If it's complicated → explain the real conflict they're facing
+            - Always ground advice in what's ACTUALLY happening in their chart RIGHT NOW, not months from now
+            
+            Person's chart: \(chart.sunSign.rawValue) Sun, \(chart.moonSign.rawValue) Moon, \(chart.ascendantSign.rawValue) Rising
+            
+            Current astrology: \(astrologyContext)
+            """
+            
+            let userPrompt = "Question: \(question)\n\nGive me a straight answer based on what you see in the astrology. Be real with me."
+            
+            let requestBody: [String: Any] = [
+                "model": "gpt-4o",
+                "messages": [
+                    ["role": "system", "content": systemPrompt],
+                    ["role": "user", "content": userPrompt]
+                ],
+                "max_tokens": 150,
+                "temperature": 0.8,
+                "presence_penalty": 0.3,
+                "frequency_penalty": 0.3
+            ]
+            
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+            
+            let (data, response) = try await urlSession.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw OpenAIError.invalidResponse
+            }
+            
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let choices = json?["choices"] as? [[String: Any]],
+                  let message = choices.first?["message"] as? [String: Any],
+                  let content = message["content"] as? String else {
+                throw OpenAIError.invalidResponse
+            }
+            
+            return content.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+        } catch {
+            print("OpenAI API error: \(error)")
+            // Fallback to simple response based on current energy
+            return generateSimpleFallbackResponse(question: question, chart: chart)
+        }
+    }
+    
+    private func generateSimpleFallbackResponse(question: String, chart: BirthChart) -> String {
+        let lowerQuestion = question.lowercased()
+        
+        // Relationship questions
+        if lowerQuestion.contains("girlfriend") || lowerQuestion.contains("boyfriend") || 
+           lowerQuestion.contains("relationship") || lowerQuestion.contains("reach out") ||
+           lowerQuestion.contains("text") || lowerQuestion.contains("call") {
+            return "If you're asking, part of you already knows the answer. What's your gut telling you? That's usually the right move."
+        }
+        
+        // Career/job questions
+        if lowerQuestion.contains("job") || lowerQuestion.contains("career") || 
+           lowerQuestion.contains("work") || lowerQuestion.contains("quit") {
+            return "The planets are pushing you toward what feels more authentic, even if it's scary. What would you do if fear wasn't a factor?"
+        }
+        
+        // Decision questions
+        if lowerQuestion.contains("should i") || lowerQuestion.contains("should i") {
+            return "You already know what you want to do. The question is whether you're ready to trust yourself enough to do it."
+        }
+        
+        // Default
+        return "The astrology says you're at a decision point. Trust your instincts more than your fears right now."
     }
     
     private func generateLifeThemePrediction(_ transit: TransitEvent, chart: BirthChart) -> String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMMM yyyy"
-        let timeframe = dateFormatter.string(from: transit.date)
+        dateFormatter.dateFormat = "MMMM"
+        let month = dateFormatter.string(from: transit.date)
         
         switch (transit.planet.lowercased(), transit.natalPoint.lowercased()) {
         case ("saturn", "sun"):
-            return "You're entering a major maturation cycle around \(timeframe). This is when life asks you to step up and become the authority figure you're meant to be. Expect significant responsibility and recognition."
+            return "Around \(month), life's asking you to step up in a major way. This is your maturation moment - expect real responsibility and the recognition that comes with it."
             
         case ("jupiter", "sun"):
-            return "A major expansion phase begins around \(timeframe). Your confidence, opportunities, and visibility will all increase dramatically. This is your time to shine on a bigger stage."
+            return "\(month) kicks off a major expansion phase. Doors that were closed start opening, and people take you more seriously. This is when you level up."
             
         case ("uranus", "sun"):
-            return "Get ready for a complete identity revolution around \(timeframe). Everything about how you see yourself and how others see you is about to change. Embrace the authentic you that's emerging."
+            return "Get ready - \(month) brings a complete identity shake-up. Who you've been is evolving fast. The change is liberating once you stop fighting it."
             
         case ("saturn", "moon"):
-            return "You're being asked to mature emotionally around \(timeframe). Past emotional patterns that no longer serve you will be challenged. This leads to much greater emotional stability."
+            return "Around \(month), you're being pushed to mature emotionally. Old patterns that kept you stuck get challenged. It's uncomfortable but leads to real stability."
             
         case ("jupiter", "ascendant"):
-            return "Around \(timeframe), you'll project a completely different energy to the world. People will see you as more confident, optimistic, and successful. New doors open because of this shift."
+            return "\(month) brings a glow-up in how people see you. Your energy shifts, and suddenly new opportunities come just because you're showing up differently."
             
         case ("pluto", "sun"):
-            return "You're undergoing a complete personality transformation around \(timeframe). The person you've been is dying so the person you're meant to be can be born. This is profound and permanent change."
+            return "Deep transformation around \(month). The old version of you is dying so the real you can emerge. It's intense but it's evolution, not destruction."
             
         default:
-            return "A significant life shift is occurring around \(timeframe) that will reshape how you approach \(getLifeArea(transit.natalPoint)). This isn't just a phase - it's a fundamental change in your life direction."
+            return "Around \(month), something shifts in your \(getLifeArea(transit.natalPoint)) that changes how you move through life. Pay attention - this matters."
         }
     }
     
@@ -947,33 +1156,33 @@ class OpenAIService: ObservableObject {
     }
     
     private func generateYearTheme(_ transit: TransitEvent, chart: BirthChart, years: Int) -> String {
-        let timeframe = years == 1 ? "year" : "\(years) years"
+        let timeframe = years == 1 ? "year" : "next couple years"
         
         switch (transit.planet.lowercased(), transit.natalPoint.lowercased()) {
         case ("saturn", "sun"):
-            return "This \(timeframe) marks a major coming-of-age period. Saturn is teaching you to step into your full authority and take on serious responsibilities. What feels challenging now is actually preparing you for lasting success and recognition. You're building something that will define the next phase of your life."
+            return "This \(timeframe) is your coming-of-age moment. Life's handing you real responsibility and the recognition that comes with it. What feels heavy now is actually building your authority."
             
         case ("jupiter", "sun"):
-            return "Get ready for a breakthrough \(timeframe)! Jupiter is expanding everything about your identity, confidence, and opportunities. This is when doors open that have been closed before, and people start taking you seriously in ways they never have. Your natural talents get the recognition they deserve."
+            return "Breakthrough \(timeframe) ahead. Doors that were closed are opening, and people are finally taking you seriously. Your confidence is about to hit a whole new level."
             
         case ("uranus", "sun"):
-            return "Revolutionary change is coming to your core identity over the next \(timeframe). The person you've been is evolving into someone completely new. This isn't gradual - it's a lightning bolt of awakening that changes how you see yourself and how others see you. Embrace the rebellion against who you used to be."
+            return "Everything about who you are is changing over the \(timeframe). The person you've been is evolving fast into someone more authentic. Stop fighting the change - it's liberation."
             
         case ("saturn", "ascendant"):
-            return "You're entering a major image transformation over the next \(timeframe). Saturn is maturing your public presence and the way others perceive you. You'll be seen as more serious, authoritative, and trustworthy. This is when your reputation solidifies and people start looking to you for leadership."
+            return "Your reputation is solidifying over the \(timeframe). People start seeing you as more serious, more capable, more authoritative. This is when you step into real leadership."
             
         case ("jupiter", "ascendant"):
-            return "Your entire presence is about to expand dramatically over the next \(timeframe). Jupiter crossing your rising sign brings a glow-up that's both internal and external. You'll feel more optimistic and confident, and others will be drawn to your elevated energy. New opportunities come simply because of how you're showing up in the world."
+            return "Major glow-up coming over the \(timeframe). Your whole energy shifts, and suddenly opportunities appear just because of how you're showing up. Confidence and optimism become your default."
             
         case ("saturn", "moon"):
-            return "Deep emotional restructuring is happening over the next \(timeframe). Saturn is asking you to mature your emotional patterns and create real security in your inner world. Old ways of processing feelings won't work anymore. This creates lasting emotional stability and wisdom."
+            return "Deep emotional maturation happening over the \(timeframe). Old patterns that kept you emotionally stuck are getting challenged. It's uncomfortable but leads to real stability."
             
         case ("jupiter", "venus"):
-            return "Love and abundance are the major themes for the next \(timeframe). Jupiter is blessing your relationships, creativity, and financial situation. This could be when you meet someone special, get engaged, or experience a significant boost in your income. Your values are expanding in beautiful ways."
+            return "Love and money get blessed over the \(timeframe). This could be meeting someone special, a relationship leveling up, or a significant financial boost. Good things coming in what you value."
             
         default:
             let area = getLifeArea(transit.natalPoint)
-            return "The next \(timeframe) brings significant transformation to your \(area). This isn't just surface-level change - it's a fundamental shift in how this area of your life operates. What emerges will be stronger and more aligned with your authentic self."
+            return "The \(timeframe) brings real transformation to your \(area). This isn't surface-level - it's fundamental change in how this part of your life works."
         }
     }
     

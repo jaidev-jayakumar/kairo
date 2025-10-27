@@ -119,7 +119,7 @@ class AIInsightService: ObservableObject {
         let prompt = createChatPrompt(question: question, chart: chart)
         
         do {
-            return try await callOpenAIAPI(prompt: prompt, maxTokens: 250)
+            return try await callOpenAIAPI(prompt: prompt, maxTokens: 150)
         } catch {
             print("Failed to generate AI chat response: \(error)")
             return createFallbackChatResponse(question: question, chart: chart)
@@ -146,7 +146,7 @@ private extension AIInsightService {
             let system = OpenAIMessage(
                 role: "system", 
                 content: """
-                You're an astrology translator. Take the astrological insight and make it even more direct and human. 2 sentences max. Be honest, specific, and grounded. No planets or astrology jargon in output - translate to real life experiences. No fluff.
+                You're Kaira, an astrologer who talks like a real person. Give direct, honest, specific advice. No generic platitudes or "cosmic journey" talk. If you see a clear answer in the astrology, say it confidently. Talk like you're texting a friend who needs real guidance. 2-3 sentences max.
                 """
             )
             
@@ -333,14 +333,27 @@ private extension AIInsightService {
         let personalityTraits = getPersonalityTraits(chart)
         let transits = AstrologyService.shared.calculateCurrentTransits()
         let todaysEnergy = getEnergyPattern(transits, chart)
+        let specificEffects = getSpecificTransitEffects(transits, chart)
+        
+        // Get current date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEEE, MMMM d, yyyy"
+        let todayFormatted = dateFormatter.string(from: Date())
         
         return """
-        Someone with these traits asked: "\(question)"
+        You're Kaira - a real astrologer who talks like a human, not a bot.
         
-        Their personality: \(personalityTraits)
-        Today's energy: \(todaysEnergy)
+        TODAY'S DATE: \(todayFormatted)
         
-        Give honest, practical advice that relates to their question in 2-3 sentences. Reference their natural strengths and how today's energy helps or challenges what they're asking about. No astrology terms, just real life guidance.
+        Question: "\(question)"
+        
+        Person's nature: \(personalityTraits)
+        Current planetary energy: \(todaysEnergy)
+        What's actually happening today: \(specificEffects)
+        
+        Give them a straight, honest answer in 2-3 sentences about what's happening NOW. Be direct and specific. If the astrology says yes, say yes. If it says no, say no. If it's complicated, tell them what the real conflict is. Don't mention future months or dates - focus on today and the immediate near future (next few weeks at most).
+        
+        Talk like you're texting a friend, not writing a horoscope column. No "cosmic journey" bullshit. Just real talk about their current situation.
         """
     }
     
@@ -1058,17 +1071,37 @@ private extension AIInsightService {
     }
     
     func createFallbackChatResponse(question: String, chart: BirthChart) -> String {
-        let personalityTraits = getPersonalityTraits(chart)
         let transits = AstrologyService.shared.calculateCurrentTransits()
         let todaysEnergy = getEnergyPattern(transits, chart)
+        let lowerQuestion = question.lowercased()
         
-        // Create an accurate fallback that uses real astrological data
+        // Relationship questions
+        if lowerQuestion.contains("girlfriend") || lowerQuestion.contains("boyfriend") || 
+           lowerQuestion.contains("relationship") || lowerQuestion.contains("reach out") ||
+           lowerQuestion.contains("text") || lowerQuestion.contains("call") {
+            if todaysEnergy.contains("challenging") || todaysEnergy.contains("obstacles") {
+                return "The planets are testing you right now. If reaching out feels right despite the fear, that's your answer. But if it's coming from desperation, wait a bit."
+            } else {
+                return "If you're asking, part of you already knows what you want to do. What's your gut saying? That's usually the right call."
+            }
+        }
+        
+        // Career/job questions
+        if lowerQuestion.contains("job") || lowerQuestion.contains("career") || 
+           lowerQuestion.contains("work") || lowerQuestion.contains("quit") {
+            return "The energy right now is pushing you toward what feels more authentic. What would you do if fear wasn't running the show?"
+        }
+        
+        // Decision questions
+        if lowerQuestion.contains("should i") {
+            return "You already know what you want to do. The question is whether you trust yourself enough to do it."
+        }
+        
+        // Default based on energy
         if todaysEnergy.contains("challenging") || todaysEnergy.contains("obstacles") {
-            return "Given your \(personalityTraits) nature and today's challenging energy, approach this situation with patience and trust your inner strength to guide you through."
-        } else if todaysEnergy.contains("expansive") || todaysEnergy.contains("abundant") {
-            return "With your \(personalityTraits) qualities and today's positive energy, this is a great time to trust your instincts and move forward confidently."
+            return "Things feel hard because they're forcing you to level up. Trust that the resistance has a purpose."
         } else {
-            return "Your \(personalityTraits) nature combined with today's \(todaysEnergy) suggests taking a thoughtful approach to this situation."
+            return "The timing looks good. Trust your instincts and move forward."
         }
     }
 }
