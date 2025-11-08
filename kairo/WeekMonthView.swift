@@ -163,6 +163,10 @@ struct WeekMonthView: View {
         // Cancel any previous weekly task
         weeklyTask?.cancel()
         
+        // Recalculate cycles for the selected week
+        currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart, date: selectedWeekStart)
+        currentTransits = AstrologyService.shared.calculateCurrentTransits(for: selectedWeekStart)
+        
         // Generate insights for this specific week
         weeklyTask = Task { @MainActor in
             let freshWeeklyInsight = await AstrologyService.shared.generateWeeklyInsight(for: chart, date: selectedWeekStart)
@@ -177,6 +181,10 @@ struct WeekMonthView: View {
     
     private func loadMonthlyData() {
         guard let chart = userBirthChart else { return }
+        
+        // Recalculate cycles for the selected month
+        currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart, date: selectedMonth)
+        currentTransits = AstrologyService.shared.calculateCurrentTransits(for: selectedMonth)
         
         // Cancel any previous monthly task
         monthlyTask?.cancel()
@@ -195,6 +203,10 @@ struct WeekMonthView: View {
     
     private func loadYearlyData() {
         guard let chart = userBirthChart else { return }
+        
+        // Recalculate cycles for the selected year
+        currentCycles = AstrologyService.shared.calculateCurrentCycles(for: chart, date: selectedYear)
+        currentTransits = AstrologyService.shared.calculateCurrentTransits(for: selectedYear)
         
         // Cancel any previous yearly task
         yearlyTask?.cancel()

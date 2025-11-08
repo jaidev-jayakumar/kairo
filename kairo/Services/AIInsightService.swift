@@ -44,6 +44,11 @@ class AIInsightService: ObservableObject {
     
     /// Generate a personalized weekly insight
     func generateWeeklyInsight(for chart: BirthChart, transits: [CelestialBody], date: Date = Date()) async -> String {
+        // Check feature flag - if OpenAI disabled, use comprehensive fallback directly
+        guard FeatureFlags.enableOpenAI else {
+            return createFallbackWeeklyInsight(chart: chart, transits: transits)
+        }
+        
         let cacheKey = createCacheKey(type: "weekly", chart: chart, date: date)
         
         if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
@@ -64,6 +69,11 @@ class AIInsightService: ObservableObject {
     
     /// Generate a personalized monthly insight
     func generateMonthlyInsight(for chart: BirthChart, transits: [CelestialBody], date: Date = Date()) async -> String {
+        // Check feature flag - if OpenAI disabled, use comprehensive fallback directly
+        guard FeatureFlags.enableOpenAI else {
+            return createFallbackMonthlyInsight(chart: chart, transits: transits)
+        }
+        
         let cacheKey = createCacheKey(type: "monthly", chart: chart, date: date)
         
         if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
@@ -84,6 +94,11 @@ class AIInsightService: ObservableObject {
     
     /// Generate a personalized yearly insight
     func generateYearlyInsight(for chart: BirthChart, transits: [CelestialBody], date: Date = Date()) async -> String {
+        // Check feature flag - if OpenAI disabled, use comprehensive fallback directly
+        guard FeatureFlags.enableOpenAI else {
+            return createFallbackYearlyInsight(chart: chart, transits: transits)
+        }
+        
         let cacheKey = createCacheKey(type: "yearly", chart: chart, date: date)
         
         if let cachedInsight = cache.object(forKey: cacheKey as NSString) {
@@ -1022,30 +1037,84 @@ private extension AIInsightService {
     }
     
     func createFallbackWeeklyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        let weeklyTheme = getEnergyPattern(transits, chart)
-        let personalityTraits = getPersonalityTraits(chart)
+        // Generate comprehensive weekly insight based on actual transits
+        // This matches the quality and style of cycle descriptions
         
-        if weeklyTheme.contains("challenging") || weeklyTheme.contains("obstacles") {
-            return "This week presents important learning opportunities that will build lasting strength. Your \(personalityTraits) nature will help you turn challenges into wisdom."
-        } else if weeklyTheme.contains("expansive") || weeklyTheme.contains("abundant") {
-            return "This week offers excellent opportunities for growth and new beginnings. Your \(personalityTraits) approach will attract positive developments."
-        } else {
-            return "This week's \(weeklyTheme) encourages steady progress toward your goals. Trust your \(personalityTraits) judgment to make the right decisions."
+        var insights: [String] = []
+        
+        // Check for significant fast-moving transits this week
+        let currentAspects = findWeeklyAspects(chart: chart, transits: transits)
+        
+        if let primaryAspect = currentAspects.first {
+            // Use the most significant aspect to frame the week
+            let aspectInsight = interpretWeeklyAspect(primaryAspect, chart: chart)
+            insights.append(aspectInsight)
         }
+        
+        // Add context about the Moon's movement this week (changes ~4 times)
+        if let moon = transits.first(where: { $0.name == "Moon" }) {
+            let moonContext = getMoonWeeklyContext(moon, chart: chart)
+            insights.append(moonContext)
+        }
+        
+        // Add actionable advice based on overall energy
+        let actionableAdvice = getWeeklyActionableAdvice(transits: transits, chart: chart)
+        insights.append(actionableAdvice)
+        
+        // Combine into cohesive narrative
+        return insights.joined(separator: " ")
     }
     
     func createFallbackMonthlyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        let monthlyTheme = getMonthlyTheme(transits, chart)
-        let personalityTraits = getPersonalityTraits(chart)
+        // Generate comprehensive monthly insight based on slower-moving transits
+        var insights: [String] = []
         
-        return "This month focuses on \(monthlyTheme). Your \(personalityTraits) nature will be essential in navigating this period with grace and achieving meaningful progress."
+        // Check for significant monthly transits (Mars, Venus position)
+        let monthlyAspects = findMonthlyAspects(chart: chart, transits: transits)
+        
+        if let primaryAspect = monthlyAspects.first {
+            let aspectInsight = interpretMonthlyAspect(primaryAspect, chart: chart)
+            insights.append(aspectInsight)
+        }
+        
+        // Add Sun sign context for the month
+        if let sun = transits.first(where: { $0.name == "Sun" }) {
+            let sunContext = getSunMonthlyContext(sun, chart: chart)
+            insights.append(sunContext)
+        }
+        
+        // Add actionable monthly focus
+        let monthlyFocus = getMonthlyFocus(transits: transits, chart: chart)
+        insights.append(monthlyFocus)
+        
+        return insights.joined(separator: " ")
     }
     
     func createFallbackYearlyInsight(chart: BirthChart, transits: [CelestialBody]) -> String {
-        let yearlyTheme = getYearlyTheme(transits, chart)
-        let personalityTraits = getPersonalityTraits(chart)
+        // Generate comprehensive yearly insight based on major themes
+        var insights: [String] = []
         
-        return "This year is about \(yearlyTheme). Your \(personalityTraits) essence will guide you through this significant period of development and authentic self-expression."
+        // Check for significant yearly transits (Jupiter, Saturn if they're making aspects)
+        let yearlyAspects = findYearlyAspects(chart: chart, transits: transits)
+        
+        if let primaryAspect = yearlyAspects.first {
+            let aspectInsight = interpretYearlyAspect(primaryAspect, chart: chart)
+            insights.append(aspectInsight)
+        } else {
+            // No major outer planet transits - give Sun sign yearly theme
+            let sunTheme = getSunYearlyTheme(chart: chart)
+            insights.append(sunTheme)
+        }
+        
+        // Add yearly focus areas
+        let yearlyFocus = getYearlyFocus(chart: chart, transits: transits)
+        insights.append(yearlyFocus)
+        
+        // Add practical yearly advice
+        let yearlyAdvice = getYearlyAdvice(chart: chart)
+        insights.append(yearlyAdvice)
+        
+        return insights.joined(separator: " ")
     }
     
     func createFallbackCycleInsight(cycles: [AstrologicalCycle], chart: BirthChart) -> String {
@@ -1124,6 +1193,365 @@ private extension AIInsightService {
         let chartHash = "\(chart.sunSign.rawValue)-\(chart.moonSign.rawValue)-\(chart.ascendantSign.rawValue)"
         return "\(type)-\(dateString)-\(chartHash)"
     }
+    
+    // MARK: - Comprehensive Weekly Insights
+    
+    func findWeeklyAspects(chart: BirthChart, transits: [CelestialBody]) -> [WeeklyTransitAspect] {
+        var aspects: [WeeklyTransitAspect] = []
+        
+        let natalPlanets: [(String, Double)] = [
+            ("Sun", chart.sun.longitude),
+            ("Moon", chart.moon.longitude),
+            ("Venus", chart.venus.longitude),
+            ("Mars", chart.mars.longitude),
+            ("Mercury", chart.mercury.longitude)
+        ]
+        
+        // Check fast-moving planets that matter for weekly forecasts
+        let weeklyPlanets = ["Mars", "Venus", "Mercury", "Sun"]
+        
+        for planetName in weeklyPlanets {
+            guard let transit = transits.first(where: { $0.name == planetName }) else { continue }
+            
+            for (natalName, natalLong) in natalPlanets {
+                let diff = abs(transit.longitude - natalLong)
+                let angle = diff > 180 ? 360 - diff : diff
+                
+                // Weekly orbs (slightly wider since it covers 7 days)
+                if angle < 10 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .conjunction))
+                } else if abs(angle - 90) < 10 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .square))
+                } else if abs(angle - 120) < 10 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .trine))
+                } else if abs(angle - 180) < 10 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .opposition))
+                }
+            }
+        }
+        
+        return aspects
+    }
+    
+    func interpretWeeklyAspect(_ aspect: WeeklyTransitAspect, chart: BirthChart) -> String {
+        let isHard = aspect.type == .square || aspect.type == .opposition
+        
+        switch (aspect.transitPlanet, aspect.natalPlanet) {
+        case ("Mars", "Sun"):
+            if isHard {
+                return "Your energy levels might feel inconsistent this week—high one moment, drained the next. Don't commit to more than you can realistically handle. Rest matters even when you feel like pushing through. Save the big moves for when your stamina is more stable."
+            } else {
+                return "This week brings strong, steady energy for tackling whatever you've been putting off. Your confidence and drive are aligned, making it easier to take action on goals that require courage. Physical activity feels especially good and helps channel the momentum productively."
+            }
+        
+        case ("Mars", "Venus"):
+            if isHard {
+                return "Tension between what you want and how aggressively you're pursuing it. You might push too hard in relationships or come on too strong. Ease up on the intensity and let things develop naturally. Sometimes backing off creates the space for what you want to actually happen."
+            } else {
+                return "Great week for going after what (or who) you want. Your desire and your ability to act on it work together smoothly. If you've been hesitating on making a move—romantic, creative, or otherwise—this is your window. Your timing and approach feel natural rather than forced."
+            }
+            
+        case ("Venus", "Sun"):
+            if isHard {
+                return "You're questioning what actually makes you happy versus what you think should make you happy. The disconnect is uncomfortable but revealing. Don't make major decisions about relationships or values right now—just notice what's surfacing. The clarity comes after the confusion, not during it."
+            } else {
+                return "This week you feel good in your own skin. What you value and who you are line up naturally, which makes everything feel easier. Good time for social events, asking for what you're worth, or simply enjoying pleasures without guilt. Your natural charm is especially effective right now."
+            }
+            
+        case ("Mercury", "Sun"), ("Mercury", "Moon"):
+            if isHard {
+                return "Communication feels harder than usual this week. What you're trying to say isn't landing right, or others are misinterpreting your intentions. Take extra time to clarify important points and double-check messages before sending. Better to over-communicate than assume understanding that isn't there."
+            } else {
+                return "Your thoughts are clear and your ability to express them is sharp. Great week for important conversations, presentations, or any communication that matters. People understand what you mean and respond well to your ideas. Use this mental clarity to tackle anything requiring focused thinking or articulate expression."
+            }
+            
+        default:
+            // Generic but still good
+            if isHard {
+                return "This week presents some friction that's asking you to grow. What feels difficult now is building capacity you'll need later. Push through the resistance when it matters, but also know when to step back and let things settle. Not everything needs to be forced."
+            } else {
+                return "Things flow more naturally this week. Opportunities align with effort in ways that feel lucky but are actually you being in the right place at the right time. Take advantage of the ease while it's here—it won't always feel this smooth."
+            }
+        }
+    }
+    
+    func getMoonWeeklyContext(_ moon: CelestialBody, chart: BirthChart) -> String {
+        let moonSign = moon.position.sign
+        
+        // The Moon changes signs ~4 times per week, so give general context
+        return "Emotionally, the week starts with Moon in \(moonSign.rawValue), which shifts the general feeling tone. Your internal world might fluctuate as the Moon moves through different signs, so don't attach too much meaning to temporary moods. What you feel on Monday might not be what you feel by Friday."
+    }
+    
+    func getWeeklyActionableAdvice(transits: [CelestialBody], chart: BirthChart) -> String {
+        // Check for Mercury retrograde or other notable conditions
+        if let mercury = transits.first(where: { $0.name == "Mercury" }) {
+            // Simplified check - in real app you'd check actual retrograde status
+            let mercuryDegree = Int(mercury.longitude) % 360
+            // This is approximate - real retrograde detection would be more complex
+            if mercuryDegree > 330 || mercuryDegree < 30 {
+                return "Back up important files and double-check travel plans. Communication tech might act up this week, so don't wait until the last minute for anything crucial."
+            }
+        }
+        
+        // Check for Mars activity (energy levels)
+        if let mars = transits.first(where: { $0.name == "Mars" }) {
+            let marsSign = mars.position.sign
+            if marsSign == .aries || marsSign == .scorpio {
+                return "Physical energy runs high this week—channel it into workouts, projects, or anything requiring sustained effort. The drive is there; make sure you're directing it somewhere productive rather than letting it turn into irritability."
+            }
+        }
+        
+        // Default advice based on Sun sign
+        let sunSign = chart.sunSign
+        switch sunSign {
+        case .aries, .leo, .sagittarius:
+            return "Your natural optimism serves you well this week, but pair it with practical follow-through. Grand ideas need concrete action to manifest. Start something rather than just thinking about starting something."
+        case .taurus, .virgo, .capricorn:
+            return "This week rewards your practical approach. Focus on steady progress over dramatic breakthroughs. The work you put in now builds a foundation that lasts, even if results aren't immediately visible."
+        case .gemini, .libra, .aquarius:
+            return "Your ability to see multiple perspectives is an asset this week, but at some point you need to pick a direction. Gather the information, consider the options, then commit to a choice. Endless analysis doesn't move you forward."
+        case .cancer, .scorpio, .pisces:
+            return "Trust your emotional intelligence this week—it's picking up on things logic can't access. If something feels off, it probably is. If something feels right, it probably is. Your instincts are accurate even when you can't explain them."
+        }
+    }
+    
+    // MARK: - Comprehensive Monthly Insights
+    
+    func findMonthlyAspects(chart: BirthChart, transits: [CelestialBody]) -> [WeeklyTransitAspect] {
+        var aspects: [WeeklyTransitAspect] = []
+        
+        let natalPlanets: [(String, Double)] = [
+            ("Sun", chart.sun.longitude),
+            ("Moon", chart.moon.longitude),
+            ("Venus", chart.venus.longitude),
+            ("Mars", chart.mars.longitude)
+        ]
+        
+        // Monthly planets (slower movers that stay for the month)
+        let monthlyPlanets = ["Mars", "Venus"]
+        
+        for planetName in monthlyPlanets {
+            guard let transit = transits.first(where: { $0.name == planetName }) else { continue }
+            
+            for (natalName, natalLong) in natalPlanets {
+                let diff = abs(transit.longitude - natalLong)
+                let angle = diff > 180 ? 360 - diff : diff
+                
+                if angle < 8 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .conjunction))
+                } else if abs(angle - 90) < 8 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .square))
+                } else if abs(angle - 120) < 8 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .trine))
+                }
+            }
+        }
+        
+        return aspects
+    }
+    
+    func interpretMonthlyAspect(_ aspect: WeeklyTransitAspect, chart: BirthChart) -> String {
+        let isHard = aspect.type == .square
+        
+        switch (aspect.transitPlanet, aspect.natalPlanet) {
+        case ("Mars", "Sun"):
+            if isHard {
+                return "This month tests your energy management and ability to assert yourself effectively. You might feel like you're pushing against resistance in areas where you want to make progress. The key is strategic effort rather than brute force. Pick your battles, conserve energy for what actually matters, and don't waste effort on things that won't budge right now. What you learn about pacing yourself this month serves you long-term."
+            } else {
+                return "Strong month for making things happen through sustained effort. Your energy levels are good and your confidence backs up your actions. This is your window to tackle ambitious projects, start new ventures, or make bold moves you've been planning. The drive is there, the timing is right, and results come from the work you put in. Don't waste this momentum on hesitation—use it."
+            }
+        
+        case ("Mars", "Venus"):
+            if isHard {
+                return "This month brings tension between desire and pursuit, between what you want and how you go after it. You might feel frustrated that things aren't developing as quickly as you'd like, especially in relationships or creative work. The lesson is about sustainable pursuit versus forcing outcomes. Let go of what requires constant pushing and focus on what responds to your effort. Not everything is meant to be yours just because you want it."
+            } else {
+                return "Excellent month for combining passion with action. What you desire and your ability to go after it work together naturally. This is great energy for romance, creative projects, or anything requiring both wanting something and doing something about it. Your approach feels neither too passive nor too aggressive—just right. Take advantage of this balance to pursue what genuinely excites you."
+            }
+            
+        case ("Venus", "Sun"):
+            if isHard {
+                return "This month asks you to reconsider what actually brings you joy versus what you think should bring you joy. There's discomfort in the gap between your values and your reality. Use this friction productively—it's showing you where you've been living according to someone else's definition of success or happiness. The clarity hurts before it helps, but it's necessary for authentic alignment."
+            } else {
+                return "This month you feel comfortable with who you are and what you value. Self-acceptance comes more easily, making everything from relationships to work feel less strained. Good month for enjoying life's pleasures without guilt, asking for what you're worth, and being yourself without apology. When you're at peace with yourself, others respond to that ease."
+            }
+            
+        default:
+            if isHard {
+                return "This month brings friction that's asking you to grow. Challenges aren't punishment—they're showing you where you need to develop capacity. The difficulty you face now is building strength you'll need later. Work with the resistance rather than against it, and trust that struggle has purpose even when it's uncomfortable."
+            } else {
+                return "This month offers favorable conditions for progress in key areas of your life. Opportunities and effort align in ways that make forward movement feel natural. Take advantage of this ease while it's here—not every month flows this smoothly. When things come together easily, it's not luck, it's right timing meeting right action."
+            }
+        }
+    }
+    
+    func getSunMonthlyContext(_ sun: CelestialBody, chart: BirthChart) -> String {
+        let sunSign = sun.position.sign
+        
+        // Give context about the solar month's energy
+        return "The Sun in \(sunSign.rawValue) colors the month with \(getSunSignMonthlyTone(sunSign)) energy. This affects everyone, but for you personally, it interacts with your \(chart.sunSign.rawValue) nature in ways that might feel either complementary or challenging depending on how aligned these energies are."
+    }
+    
+    func getSunSignMonthlyTone(_ sign: ZodiacSign) -> String {
+        switch sign {
+        case .aries: return "bold, initiating"
+        case .taurus: return "steady, grounding"
+        case .gemini: return "curious, communicative"
+        case .cancer: return "emotional, nurturing"
+        case .leo: return "expressive, confident"
+        case .virgo: return "practical, analytical"
+        case .libra: return "balanced, relational"
+        case .scorpio: return "intense, transformative"
+        case .sagittarius: return "expansive, optimistic"
+        case .capricorn: return "ambitious, disciplined"
+        case .aquarius: return "innovative, detached"
+        case .pisces: return "intuitive, compassionate"
+        }
+    }
+    
+    func getMonthlyFocus(transits: [CelestialBody], chart: BirthChart) -> String {
+        // Check where Mars is (energy focus)
+        if let mars = transits.first(where: { $0.name == "Mars" }) {
+            let marsSign = mars.position.sign
+            switch marsSign {
+            case .aries, .scorpio:
+                return "This month rewards direct action and bold moves. Channel your energy into starting things rather than maintaining things. Initiation is favored over continuation."
+            case .taurus, .capricorn:
+                return "This month rewards patience and sustained effort. Build something that lasts rather than chasing quick wins. Consistency matters more than intensity right now."
+            case .gemini, .libra, .aquarius:
+                return "This month rewards strategic thinking and communication. Mental energy is high—use it for planning, networking, and idea generation rather than just executing."
+            case .cancer, .pisces:
+                return "This month rewards emotional intelligence and intuitive action. Trust your gut about when to push and when to pull back. Feelings are information, not obstacles."
+            default:
+                return "Focus on aligning your actions with your actual priorities this month. It's easy to stay busy without being productive. Make sure your effort serves your real goals."
+            }
+        }
+        
+        return "This month asks you to focus on sustainable progress rather than dramatic breakthroughs. Small consistent action beats sporadic intensity. Show up daily and trust the compound effect."
+    }
+    
+    // MARK: - Comprehensive Yearly Insights
+    
+    func findYearlyAspects(chart: BirthChart, transits: [CelestialBody]) -> [WeeklyTransitAspect] {
+        var aspects: [WeeklyTransitAspect] = []
+        
+        let natalPlanets: [(String, Double)] = [
+            ("Sun", chart.sun.longitude),
+            ("Moon", chart.moon.longitude),
+            ("Venus", chart.venus.longitude),
+            ("Mars", chart.mars.longitude)
+        ]
+        
+        // Yearly planets (slow movers)
+        let yearlyPlanets = ["Jupiter", "Saturn"]
+        
+        for planetName in yearlyPlanets {
+            guard let transit = transits.first(where: { $0.name == planetName }) else { continue }
+            
+            for (natalName, natalLong) in natalPlanets {
+                let diff = abs(transit.longitude - natalLong)
+                let angle = diff > 180 ? 360 - diff : diff
+                
+                // Tight orbs for major transits
+                if angle < 6 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .conjunction))
+                } else if abs(angle - 90) < 6 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .square))
+                } else if abs(angle - 120) < 6 {
+                    aspects.append(WeeklyTransitAspect(transitPlanet: planetName, natalPlanet: natalName, type: .trine))
+                }
+            }
+        }
+        
+        return aspects
+    }
+    
+    func interpretYearlyAspect(_ aspect: WeeklyTransitAspect, chart: BirthChart) -> String {
+        let isHard = aspect.type == .square
+        
+        switch aspect.transitPlanet {
+        case "Jupiter":
+            if isHard {
+                return "This is a year of expansion that requires wisdom. Opportunities come your way, but not all of them are as good as they seem. The challenge is discerning between real growth and empty inflation. You might be tempted to overextend, overpromise, or take on more than you can sustain. The lesson is about quality expansion rather than just getting bigger. Build something that lasts, not something that impresses. True growth has foundations."
+            } else {
+                return "This is a favorable year for growth, opportunity, and positive development in major life areas. Things you've been working toward start paying off, and new possibilities open up that actually align with who you are. This isn't magic—it's your preparation meeting good timing. Say yes to opportunities that genuinely excite you and no to ones that just sound good. Your judgment about what's worth pursuing is solid this year. Trust your optimism but pair it with practical follow-through."
+            }
+        
+        case "Saturn":
+            if isHard {
+                return "This year tests your commitment, discipline, and resilience. What you face isn't punishment—it's life asking if you really want what you say you want. The difficulty you encounter is building character and capacity you'll need for what comes next. This is a year of maturation through challenge. Push through the resistance when it matters, but also learn to work smarter rather than just harder. The strength you build this year becomes permanent. What feels like limitation is actually focusing your energy on what truly matters."
+            } else {
+                return "This is a year when hard work pays off in tangible, lasting ways. Structure and discipline don't feel like burdens—they feel like tools that help you build something real. This is excellent for long-term projects, career advancement, or any goal requiring sustained commitment. You have the patience and the persistence to see things through. The results you create this year have staying power because you're building foundations, not facades. Take yourself and your goals seriously."
+            }
+        
+        default:
+            return "This year brings significant developments in areas you've been working on or thinking about. The timing is right for major moves if you've done the preparation. Trust that what's meant to unfold will, but don't wait passively—participate in your own evolution. Big years require bold action backed by careful planning."
+        }
+    }
+    
+    func getSunYearlyTheme(chart: BirthChart) -> String {
+        let sunSign = chart.sunSign
+        
+        switch sunSign {
+        case .aries:
+            return "This year asks you to refine how you assert yourself and pursue what you want. The challenge is balancing boldness with wisdom, courage with patience. Your natural instinct to act quickly serves you well, but this year rewards strategic action over impulsive action. Lead, but make sure you're leading somewhere worth going."
+        case .taurus:
+            return "This year asks you to balance stability with necessary change. Your instinct is to hold onto what's proven and reliable, but growth sometimes requires letting go of security. The challenge is knowing when to stay the course and when to evolve. Build something lasting, but make sure it's actually aligned with who you're becoming, not just who you've been."
+        case .gemini:
+            return "This year asks you to focus your naturally scattered attention on things that actually matter. Your gift is seeing multiple perspectives and possibilities, but this year rewards depth over breadth. Pick something worth committing to and go all the way with it rather than sampling everything superficially. Real mastery requires sustained focus."
+        case .cancer:
+            return "This year asks you to balance caring for others with caring for yourself. Your instinct is to nurture and support, but you can't pour from an empty cup. The challenge is maintaining healthy boundaries while staying emotionally open. Protect your energy without becoming closed off. Your sensitivity is a strength when it's sustainable, a liability when it depletes you."
+        case .leo:
+            return "This year asks you to express yourself authentically while remaining grounded in reality. Your natural confidence and creativity are assets, but they work best when paired with self-awareness and humility. The challenge is shining brightly without needing constant validation. Create for the joy of creation, lead for the value you bring, not just for the attention it gets you."
+        case .virgo:
+            return "This year asks you to balance your analytical nature with acceptance of imperfection. Your gift for seeing what could be better is valuable, but perfectionism can paralyze progress. The challenge is improving things without being paralyzed by everything that's not yet perfect. Sometimes done is better than perfect. Focus your critical eye on what actually matters."
+        case .libra:
+            return "This year asks you to make decisions without endless deliberation. Your ability to see all sides is valuable, but at some point you need to commit to a direction. The challenge is choosing what's right for you rather than what keeps everyone happy. Not all conflicts are worth avoiding. Sometimes peace comes through difficult conversations, not by sidestepping them."
+        case .scorpio:
+            return "This year asks you to transform while maintaining stability. Your intensity and depth are powerful, but they can also be exhausting if there's no off switch. The challenge is allowing change without destroying everything. You can let go of what no longer serves you without burning your whole life to the ground. Evolution doesn't always require devastation."
+        case .sagittarius:
+            return "This year asks you to ground your vision in practical reality. Your optimism and big-picture thinking are gifts, but they need real-world execution to manifest. The challenge is following through on what you start rather than getting distracted by the next exciting possibility. Commitment isn't prison—it's how dreams become real. Finish something before starting something new."
+        case .capricorn:
+            return "This year asks you to balance ambition with presence. Your drive for achievement is admirable, but don't sacrifice the present for a future that keeps receding. The challenge is working toward goals while actually enjoying the process. Success you can't savor isn't success. Make sure the mountain you're climbing is actually the one you want to stand on top of."
+        case .aquarius:
+            return "This year asks you to balance innovation with connection. Your unique perspective is valuable, but don't let being different become more important than being real. The challenge is staying true to yourself while remaining emotionally available to others. Individuality doesn't require isolation. You can be yourself and belong at the same time."
+        case .pisces:
+            return "This year asks you to balance compassion with boundaries. Your empathy and intuition are gifts, but they can drain you if you absorb everyone's feelings as your own. The challenge is staying open-hearted without losing yourself in others' needs. You can care deeply without carrying everything. Your sensitivity serves you best when you protect it."
+        }
+    }
+    
+    func getYearlyFocus(chart: BirthChart, transits: [CelestialBody]) -> String {
+        // Check Jupiter position for growth areas
+        if let jupiter = transits.first(where: { $0.name == "Jupiter" }) {
+            let jupiterSign = jupiter.position.sign
+            return "Growth opportunities this year center around \(jupiterSign.rawValue) themes. This doesn't mean everything comes easily—it means this is where expansion is possible if you put in the work. Focus your efforts here."
+        }
+        
+        return "This year rewards consistent effort in areas you've already been developing. Don't chase shiny new opportunities that distract from your real path. Double down on what's already working rather than starting from scratch in something new."
+    }
+    
+    func getYearlyAdvice(chart: BirthChart) -> String {
+        let sunSign = chart.sunSign
+        
+        // Element-based yearly advice
+        switch sunSign.element {
+        case .fire:
+            return "Your natural enthusiasm serves you well this year, but pair it with patience. Not everything needs to be immediate. Sustainable success comes from steady fuel, not just bright flames. Start strong, but more importantly, finish."
+        case .earth:
+            return "Your practical approach is exactly what's needed this year. Trust your instinct to build slowly and thoroughly. In a world obsessed with speed, your patience and persistence create lasting value. Don't let anyone rush you out of doing things properly."
+        case .air:
+            return "Your mental agility is an asset this year, but at some point all that thinking needs to become doing. Make decisions and commit to them even when you see other possibilities. Perfect information never arrives—act on good enough information and adjust as you go."
+        case .water:
+            return "Your emotional intelligence is crucial this year. Trust what you feel even when you can't explain it logically. Your intuition is picking up on information others miss. Just remember that feeling everything doesn't mean you need to process everything—some things you can just notice and let pass."
+        }
+    }
+}
+
+// MARK: - Supporting Types for Weekly Insights
+
+private struct WeeklyTransitAspect {
+    let transitPlanet: String
+    let natalPlanet: String
+    let type: AspectType
 }
 
 // MARK: - Data Models

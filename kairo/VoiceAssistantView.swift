@@ -44,8 +44,8 @@ struct VoiceAssistantView: View {
             // CRITICAL: Clean up resources when leaving the tab - with proper error handling
             Task { @MainActor in
                 do {
-                    // Stop playback first if playing
-                    if elevenLabsService.isPlaying {
+                    // Stop playback first if playing (only if ElevenLabs is enabled)
+                    if FeatureFlags.enableElevenLabs && elevenLabsService.isPlaying {
                         elevenLabsService.stopPlayback()
                         // Small delay to let audio session cleanup
                         try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
@@ -76,7 +76,7 @@ struct VoiceAssistantView: View {
             isRecording = newValue
         }
         .onChange(of: elevenLabsService.isPlaying) { newValue in
-            if !newValue && isProcessing {
+            if FeatureFlags.enableElevenLabs && !newValue && isProcessing {
                 isProcessing = false
             }
         }
@@ -115,13 +115,35 @@ struct VoiceAssistantView: View {
                     .padding(.horizontal, 40)
                 
                 // Show Kaira description when idle
-                if !isRecording && !isProcessing && !elevenLabsService.isPlaying && !elevenLabsService.isSynthesizing {
+                if !isRecording && !isProcessing && 
+                   (!FeatureFlags.enableElevenLabs || (!elevenLabsService.isPlaying && !elevenLabsService.isSynthesizing)) {
                     Text("your personal astrologer")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.5))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 50)
                 }
+            }
+            
+            // Show text response when ElevenLabs is disabled
+            if !FeatureFlags.enableElevenLabs && !lastResponse.isEmpty {
+                ScrollView {
+                    Text(lastResponse)
+                        .font(.body)
+                        .foregroundColor(.white.opacity(0.85))
+                        .multilineTextAlignment(.leading)
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                )
+                        )
+                        .padding(.horizontal, 30)
+                }
+                .frame(maxHeight: 200)
             }
             
             // Interactive audio visualizer (replaces button)
@@ -156,19 +178,25 @@ struct VoiceAssistantView: View {
                 .animation(.easeInOut(duration: 0.3), value: isRecording)
             }
         }
-        .disabled(isProcessing || elevenLabsService.isSynthesizing)
-        .opacity((isProcessing || elevenLabsService.isSynthesizing) ? 0.7 : 1.0)
+        .disabled(isProcessing || (FeatureFlags.enableElevenLabs && elevenLabsService.isSynthesizing))
+        .opacity((isProcessing || (FeatureFlags.enableElevenLabs && elevenLabsService.isSynthesizing)) ? 0.7 : 1.0)
         .animation(.easeInOut(duration: 0.3), value: isProcessing)
     }
     
     // MARK: - Current Agent State
     private var currentAgentState: AgentState {
-        if elevenLabsService.isSynthesizing {
-            return .thinking
-        } else if elevenLabsService.isPlaying {
-            return .speaking
-        } else if isRecording {
+        if FeatureFlags.enableElevenLabs {
+            if elevenLabsService.isSynthesizing {
+                return .thinking
+            } else if elevenLabsService.isPlaying {
+                return .speaking
+            }
+        }
+        
+        if isRecording {
             return .listening
+        } else if isProcessing {
+            return .thinking
         } else {
             return .idle
         }
@@ -177,11 +205,15 @@ struct VoiceAssistantView: View {
     
     // MARK: - Status Text
     private var currentStatus: String {
-        if elevenLabsService.isSynthesizing {
-            return "thinking..."
-        } else if elevenLabsService.isPlaying {
-            return "speaking..."
-        } else if isProcessing {
+        if FeatureFlags.enableElevenLabs {
+            if elevenLabsService.isSynthesizing {
+                return "thinking..."
+            } else if elevenLabsService.isPlaying {
+                return "speaking..."
+            }
+        }
+        
+        if isProcessing {
             return "reading your chart..."
         } else if isRecording {
             return "listening..."
@@ -194,14 +226,14 @@ struct VoiceAssistantView: View {
     
     // MARK: - Actions
     private func toggleRecording() {
-        // Stop any current playback
-        if elevenLabsService.isPlaying {
+        // Stop any current playback (only if ElevenLabs is enabled)
+        if FeatureFlags.enableElevenLabs && elevenLabsService.isPlaying {
             elevenLabsService.stopPlayback()
             return
         }
         
         // Don't start new recording if already processing
-        if isProcessing || elevenLabsService.isSynthesizing {
+        if isProcessing || (FeatureFlags.enableElevenLabs && elevenLabsService.isSynthesizing) {
             return
         }
         
@@ -252,8 +284,15 @@ struct VoiceAssistantView: View {
                 
                 print("🤖 AI response: \(response)")
                 
-                // Synthesize and play the response using ElevenLabs
-                try await elevenLabsService.synthesizeAndPlay(text: response)
+                // Check feature flag for ElevenLabs
+                if FeatureFlags.enableElevenLabs {
+                    // Synthesize and play the response using ElevenLabs
+                    try await elevenLabsService.synthesizeAndPlay(text: response)
+                } else {
+                    // Voice synthesis disabled - just show text response
+                    isProcessing = false
+                    print("💬 ElevenLabs disabled, showing text response only")
+                }
                 
             } catch {
                 errorMessage = "Sorry, I couldn't process that request: \(error.localizedDescription)"

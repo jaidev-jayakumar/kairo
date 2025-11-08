@@ -1749,28 +1749,28 @@ class AstrologyService {
         
         switch normalizedAngle {
         case 0...15:
-            phase = "New Moon Energy"
-            description = "This is your perfect time for new beginnings and setting intentions. Your emotional world and identity are aligned, creating powerful manifesting energy. What you plant now will grow. Trust your instincts and start fresh."
+            phase = "fresh start (new moon)"
+            description = "This is the best time of the month to start new projects, set intentions, or turn the page on what came before. Your emotional and physical energy resets with the new moon, giving you a clean slate. Make a list of what you want to accomplish this lunar cycle. The seeds you plant now - whether literal goals or intentions - have the best chance of growing over the coming weeks. This is your monthly renewal period. Use it to recommit to what matters or pivot in a new direction. Fresh starts are favored when the moon is new."
             influence = .positive
             
         case 75...105:
-            phase = "First Quarter Tension"
-            description = "Dynamic energy that pushes you to take action. Use this creative tension constructively. You're feeling pressure to move forward—that's exactly what this phase is for. Channel the restlessness into progress."
+            phase = "push through resistance"
+            description = "You're feeling tension and friction, but this is actually productive energy pushing you to take action. Don't give up on what you started at the new moon - this challenging phase is part of the process. The discomfort you feel is momentum trying to break through resistance. Take action even when you don't feel like it. This is when effort matters most. The temptation to quit is strong, but results come through pushing past this exact point. Channel the tension constructively rather than letting it discourage you. This friction is temporary but necessary for growth."
             influence = .challenging
             
         case 165...195:
-            phase = "Full Moon Illumination"
-            description = "You're experiencing heightened awareness and emotional clarity. Relationships and patterns that were hidden are now visible. This illumination is showing you the truth. Accept what you see and make decisions from this place of clarity."
+            phase = "everything becomes clear (full moon)"
+            description = "The full moon illuminates what was hidden. Truth comes out and situations reach their peak. You're able to see things about people, situations, and yourself that weren't visible before. This clarity is powerful - use it to make decisions based on what's now obvious. Relationships and patterns that were unclear become crystal clear. This is the time to release what isn't working now that you can see it plainly. The full moon reveals what needs to be acknowledged or let go. Trust what becomes visible and act on the clarity you're given."
             influence = .transformative
             
         case 255...285:
-            phase = "Last Quarter Release"
-            description = "This is your perfect time to let go of what no longer serves you. You're being asked to clear space for new growth. Release what's complete. The more you surrender now, the more room you create for what's coming."
+            phase = "let go and rest"
+            description = "This is the time to wrap things up and clear space for the next cycle. Finish what you can and release what you can't complete. The energy is waning, signaling you to rest and recharge rather than start new things. Don't begin anything major during this phase - endings are needed before new beginnings can happen. Use this time to tie up loose ends, clear physical and mental clutter, and prepare for the fresh start coming at the new moon. Your body and mind need the downtime. Honor the natural rhythm of release and rest."
             influence = .neutral
             
         default:
-            phase = "Lunar Flow"
-            description = "You're flowing with gentle lunar energy supporting your natural rhythms and emotional processing. Trust your feelings and honor your pace. There's no rush—let things unfold naturally."
+            phase = "lunar flow"
+            description = "You're in a normal flow period of the lunar cycle. Your emotions are processing naturally without extreme highs or lows. Trust your feelings as they arise and honor your natural pace. There's no rush to force anything or make major moves right now. This is about staying present with how you feel and allowing things to unfold organically. Your emotional rhythms are steady and reliable during this phase. Use this stability to maintain what you've built and stay attuned to your inner world without drama or urgency."
             influence = .neutral
         }
         
@@ -1840,11 +1840,11 @@ class AstrologyService {
     
     private func createLoveCycle(aspectType: AspectType, sunSign: ZodiacSign) -> AstrologicalCycle {
         let isHarsh = aspectType == .square || aspectType == .opposition
-        let title = isHarsh ? "Patience in Love" : "Love Awakens"
+        let title = isHarsh ? "dating frustrations (be patient)" : "good time for dating"
         
         let description = isHarsh 
-            ? "You'll find yourself being impatient in the ways you pursue romantic interests. To navigate this, patience is key. \(sunSign.rawValue), it's crucial to be mindful of how you treat those you're dating. Exercise patience with them and yourself. Remember, you have nothing to prove."
-            : "Venus energy enhances your attractiveness and ability to connect with others on a heart level. You'll find opportunities for meaningful connections flowing naturally. Embrace this period of romantic possibility."
+            ? "You're feeling more impatient than usual when it comes to dating and romance. This can lead to coming on too strong or rushing things that need time to develop. Be mindful of how you approach romantic situations during this brief period. Give people space and practice patience with both others and yourself. Don't make major relationship decisions or commitments right now - your judgment might be clouded by impatience. This is only a few days, so focus on self-awareness rather than forcing romantic outcomes. The frustration will pass quickly."
+            : "Your charm and natural attractiveness are heightened during this brief but favorable period. This is an excellent time to schedule dates, attend social events, or ask someone out if you've been thinking about it. Romantic connections flow more easily than usual and people are receptive to your advances. Put yourself out there socially and romantically - your timing is good. If you're in a relationship, plan something special together. Your warmth and appeal are enhanced, making this a sweet window for love and connection. Enjoy the boost in romantic energy while it lasts."
         
         return AstrologicalCycle(
             title: title,
@@ -1857,62 +1857,72 @@ class AstrologyService {
     }
     
     private func generateCycleTitle(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType) -> String {
-        // Generate life-area focused titles based on planet combinations
+        // Generate direct, actionable titles
         let isHarsh = aspectType == .square || aspectType == .opposition
         
         switch (transitPlanet.name, natalPlanet.name) {
         // Love & Relationships (Venus combinations)
         case ("Venus", "Sun"), ("Venus", "Moon"), ("Neptune", "Venus"):
-            return isHarsh ? "Patience in Love" : "Love Awakens"
+            return isHarsh ? "dating frustrations (be patient)" : "good time for dating"
         case ("Venus", "Mars"):
-            return isHarsh ? "Romantic Tension" : "Passion Ignites"
+            return isHarsh ? "relationship tension" : "strong attraction energy"
             
         // Communication & Mind (Mercury combinations)
         case ("Mercury", "Sun"), ("Mercury", "Moon"), ("Uranus", "Mercury"):
-            return isHarsh ? "Patience in Turmoil" : "Mental Clarity"
+            return isHarsh ? "miscommunication likely" : "clear thinking"
         case ("Mercury", "Mars"):
-            return isHarsh ? "Words as Weapons" : "Sharp Communication"
+            return isHarsh ? "arguments incoming" : "speak your mind"
             
         // Career & Action (Mars, Saturn to Sun/Mars)
         case ("Saturn", "Sun"), ("Saturn", "Mars"):
-            return isHarsh ? "Career Challenges" : "Building Success"
+            return isHarsh ? "work feels hard" : "career progress"
         case ("Mars", "Sun"):
-            return isHarsh ? "Energy Drain" : "Vitality Boost"
+            return isHarsh ? "low energy period" : "high energy"
             
         // Personal Growth (Jupiter combinations)
         case ("Jupiter", "Sun"), ("Jupiter", "Moon"):
-            return "Unlock Your Potential"
+            return isHarsh ? "overconfidence alert" : "good luck window"
         case ("Jupiter", "Venus"):
-            return "Abundance Flows"
+            return isHarsh ? "overspending risk" : "money opportunities"
         case ("Jupiter", "Mercury"):
-            return "Expand Your Mind"
+            return isHarsh ? "too many ideas" : "learning comes easy"
             
         // Transformation (Pluto combinations)
         case ("Pluto", "Sun"), ("Pluto", "Moon"):
-            return isHarsh ? "Deep Soul Work" : "Power Emerges"
+            return isHarsh ? "major life changes" : "personal power up"
         case ("Pluto", "Venus"):
-            return isHarsh ? "Love Transforms" : "Magnetic Attraction"
+            return isHarsh ? "relationship intensity" : "deep connections"
+        case ("Pluto", "Mars"):
+            return isHarsh ? "power struggles" : "unstoppable drive"
             
         // Uranus transits - Break free & Change
         case ("Uranus", "Venus"):
-            return isHarsh ? "Unexpected Changes" : "Friendship Unlocks Future"
+            return isHarsh ? "relationship surprises" : "exciting social life"
         case ("Uranus", "Moon"):
-            return isHarsh ? "Emotional Breakthrough" : "Intuitive Liberation"
+            return isHarsh ? "emotional ups and downs" : "breakthrough feelings"
         case ("Uranus", "Mars"):
-            return isHarsh ? "Restless Energy" : "Bold Innovation"
+            return isHarsh ? "restless energy" : "bold moves pay off"
+        case ("Uranus", "Sun"):
+            return isHarsh ? "need for freedom" : "be yourself fully"
             
         // Neptune transits - Spiritual & Intuitive
         case ("Neptune", "Sun"), ("Neptune", "Moon"):
-            return isHarsh ? "Confusion Clears" : "Intuition Heightens"
-            
-        // Creativity & Expression
+            return isHarsh ? "clarity issues" : "strong intuition"
         case ("Neptune", "Mercury"):
-            return isHarsh ? "Dream vs Reality" : "Creative Flow"
-        case ("Uranus", "Sun"):
-            return isHarsh ? "Break the Mold" : "Authenticity Shines"
+            return isHarsh ? "confusion/deception" : "creative thinking"
+        case ("Neptune", "Venus"):
+            return isHarsh ? "rose-colored glasses" : "romantic idealism"
+            
+        // Saturn
+        case ("Saturn", "Moon"):
+            return isHarsh ? "emotional heaviness" : "emotional maturity"
+        case ("Saturn", "Venus"):
+            return isHarsh ? "relationship tests" : "commitment ready"
+        case ("Saturn", "Mercury"):
+            return isHarsh ? "mental blocks" : "structured thinking"
             
         default:
-            return isHarsh ? "Navigate Tension" : "Embrace Growth"
+            return isHarsh ? "challenging period" : "favorable period"
         }
     }
     
@@ -1932,101 +1942,285 @@ class AstrologyService {
     }
     
     private func generateCycleDescription(transitPlanet: CelestialBody, natalPlanet: CelestialBody, aspectType: AspectType, sunSign: ZodiacSign) -> String {
-        // Create personalized, direct-address descriptions based on planetary combinations
+        // Direct, actionable descriptions
+        let isHarsh = aspectType == .square || aspectType == .opposition
         
-        switch (transitPlanet.name, natalPlanet.name, aspectType) {
-        // Venus - Love cycles
-        case ("Venus", "Sun", .trine), ("Venus", "Moon", .trine):
-            return "A period of opportunity is on the horizon, focusing on your natural talents and creativity. This is your chance to express yourself as you've always wanted, without stress. Seize this moment. A touch of luck will complement your skills, but it's your authenticity that will truly make a difference. The world is ready to embrace you. Just taking a step is better than standing still. You'll find your path."
+        switch (transitPlanet.name, natalPlanet.name) {
+        // VENUS - Love & Relationships
+        case ("Venus", "Sun"), ("Venus", "Moon"):
+            if isHarsh {
+                return "You're likely feeling more impatient than usual when it comes to romance and relationships. This can lead to coming on too strong or rushing things that need time to develop naturally. Be mindful of how you approach dating situations during this period. Give people space and practice patience with both others and yourself. Avoid making major relationship decisions or commitments right now - your judgment might be clouded by impatience. This is a short phase that will pass in a couple weeks, so focus on self-awareness rather than forcing outcomes."
+            } else {
+                return "This is an excellent time to put yourself out there romantically and socially. Your natural charm and attractiveness are heightened, making you more magnetic to others. People are drawn to your energy right now. Take advantage of this period by scheduling dates, attending social events, or working on creative projects. If you've been thinking about asking someone out or expressing romantic interest, now is the time. Your timing is good and others are receptive to your advances. Enjoy this boost in confidence and social ease."
+            }
+        case ("Venus", "Mars"):
+            if isHarsh {
+                return "You're experiencing increased sexual tension and potential friction in romantic relationships. Your desires might feel more intense, but this can lead to unnecessary conflict if not channeled properly. Avoid starting fights over minor issues or letting small irritations escalate. Instead, redirect this passionate energy into physical activities like working out, or into creative projects that allow for emotional expression. This transit is temporary, so practice restraint in heated moments and focus on constructive outlets for your intensity."
+            } else {
+                return "Strong attraction energy and heightened passion characterize this period. Your magnetism is at a peak, making this an ideal time for romance, flirting, and expressing your desires. If you've been thinking about making a move on someone, your confidence and timing are aligned right now. This is also great energy for creative projects that require passion and drive. Your ability to attract what you want is enhanced, so be bold in pursuing romantic interests. The chemistry you create now can lead to meaningful connections."
+            }
+        case ("Venus", "Mercury"):
+            if isHarsh {
+                return "Communication in relationships might feel slightly off. What you're trying to express about your feelings doesn't quite land the way you intend. Misunderstandings in romantic contexts are possible. Take extra care to clarify what you mean when discussing relationship matters. Your words and feelings might not be as aligned as usual. This is a minor irritation rather than a major problem, but being aware of it helps you avoid unnecessary confusion in your connections."
+            } else {
+                return "Your ability to express feelings and communicate about relationships is enhanced. This is excellent timing for important conversations about love, values, or what you want in relationships. You can articulate your feelings clearly and charmingly. Good for writing love letters, having the define-the-relationship talk, or expressing appreciation to people you care about. Your words and feelings are aligned, making communication in romantic and social contexts smooth and effective."
+            }
+        case ("Venus", "Venus"):
+            if isHarsh {
+                return "You're reassessing what you value in relationships and whether you're getting your needs met. Some dissatisfaction with your love life or social connections might surface. This isn't necessarily bad - it's showing you where your values have evolved. Don't make drastic changes based on temporary dissatisfaction. Use this time to reflect on what you truly want versus what you've settled for. Your values are updating, which can feel uncomfortable but leads to better alignment later."
+            } else {
+                return "Your sense of values and what brings you pleasure are harmonizing beautifully. This is a lovely time for self-care, enjoying beauty, and treating yourself well. Relationships feel good and you're able to give and receive love freely. Your aesthetic sense is strong - good for decorating, shopping for clothes, or any activity involving beauty and pleasure. You know what you want and you're not afraid to pursue it. Enjoy this period of feeling good about your connections and choices."
+            }
             
-        case ("Venus", "Sun", .square), ("Venus", "Moon", .square):
-            return "You'll find yourself being impatient in the ways you pursue romantic interests. To navigate this, patience is key. \(sunSign.rawValue), it's crucial to be mindful of how you treat those you're dating. Exercise patience with them and yourself. Remember, you have nothing to prove."
+        // MERCURY - Communication & Thinking
+        case ("Mercury", "Sun"), ("Mercury", "Moon"):
+            if isHarsh {
+                return "Communication challenges are likely during this period. You might find that people misinterpret what you're trying to say, or you may struggle to express yourself clearly. Double-check all important texts and emails before sending them. Take extra time to clarify your meaning in conversations. It's wise to write things down rather than relying on verbal agreements. For particularly important messages or decisions, wait 24 hours before sending or committing. This gives you time to review with fresh eyes. Your thinking might feel scattered or confused, so avoid making major decisions based on current perceptions. This passes quickly."
+            } else {
+                return "Your mind is exceptionally sharp and clear right now. This is the perfect time for important conversations, negotiations, presentations, or any communication that requires mental clarity. Your ability to articulate your thoughts and ideas is enhanced, making others receptive to what you have to say. Schedule important calls, meetings, or presentations during this period. It's also an excellent time for learning new skills, writing, or any intellectual work. Your mental processing speed is up, so tackle complex problems or projects that require focused thinking. Take advantage of this mental clarity while it lasts."
+            }
+        case ("Mercury", "Mars"):
+            if isHarsh {
+                return "Arguments and heated exchanges come more easily than usual. Your words might be sharper or harsher than you intend, leading to conflicts you'll regret later. Before responding in anger, count to ten and consider if what you're about to say will help or hurt the situation. If a conversation becomes heated, take a break and revisit it when emotions have cooled. This isn't the ideal time to 'speak your truth' in confrontational ways - you're likely to be more aggressive than necessary. Channel this mental energy into productive debates or problem-solving rather than personal conflicts."
+            } else {
+                return "Your wit is quick and your thinking is sharp and decisive. This is excellent energy for speaking up in meetings, making your case, or engaging in productive debates. Your ideas land well with others because you can articulate them clearly and confidently. Great timing for sales calls, negotiating deals, or any situation requiring mental agility and assertiveness. Your ability to think on your feet is enhanced, so don't hesitate to engage in discussions or presentations. Use this mental edge to advance projects or ideas that require clear, confident communication."
+            }
+        case ("Mercury", "Mercury"):
+            if isHarsh {
+                return "Your usual way of thinking and communicating is being challenged. You might second-guess how you express yourself or feel like your mental processes aren't working as smoothly as normal. This is actually your mind updating and evolving, though it feels uncomfortable. Don't overthink the overthinking. Give yourself grace if communication feels harder than usual. This mental friction is temporary but leads to better ways of processing and expressing information later."
+            } else {
+                return "Your mind is refreshed and your communication style feels natural and effective. This is a mental renewal period where your thoughts flow clearly and you express yourself well. Good timing for any intellectual work, writing, learning, or communication that matters to you. Your thinking is aligned with who you're becoming. Take advantage of this mental clarity to tackle projects requiring clear thought and effective communication."
+            }
+        case ("Mercury", "Venus"):
+            if isHarsh {
+                return "Slight disconnect between what you think and what you value. Your logic and your heart might be giving you different messages. This minor tension is actually useful - it's showing you where your thoughts and values need integration. Don't force agreement between head and heart. Let them have their conversation. The synthesis that emerges will be more authentic than forcing either side to win."
+            } else {
+                return "Lovely harmony between your thoughts and your values. You can think clearly about what matters to you and communicate about it effectively. Great for conversations about relationships, money, or anything you care about. Your ability to think and talk about what you value is enhanced. This makes negotiations, relationship discussions, or any communication about what matters to you particularly effective. Your charm and intelligence work together beautifully."
+            }
             
-        // Mercury - Communication cycles
-        case ("Mercury", "Moon", .square), ("Mercury", "Sun", .square):
-            return "You might find your sense of humor offbeat lately, leading to frustration in how you perceive the world. This impatience originates from how you interpret and handle your emotions, leading to frustration over the time it takes to accomplish tasks. Be patient with your process and communicate your needs clearly."
+        // MARS - Energy & Action
+        case ("Mars", "Sun"):
+            if isHarsh {
+                return "You're experiencing lower energy levels and increased frustration during this period. Your usual drive and confidence might feel depleted, making it harder to assert yourself effectively. Don't push yourself too hard physically - your body needs extra rest right now. Avoid confrontations or competitive situations where you need to be at your best, as you don't have your usual edge or stamina. This is a time for strategic retreat rather than aggressive action. Focus on maintenance rather than starting new initiatives. Conserve your energy and wait for this phase to pass before making major moves or engaging in conflicts. Rest and recuperation serve you better than force."
+            } else {
+                return "Your energy levels and confidence are peaking right now. This is the ideal time to hit the gym hard, start new projects, or make bold moves you've been contemplating. Your timing is excellent and you have the drive and stamina to back up your ambitions. Take initiative on goals that require courage and sustained effort. Others respond well to your assertiveness during this period. This is your window for physical challenges, starting fitness routines, or tackling projects that require decisive action. Your ability to push through obstacles is enhanced, so don't hesitate to take on challenges that would normally intimidate you."
+            }
+        case ("Mars", "Mars"):
+            if isHarsh {
+                return "You're feeling unusually impatient and irritable. Everything feels like it's moving too slowly and you want results immediately. This impatience can lead to rash decisions or unnecessary conflicts if not managed carefully. Practice patience with yourself and others, even when it feels impossible. Don't try to force outcomes or push situations that aren't ready to move forward. Take your aggression out at the gym or through physical activity rather than on people in your life. This is a test of your ability to manage frustration productively. The feeling will pass, but how you handle it now matters for your relationships and goals."
+            } else {
+                return "This marks a fresh start in terms of your motivation and drive. Your ability to take action and make things happen is renewed. This is the perfect time to begin new fitness routines, start projects you've been putting off, or launch ventures that require sustained energy. Your actions during this period lead to tangible results. You're entering a new cycle of initiative and assertiveness. Take advantage of this motivational boost by committing to goals that matter to you. Your follow-through is strong now, so make commitments you can keep."
+            }
+        case ("Mars", "Moon"):
+            if isHarsh {
+                return "Your emotions and your drive are in conflict. You might feel emotionally triggered into reactive behavior or find your feelings are making you more aggressive than usual. There's tension between what you feel and what you want to do about it. Don't act on emotions in the heat of the moment - you'll likely overreact. Give yourself space to feel without immediately acting. This friction between feelings and action is teaching you emotional management. Wait until the intensity passes before taking action on emotional matters."
+            } else {
+                return "Your emotions and your drive are aligned, giving you courage to act on your feelings. If you've been feeling something strongly, you now have the energy to do something about it. This is excellent for taking action on emotional needs or asserting yourself in personal matters. Your instincts and your ability to act work together well. Trust your gut and follow through. Emotional clarity combined with the courage to act makes this a powerful period for addressing what matters to you personally."
+            }
+        case ("Mars", "Venus"):
+            if isHarsh {
+                return "Tension between what you want and how you pursue it. You might be too aggressive in going after pleasure, romance, or what you value. The chase might be overwhelming what you're actually trying to attract. Ease up on the pursuit and let things come to you more naturally. Forcing desire rarely works. This transit asks you to find balance between pursuing what you want and allowing space for it to develop naturally. Passion is high but patience is needed."
+            } else {
+                return "Perfect alignment between desire and action. What you want and your ability to go after it work beautifully together. This is passionate, motivated energy for pursuing romance, creative projects, or anything you value. Your drive enhances your attractiveness and charm. Take action on desires - your timing and approach are good. This is dynamic energy for both love and creative pursuits. Channel this into making things happen that bring pleasure and fulfillment."
+            }
+        case ("Mars", "Mercury"):
+            if isHarsh {
+                return "Mental agitation and argumentative tendencies. Your mind is revved up and ready to fight, which can lead to unnecessary conflicts. Words come out more aggressively than you intend. Your thinking is fast but potentially reckless. Slow down before speaking or deciding. This mental restlessness needs physical outlet - exercise before important conversations. Don't let a racing mind push you into verbal battles you don't actually want. Channel this mental energy into problem-solving rather than arguing."
+            } else {
+                return "Sharp mind combined with decisive action. You can think quickly and act on your thoughts effectively. This is excellent for any work requiring both mental clarity and physical execution. Great for projects that need both planning and doing. Your ability to think strategically and act boldly is enhanced. Make decisions and implement them. Your mental and physical energies work together productively. Use this to tackle projects requiring both brain and brawn."
+            }
             
-        case ("Mercury", "Sun", .trine), ("Mercury", "Moon", .trine):
-            return "Your communication flows effortlessly now. You'll find the right words at the right time, making this an ideal period for important conversations, negotiations, or creative projects. Trust your mental clarity and express yourself freely."
+        // JUPITER - Luck & Growth
+        case ("Jupiter", "Sun"), ("Jupiter", "Moon"):
+            if isHarsh {
+                return "You're feeling more confident than usual, but this can tip into overconfidence if you're not careful. You might be tempted to overpromise on what you can deliver or take on more than you can realistically handle. Avoid gambling or making risky financial decisions based on optimism alone. Your enthusiasm is high, but your judgment about limits and boundaries might be off. Be realistic about your capabilities and don't let excitement cloud your assessment of situations. This phase can lead to overextension if you say yes to everything. Choose your commitments wisely and be honest about what you can actually accomplish."
+            } else {
+                return "This is one of your luckiest periods, where opportunities seem to appear more easily and things flow in your favor. Your confidence is well-placed and others are receptive to your ambitions. This is ideal timing to apply for jobs you want, ask for raises or promotions, or take calculated risks on ventures that stretch you beyond your comfort zone. Say yes to opportunities that offer growth, even if they feel intimidating. Your ability to expand and succeed is enhanced right now. Good things come more easily during this window, so take advantage of the favorable timing. Trust your instincts about opportunities - they're likely pointing you in the right direction."
+            }
+        case ("Jupiter", "Venus"):
+            if isHarsh {
+                return "You're feeling generous and abundant, which can lead to overspending if you're not mindful. The temptation to splurge on luxuries or experiences will be strong. Skip impulse purchases and delay major financial decisions for a few weeks until you have more objectivity. Your social life might also feel expensive as you're drawn to lavish experiences or treating others. Enjoy yourself, but set limits to avoid financial regret later. This is temporary extravagance that seems justified in the moment but might not serve your long-term financial health."
+            } else {
+                return "Money opportunities and social expansion characterize this period. Your network and social connections are opening doors to new possibilities, both financially and personally. This is good timing to ask for that raise, explore investment opportunities, or expand your income streams. Your charm and likeability are enhanced, making others want to support your success. Network actively and attend social events - you never know which connection might lead to your next opportunity. Your generosity attracts generosity from others. Invest in relationships and opportunities that feel expansive and growth-oriented."
+            }
+        case ("Jupiter", "Mercury"):
+            if isHarsh {
+                return "Your mind is overflowing with ideas, but this abundance creates scattered focus. You want to learn everything and start multiple projects simultaneously, which leads to nothing getting finished. Pick ONE thing that matters most and commit to completing it before starting something new. Don't sign up for new courses or training programs until you've finished what you've already started. Your enthusiasm for learning is great, but it needs focus to be productive. Quality over quantity is the lesson here. Resist the temptation to spread yourself intellectually thin."
+            } else {
+                return "Learning comes exceptionally easily right now. Your mind is absorbing information quickly and making connections between concepts effortlessly. This is an ideal time to take courses, dive into books, or develop new skills. Your understanding is enhanced and you're able to grasp complex topics more readily than usual. Great timing for teaching others or sharing your knowledge, as you can communicate ideas clearly and inspiringly. Explore subjects that interest you - your mind is ready to expand. Study, teach, write, or engage in any intellectual pursuit. Your mental growth potential is maximized."
+            }
+        case ("Jupiter", "Mars"):
+            if isHarsh {
+                return "Your energy and confidence are both elevated, but this can lead to overexertion or reckless behavior. Don't overdo workouts or physical activity - your enthusiasm might push you beyond safe limits. Avoid taking unnecessary risks, especially ones that could result in injury. Your judgment about what you can handle physically might be off. Be cautious with impulsive actions that feel exciting in the moment but could have negative consequences. Channel this abundant energy wisely rather than burning out or hurting yourself. Moderation isn't your natural state right now, but it's what's needed."
+            } else {
+                return "The perfect combination of confidence and action energy. Your drive is high and luck backs up your efforts, creating a powerful window for achievement. Take bold steps on goals that require both courage and sustained effort. Your energy levels are excellent and your timing is good, so don't hold back on initiatives that matter to you. This is the time to go for it - your ability to succeed through decisive action is enhanced. Physical pursuits and ambitious projects both benefit from this dynamic energy. Trust your instincts and act on your convictions. Fortune favors your bold moves right now."
+            }
+        case ("Jupiter", "Saturn"):
+            if isHarsh {
+                return "Tension between expansion and contraction, between optimism and realism. You want to grow but feel constrained by responsibilities or limitations. This is actually teaching you sustainable growth - not everything that expands quickly lasts. The friction between wanting more and accepting limits is creating wisdom about realistic ambition. Don't let either extreme win - find the balance between reaching for more and being practical about what's actually achievable. This builds lasting success rather than empty growth."
+            } else {
+                return "Excellent balance between optimism and realism, between expansion and structure. You can grow in ways that last because you're being both ambitious and practical. This is ideal for long-term planning, building businesses, or any venture requiring both vision and discipline. Your ability to be optimistic while staying grounded creates real, sustainable success. Take advantage of this rare balance - grow with wisdom and structure."
+            }
             
-        // Uranus - Friendship & Change cycles
-        case ("Uranus", "Venus", .trine), ("Uranus", "Moon", .trine), ("Uranus", "Venus", .sextile), ("Uranus", "Moon", .sextile):
-            return "A period of harmony in your friendships awaits. You'll find opportunities stemming from a significant relationship with a friend. These opportunities will be unique, often coming through unexpected social connections. Stay open to new people and unconventional alliances."
+        // SATURN - Responsibility & Hard Work
+        case ("Saturn", "Sun"), ("Saturn", "Mars"):
+            if isHarsh {
+                return "Work and responsibilities feel particularly heavy during this period. Authority figures may be testing you, or you're facing significant delays and obstacles in reaching your goals. This is a character-building phase that requires persistence and patience. Don't quit now, even though it feels hard - the lessons you're learning are strengthening your foundation for future success. Results take longer than you'd like, but they will come. This is about proving yourself through sustained effort rather than quick wins. Keep pushing forward methodically. The difficulty is temporary, but the strength you build lasts."
+            } else {
+                return "Your hard work and discipline are finally paying off. This is a period where recognition, promotions, or tangible career advancement become possible. Others are noticing your consistent effort and reliability. This is ideal timing for building foundations that will serve you long-term. Establish your authority in your field or take on leadership responsibilities. Commit to structures and systems that support your long-term goals. Your ability to be taken seriously and build something lasting is enhanced. Make investments (time, energy, resources) in your future during this favorable window."
+            }
+        case ("Saturn", "Moon"):
+            if isHarsh {
+                return "You're experiencing emotional heaviness or a sense of isolation. Your feelings might seem darker or more serious than usual, and you could feel lonely even when surrounded by people. This can be a tough period emotionally. Reach out to friends or family even when you don't feel like it - connection helps. If the heaviness persists or becomes overwhelming, consider seeing a therapist. This phase is teaching you about your emotional needs and boundaries, but it doesn't feel good in the moment. Remember this is temporary. The feelings will lift, but addressing what they're showing you is important."
+            } else {
+                return "You're developing emotional maturity and stability. Your feelings become more grounded and reliable, helping you make better decisions. This is an excellent time to set healthy boundaries in relationships or establish patterns that support your emotional wellbeing. You're learning to take your emotional needs seriously without being controlled by passing moods. This is about building emotional resilience and learning to parent yourself effectively. The groundwork you lay now for emotional health pays dividends for years. Take your feelings seriously and create structures that honor them."
+            }
+        case ("Saturn", "Venus"):
+            if isHarsh {
+                return "Relationships are being tested. Commitment issues, fears about intimacy, or questions about whether you're with the right person may surface. This isn't the time to make permanent decisions like breakups or divorces - you're seeing through a critical lens that might be too harsh. Instead, use this period to work through problems and address what's not working. Couples therapy can be particularly helpful now. The test is whether you can work through difficulties rather than run from them. Reassess after this phase passes. Some relationships won't survive this test, and that's information, but don't act hastily."
+            } else {
+                return "Serious relationships deepen and strengthen during this period. You're ready for greater commitment and can handle the responsibilities that come with it. This is favorable timing for engagements, defining relationship expectations, or making long-term plans together. You're building something lasting rather than just enjoying surface-level connection. Your ability to be realistic and mature in relationships is enhanced. Take relationships seriously and invest in ones that have real potential. This is about quality and commitment rather than casual connection."
+            }
+        case ("Saturn", "Mercury"):
+            if isHarsh {
+                return "You're experiencing mental blocks, self-doubt about your intelligence, or difficulty learning new material. Your mind feels slower or more critical than usual. Push through the resistance and study anyway - this is building mental discipline that will serve you later. Don't let self-doubt stop you from engaging with challenging material. The difficulty is the point - you're developing intellectual rigor and persistence. Your thinking might be more pessimistic or critical, so balance this by noting your progress. This mental challenge is temporary but valuable for long-term intellectual growth."
+            } else {
+                return "Your thinking is unusually focused and serious, perfect for long-term study, detailed writing, or structured planning. Your concentration is strong and you can handle complex, challenging material. This is ideal for academic work, research, or any mental task requiring sustained attention and discipline. You're able to think through problems methodically and create logical structures. Your communication takes on more authority and people take your ideas seriously. Use this period for intellectual work that requires depth and rigor. Build knowledge and skills that will serve you long-term."
+            }
+        case ("Saturn", "Jupiter"):
+            if isHarsh {
+                return "Growth feels blocked or slowed by practical realities. Your ambitions meet resistance from circumstances or limitations. This isn't punishment - it's teaching you sustainable growth. Fast expansion without foundation crumbles. The delays and obstacles are ensuring what you build lasts. Trust the process even when it feels frustrating. Real success requires both vision and structure. This transit is providing the structure, even though it's uncomfortable."
+            } else {
+                return "Disciplined expansion and structured growth. You can build something that lasts because you're combining optimism with realism. This is excellent for long-term business planning, education that requires commitment, or any ambition that needs both vision and practical execution. Your dreams meet reality in productive ways. Take advantage of this to lay foundations for lasting success."
+            }
             
-        case ("Uranus", "Mercury", _):  // Catch ALL Uranus-Mercury aspects
-            return "Revolutionary thinking emerges as new perspectives awaken in your mind. Breakthrough insights about communication, technology, or learning are highlighted. \(sunSign.rawValue), you're being mentally upgraded—embrace innovative ideas that challenge old patterns."
+        // URANUS - Sudden Change & Freedom  
+        case ("Uranus", "Sun"):
+            if isHarsh {
+                return "You're experiencing intense restlessness and a strong need for freedom or change. Your identity is evolving in ways that feel uncomfortable, and you might feel trapped by current circumstances. Don't quit your job or make other major life changes impulsively during this phase - these feelings are important signals but need thoughtful action, not reactive decisions. Make changes gradually and deliberately. The discomfort you feel is actually your authentic self trying to emerge. This period is showing you where you've been living according to others' expectations rather than your own truth. Your identity is being updated - that's good, even though it's unsettling."
+            } else {
+                return "You're experiencing a breakthrough in self-expression and authenticity. This is your time to try something new and different, to express parts of yourself you've kept hidden. Others are surprisingly receptive to your uniqueness right now - they appreciate rather than judge what makes you different. Break free from old patterns that no longer fit who you're becoming. Experiment with new ways of being and presenting yourself. Your courage to be authentic inspires others. This is a liberation period where you get to discover and express more of who you really are."
+            }
+        case ("Uranus", "Moon"):
+            if isHarsh {
+                return "Your emotional life feels unpredictable right now, with unexpected mood shifts and ups and downs. Your usual emotional patterns are being disrupted, which can feel destabilizing. Give yourself extra space and grace during this period. Don't make big decisions when you're in an emotional state - wait for stability to return before acting. This disruption is actually freeing you from old emotional patterns that were limiting you, but the process doesn't feel comfortable. The mood swings will stabilize, but what you're learning about your real emotional needs matters. Honor your need for emotional freedom and authenticity."
+            } else {
+                return "You're having emotional breakthroughs and powerful intuitive hits. Sudden clarity about your feelings and what you truly need emotionally is emerging. Trust your gut instincts right now - they're showing you truth. Your intuition is particularly strong and you're receiving insights about your emotional patterns that help you break free from old limitations. Honor your authentic emotional needs even if they differ from what you thought you needed. This is about emotional liberation and discovering what actually makes you feel secure and fulfilled."
+            }
+        case ("Uranus", "Venus"):
+            if isHarsh {
+                return "Unexpected developments in relationships or sudden attractions to people who are different from your usual type. Your values and relationship needs are shifting. Don't blow up stable relationships just because you're craving excitement or novelty - but if changes happen, stay flexible and let them unfold. You're discovering what you truly value versus what you thought you were supposed to value. Sudden attractions might be showing you qualities you need to develop in yourself. This period brings relationship surprises that reveal your evolving needs. Work with the changes rather than resisting them."
+            } else {
+                return "Exciting social encounters and unique attractions characterize this period. You're meeting new types of people who expand your social world in unexpected ways. Your social life becomes more interesting and diverse. Be open to connections with people who are different from your usual circle - they bring fresh perspectives and opportunities. Your attractiveness to others increases when you're being your authentic self. Unique or unconventional relationships and friendships are favored now. Embrace the social excitement and expanded social network."
+            }
+        case ("Uranus", "Mars"):
+            if isHarsh {
+                return "You're experiencing impulsive, reckless energy that wants immediate action and change. Don't make sudden moves you'll regret later, especially if they're motivated by impatience or rebellion. Your desire for freedom and action is strong, but hasty decisions now could create problems you don't want. Channel this restless energy into exercise, creative projects, or productive changes rather than creating drama or conflict. The urge to shake things up is real, but wisdom lies in directing this energy constructively. Take calculated risks rather than impulsive ones. Your courage is high but your judgment might be off."
+            } else {
+                return "This is perfect energy for bold, innovative action. You have the courage to try new approaches and take calculated risks that others won't. Your willingness to be the pioneer and do things differently opens doors for you. Take action on ideas or projects that require both bravery and innovation. Others respect your courage and originality. This is your time to lead through action rather than follow conventional paths. Trust your instincts about trying new methods or approaches. Your bold moves work out favorably when backed by this breakthrough energy."
+            }
+        case ("Uranus", "Mercury"):
+            return "You're experiencing mental breakthroughs and innovative ideas. Your thinking has shifted outside the box in ways that give you fresh perspectives on old problems. Write these ideas down - they're valuable insights you don't want to lose. This is excellent timing for learning new technologies, methods, or ways of thinking. Your mind is being upgraded with new mental frameworks and understandings. Don't dismiss unconventional ideas that come to you now - they might sound strange but hold real innovation. Study subjects that challenge your usual thinking. Your mental flexibility and originality are peaking."
+        case ("Uranus", "Jupiter"):
+            if isHarsh {
+                return "Restlessness about growth and expansion. You want breakthrough success NOW but might take reckless risks to get it. Your desire for freedom and expansion can lead to impulsive decisions about opportunities. Not every exciting possibility is a good one. This transit tempts you with shortcuts that might not pan out. Be discerning about which opportunities to pursue. The restlessness is real but requires wisdom rather than just action. Breakthrough and growth are possible but need thoughtful rather than impulsive pursuit."
+            } else {
+                return "Exciting opportunities for growth and expansion through unconventional means. Your willingness to try new approaches opens unexpected doors. This is excellent for innovative ventures, learning cutting-edge subjects, or expanding in ways others haven't considered. Your optimism combines with originality to create real breakthroughs. Say yes to opportunities that are different from the usual path. Your luck runs toward the unconventional during this period. Be bold and experimental with growth opportunities."
+            }
+        case ("Uranus", "Saturn"):
+            if isHarsh {
+                return "Intense friction between the need for change and the weight of responsibilities. You want freedom but feel trapped by obligations or circumstances. This is one of the more challenging transits - the tension between structure and liberation can feel unbearable. Don't blow up your life impulsively, but also don't resign yourself to permanent constraint. This is teaching you how to create freedom within responsibility. Find ways to change your circumstances gradually rather than destroying what you've built. The breakthrough comes through patient revolution, not explosive rebellion."
+            } else {
+                return "Rare ability to restructure your life in innovative ways. You can change established patterns and create new structures that give you more freedom. This is excellent for reorganizing your career, life circumstances, or responsibilities in ways that work better for who you're becoming. Disciplined change and structured innovation are possible. You're able to be both responsible and authentic, both stable and free. Take advantage of this window to rebuild aspects of your life that no longer fit."
+            }
             
-        case ("Uranus", "Sun", .square), ("Uranus", "Sun", .opposition):
-            return "You're feeling pressure to break free from expectations others have placed on you. This tension is catalyzing your most authentic self-expression. \(sunSign.rawValue), trust that this discomfort is pushing you toward necessary change. Break the mold that no longer fits."
+        // NEPTUNE - Intuition & Confusion
+        case ("Neptune", "Sun"), ("Neptune", "Moon"):
+            if isHarsh {
+                return "You're experiencing confusion about your direction or identity. Things that seemed clear before now feel foggy or uncertain. Don't make major life decisions during this period - your perception is clouded and you're not seeing things accurately. Journal about your feelings and meditate to stay grounded. Wait for clarity to return before taking action on important matters. Avoid escapism through substances, excessive media consumption, or other numbing behaviors - they'll make the confusion worse. This fog is actually dissolving illusions you've been holding onto. What emerges after the fog clears will be more authentic, but you have to wait it out. Trust that clarity will return."
+            } else {
+                return "Your intuition and creative inspiration are flowing strongly. Trust your gut instincts - they're picking up on subtle truths your rational mind can't access. This is an excellent time to pursue artistic or spiritual interests, as your sensitivity and imagination are heightened. Your empathy and compassion are enhanced, helping you connect with others on a deeper level. Creative projects benefit from this inspired energy. Meditation, spiritual practices, and artistic expression all help you channel this energy productively. Your ability to sense and feel is a gift right now - honor it by engaging with beauty, creativity, and connection."
+            }
+        case ("Neptune", "Venus"):
+            if isHarsh {
+                return "You're wearing rose-colored glasses in love and relationships. You might be idealizing someone beyond who they really are, seeing their potential rather than their reality. Be especially careful with new romantic interests during this period - verify that their actions match their words over time. Don't make major relationship commitments based on feelings alone right now. Your perception of people is clouded by wishful thinking. This doesn't mean your feelings aren't real, but your judgment about whether someone is right for you might be off. Take your time and let reality reveal itself before making decisions. Protect yourself from deception or self-deception."
+            } else {
+                return "Romantic idealism and artistic inspiration flow beautifully during this period. Your heart is open and you're able to love without cynicism. Beautiful connections are possible when you lead with compassion and creativity. This is excellent energy for creating art, music, poetry, or any creative expression that comes from the heart. Spiritual connections in relationships are highlighted - you're able to see the divine in others. Unconditional love feels natural. Your capacity for romance, beauty, and artistic creation is enhanced. Let your heart guide your creative or relationship choices during this inspired period."
+            }
+        case ("Neptune", "Mercury"):
+            if isHarsh {
+                return "Confusion, potential deception, or miscommunication are likely during this period. Your usually clear thinking might be foggy or prone to misunderstandings. Read all fine print carefully before signing anything. People might lie to you, or you might misinterpret what they're saying. Get important agreements in writing rather than relying on verbal promises. Your perception and judgment are clouded right now, making you vulnerable to deception or self-deception. Double-check facts before accepting them as true. This is not ideal timing for important decisions requiring clear thinking. Wait for clarity to return before committing to major plans."
+            } else {
+                return "Your thinking is creative and intuitive rather than purely logical. This is excellent for artistic projects, writing fiction, poetry, or any creative work requiring imagination. Spiritual studies and mystical subjects interest you and make sense in ways they might not usually. Your imagination is vivid and your ability to think in symbols and images is enhanced. Use this for creative rather than analytical work. Let your intuition guide your thinking - it's picking up on things logic can't access. This is about inspired rather than rational thought. Channel this into art, creativity, or exploring spiritual topics."
+            }
+        case ("Neptune", "Mars"):
+            if isHarsh {
+                return "Your energy feels low or misdirected. It's hard to know what you really want or where to direct your efforts. Actions you take might not lead to the results you expect. Rest more than usual and don't push yourself physically when your energy is low. Avoid making major moves or starting big projects until you have more clarity about your goals and direction. This is a period of uncertainty about how to assert yourself effectively. The fog will lift and your direction will clarify, but for now, conserve energy and wait for clearer signals. Forcing action when you're uncertain usually leads nowhere productive."
+            } else {
+                return "Inspired action and creative drive characterize this period. Your energy is best channeled into artistic pursuits, dance, music, spiritual practices, or creative projects. Move with flow rather than force - let intuition guide your actions. Your ability to act on inspiration is enhanced, and pursuing creative or spiritual goals feels natural. This isn't about aggressive action but about graceful, inspired movement toward your goals. Physical activities that combine movement with mindfulness (like yoga, dance, or tai chi) are especially favored. Channel your energy creatively and spiritually rather than competitively. Your inspired actions lead to beautiful results."
+            }
+        case ("Neptune", "Jupiter"):
+            if isHarsh {
+                return "Excessive idealism and potential for self-deception about opportunities. Everything seems possible and every opportunity seems blessed, which can lead to poor judgment. Your optimism might be divorced from reality. Be especially careful with financial decisions, spiritual teachers, or opportunities that promise too much. If something seems too good to be true, it probably is. Ground your dreams in practical reality. This transit can create beautiful visions but also delusions. Stay anchored in facts while allowing inspiration."
+            } else {
+                return "Beautiful blend of faith and optimism. Your spiritual and creative life expands with genuine inspiration. This is excellent for artistic or spiritual pursuits, as your imagination and your faith work together harmoniously. Compassionate opportunities and meaningful connections flow naturally. Your capacity for unconditional love and spiritual understanding is enhanced. This is also favorable for creative projects that require both vision and inspiration. Let your heart and imagination guide you toward beauty and meaning."
+            }
+        case ("Neptune", "Saturn"):
+            if isHarsh {
+                return "Tension between dreams and reality, between what you want and what's actually possible. Your ideals meet harsh practical limitations. This can feel disillusioning, but it's actually showing you which dreams are worth pursuing and which need to be released. Not all visions are meant to manifest. This transit separates fantasy from achievable vision. It's uncomfortable but necessary. Let go of impossible dreams while committing to ones that can actually be built in reality. Grounded spirituality emerges from this difficult but valuable process."
+            } else {
+                return "Rare ability to manifest dreams through disciplined effort. Your visions meet practical structure in productive ways. This is excellent for building spiritual practices, creating art with discipline, or turning ideals into reality through sustained work. You can give form to inspiration and structure to dreams. Use this period to create something lasting from your visions. Your imagination and your discipline work together beautifully. Build the dream rather than just dreaming it."
+            }
             
-        case ("Uranus", "Sun", .conjunction), ("Uranus", "Sun", .trine), ("Uranus", "Sun", .sextile):
-            return "You're experiencing a powerful awakening of your authentic self. This is your time to break free and express your unique individuality. \(sunSign.rawValue), the universe is supporting your revolutionary self-expression. Embrace what makes you different—it's your power."
+        // PLUTO - Major Transformation
+        case ("Pluto", "Sun"), ("Pluto", "Moon"):
+            if isHarsh {
+                return "You're undergoing major life changes and an intensely transformative period. Your old identity or way of being is dying to make room for something new and more authentic. This is deep, sometimes difficult work that affects you at your core. Consider seeing a therapist to help you process what you're experiencing - this transformation goes beyond what you can easily handle alone. Parts of your life that no longer serve your evolution are ending, and while this feels intense or even frightening, it's necessary. You're being reborn into a more authentic version of yourself. The intensity passes, and you'll emerge significantly stronger and more powerful than before. This is your deepest transformation."
+            } else {
+                return "Your personal power is increasing dramatically. You're transforming in profound ways and your presence becomes more magnetic and impactful. Others sense your depth and intensity. This is your time to step into leadership and use your power wisely and responsibly. You have the strength to tackle challenges others can't handle. Your ability to transform yourself and situations is enhanced. Use this power constructively rather than manipulatively. You're being given access to deeper reservoirs of strength and influence. How you wield this power matters. Channel it toward meaningful transformation in your life and potentially in others' lives too."
+            }
+        case ("Pluto", "Venus"):
+            if isHarsh {
+                return "Relationship dynamics become intensely transformative. Power struggles, jealousy, possessiveness, or control issues surface in ways that demand honest examination. Hidden dynamics in relationships are exposed and must be faced directly. This is uncomfortable but necessary transformation. Issues around intimacy, trust, and vulnerability require honest work. Consider couples counseling if you're in a relationship - these dynamics are deep and benefit from professional help. Some relationships won't survive this transformation, and that's sometimes the right outcome if they're built on unhealthy foundations. Face what's there honestly rather than avoiding the intensity. Transformation is required for relationships to continue."
+            } else {
+                return "Deep, transformative connections become possible. Attractions you experience now go beyond surface-level - they touch something profound. Relationships intensify in positive ways, with greater intimacy, passion, and depth. This is a particularly passionate period for committed couples who are willing to go deeper emotionally and physically. Your capacity for profound connection is enhanced. Shallow relationships lose appeal while deep ones become more meaningful. This is about transformative love that changes both people. Magnetic attractions and powerful connections characterize this period. Embrace the depth and intensity - it leads to real intimacy."
+            }
+        case ("Pluto", "Mars"):
+            if isHarsh {
+                return "Power struggles and control battles emerge in various areas of your life. You want control but circumstances or other people resist. Don't try to force outcomes or win through domination - it backfires during this period. Learning when to let go of what you can't control is the challenge. Your intensity is high and can be overwhelming to others or create conflicts. Channel this intense energy into workouts, major projects, or transformation rather than trying to control people or situations. The intensity you feel needs constructive outlets. Accept what you cannot control and focus your power where you can make real change."
+            } else {
+                return "Your drive and determination reach maximum levels. You have unstoppable willpower right now - nothing stands in your way when you commit fully. This is the time to tackle your biggest, most ambitious projects or goals. Your ability to persist through any obstacle is enhanced. Use this powerful period to transform areas of your life that require sustained, intense effort. Your capacity to focus your will and make things happen is unmatched. Channel this formidable energy toward meaningful goals. What you commit to now, you can accomplish through sheer force of will and determination. This is your power period for action."
+            }
+        case ("Pluto", "Mercury"):
+            if isHarsh {
+                return "Your thinking becomes obsessive or intensely focused on certain topics. Your mind might spiral into dark or consuming thoughts that are hard to escape. Take breaks from intense thinking and don't let yourself get lost in mental loops. Talk things out with someone you trust rather than staying stuck in your head. Your mind needs rest from its own intensity. Obsessive thoughts or paranoid thinking can emerge if you're not careful. This mental intensity passes, but while it's here, manage it by stepping away from the topics that consume you. Balance intense thinking with rest and external connection."
+            } else {
+                return "Your research and investigation abilities are razor-sharp. You can get to the bottom of complex topics others can't penetrate. Your focus is laser-sharp and your ability to dig deep into subjects is unmatched. This is perfect for research, investigation, psychology, or any field requiring deep analysis. Your mind penetrates beneath surfaces to find hidden truths. Use this period for work requiring concentrated mental effort and the ability to uncover what's hidden. Your thinking is profound rather than superficial. Dive deep into subjects that fascinate you - your capacity to understand complexity is maximized. This is your detective mind at its best."
+            }
+        case ("Pluto", "Jupiter"):
+            if isHarsh {
+                return "Power struggles around beliefs, growth, or opportunities. Your ambitions meet forces beyond your control, creating frustration about expansion. This is teaching you that not all growth is meant to happen, and some paths aren't yours to walk. The obstacles aren't punishment - they're redirection toward transformations that actually serve your evolution. Let go of trying to force growth that meets resistance. Trust that what's meant to expand in your life will, and what's blocked might be protecting you from wrong directions."
+            } else {
+                return "Powerful expansion and transformative growth. Your ability to grow and transform at the same time creates profound positive change. This is excellent for ambitious ventures that require both vision and the courage to go deep. Your capacity for meaningful growth - not just surface expansion - is enhanced. Pursue opportunities that transform you while expanding you. Your power and your optimism work together to create real, lasting success. This is growth with depth and substance."
+            }
+        case ("Pluto", "Saturn"):
+            if isHarsh {
+                return "Extremely challenging period where structures break down and responsibilities feel crushing. This is one of the hardest transits - the intensity of transformation meets the weight of reality. Old structures that no longer serve must be destroyed to build new ones, but this process is neither quick nor comfortable. This builds character through endurance of difficulty. Professional help is recommended - a therapist can help you process what feels overwhelming. What emerges from this crucible is authentic power and real authority, but getting there requires facing and moving through genuine hardship."
+            } else {
+                return "Rare ability to build lasting structures from profound transformation. You can take power and give it form, take transformation and create something enduring from it. This is excellent for building businesses, careers, or life structures that have both depth and staying power. Your discipline meets your capacity for deep change productively. Use this to create something significant that lasts. The foundation you build during this period has genuine substance and transformative power. This is about building empire from authentic strength."
+            }
+        case ("Pluto", "Uranus"):
+            return "Revolutionary transformation and breakthrough change occurring simultaneously. This is intense, unpredictable energy that's dismantling old patterns and creating space for radical authenticity. You're being liberated and transformed at the same time. This can feel chaotic but it's profoundly freeing. Old structures break down to make room for new, more authentic ways of being. Don't resist the changes - they're necessary evolution. This transit asks you to trust the process of simultaneous destruction and liberation. What emerges is more real and more free than what came before."
+        case ("Pluto", "Neptune"):
+            return "Deep spiritual transformation and dissolution of old ways of seeing reality. Your understanding of life, spirituality, and meaning is being profoundly altered. Old beliefs dissolve to make room for deeper truth. This can feel destabilizing - what you thought you knew about spirituality or meaning might need to be released. Trust the process of spiritual transformation even when it's confusing. What emerges is more authentic faith and deeper understanding. This is about spiritual rebirth, not spiritual death. Let old illusions go so truth can emerge."
             
-        case ("Uranus", "Moon", .square), ("Uranus", "Moon", .opposition):
-            return "Your emotional patterns are being disrupted and liberated. \(sunSign.rawValue), you're breaking free from old security needs that have been limiting you. This restlessness is your psyche asking for more freedom. Honor your need for emotional independence while staying grounded."
-            
-        case ("Uranus", "Moon", .conjunction):
-            return "A revolutionary shift in your emotional life is underway. Your intuition is electric and unpredictable insights about your needs are emerging. \(sunSign.rawValue), trust these sudden realizations about what truly makes you feel secure. Your emotional authenticity is awakening."
-            
-        case ("Uranus", "Venus", .square), ("Uranus", "Venus", .opposition):
-            return "Your relationships and values are undergoing unexpected transformation. \(sunSign.rawValue), you're craving more freedom and authenticity in connections. Sudden attractions or relationship changes reflect your evolving needs. Embrace unconventional expressions of love and creativity."
-            
-        case ("Uranus", "Venus", .conjunction):
-            return "You're experiencing awakening in love and creative expression. Magnetic attraction to what's unique and unconventional pulls you forward. \(sunSign.rawValue), this is your time to express your individuality through relationships and art. Let your authentic taste and values emerge."
-            
-        case ("Uranus", "Mars", .square), ("Uranus", "Mars", .opposition):
-            return "Explosive energy and impatience with obstacles define this period. Your desire for action conflicts with external restrictions. \(sunSign.rawValue), channel this rebellious drive constructively. Take bold action, but avoid impulsive decisions. Your courage is being tested and strengthened."
-            
-        case ("Uranus", "Mars", .trine), ("Uranus", "Mars", .sextile), ("Uranus", "Mars", .conjunction):
-            return "Dynamic breakthroughs in how you assert yourself and take action. Your courage meets innovation, creating exciting new directions. \(sunSign.rawValue), this is your time to pioneer new approaches. Take bold, unconventional action with confidence."
-            
-        // Saturn - Career & Discipline cycles
-        case ("Saturn", "Sun", .square), ("Saturn", "Mars", .square), ("Saturn", "Sun", .opposition), ("Saturn", "Mars", .opposition):
-            return "You're facing significant challenges in your career or long-term goals. Authority figures may be testing you, or you may feel restricted. \(sunSign.rawValue), this is your moment to build character through persistence. Every obstacle is strengthening your foundation for future success."
-            
-        case ("Saturn", "Sun", .trine), ("Saturn", "Sun", .sextile), ("Saturn", "Sun", .conjunction):
-            return "Your disciplined efforts are paying off. You're building something lasting, and others are recognizing your leadership and commitment. This is prime time for career advancement and establishing your authority. Keep building—your work will endure."
-            
-        case ("Saturn", _, _):  // Catch all other Saturn transits
-            return "You're learning important lessons about responsibility and structure in your life. \(sunSign.rawValue), this period is teaching you discipline and maturity. The challenges you face now are building your character and preparing you for future leadership. Stay committed to the process."
-            
-        // Jupiter - Growth & Expansion cycles
-        case ("Jupiter", "Sun", .conjunction), ("Jupiter", "Sun", .trine), ("Jupiter", "Sun", .sextile):
-            return "A period of expansion, opportunity, and increased confidence is here. Your natural talents are magnified and recognized. \(sunSign.rawValue), think bigger than you ever have before. This is your time to grow beyond previous limitations."
-            
-        case ("Jupiter", "Venus", .sextile), ("Jupiter", "Venus", .trine), ("Jupiter", "Venus", .conjunction):
-            return "Generosity in love and abundance in resources are flowing your way. Social connections are expanding your horizons. Beautiful experiences and romantic opportunities flourish. Be open to receiving the good coming your way."
-            
-        case ("Jupiter", _, _):  // Catch all other Jupiter transits
-            return "You're in a period of growth and expansion. Opportunities are presenting themselves, and your confidence is increasing. \(sunSign.rawValue), this is your time to reach beyond your current limits. Say yes to new possibilities and trust in your ability to grow."
-            
-        // Neptune - Spirituality & Dreams cycles
-        case ("Neptune", "Sun", .square), ("Neptune", "Sun", .opposition):
-            return "This period will have its most significant impact on your sense of identity. You may feel confused about your direction, but this fog is actually dissolving illusions. Surrender what isn't authentically you. Clarity arrives through letting go, not pushing harder."
-            
-        case ("Neptune", "Venus", .trine), ("Neptune", "Venus", .sextile), ("Neptune", "Venus", .conjunction):
-            return "Unconditional love and artistic inspiration flow naturally now. Your romantic idealism is beautifully expressed. Spiritual connections in relationships are highlighted. Trust your heart's deeper wisdom and creative intuition."
-            
-        case ("Neptune", _, _):  // Catch all other Neptune transits
-            return "You're being called to trust your intuition and spiritual guidance. \(sunSign.rawValue), this is a time to honor your dreams and creative imagination. What feels intangible now is actually leading you to deeper truth. Trust the unseen and let go of rigid control."
-            
-        // Pluto - Transformation cycles
-        case ("Pluto", "Sun", .square), ("Pluto", "Sun", .opposition), ("Pluto", "Sun", .conjunction):
-            return "You're undergoing a profound transformation of identity. This period demands you release an old version of yourself that no longer serves your soul's evolution. \(sunSign.rawValue), embrace this death-rebirth process. Your authentic power emerges through surrender, not control."
-            
-        case ("Pluto", "Venus", .square), ("Pluto", "Venus", .opposition), ("Pluto", "Venus", .conjunction):
-            return "Your relationships are undergoing deep transformation as hidden dynamics surface. Issues around possessiveness, control, or intensity require honest examination. Love is evolving—let what needs to end complete its cycle so something more authentic can emerge."
-            
-        case ("Pluto", _, _):  // Catch all other Pluto transits
-            return "You're experiencing deep transformation in your life. Old patterns are dying to make room for authentic power. \(sunSign.rawValue), this intensity is your soul's evolution in action. Let go of what's ready to transform. Your true strength emerges from embracing change."
-            
-        // Uranus - Catch remaining Uranus transits
-        case ("Uranus", _, _):
-            return "You're experiencing breakthrough energy and the call for change. Unexpected developments are awakening new possibilities. \(sunSign.rawValue), embrace the unconventional and stay open to surprise. Your liberation comes through accepting what's different and new."
-            
-        // Generic fallbacks for less common combinations
+        // Generic fallback
         default:
-            return generateGenericCycleDescription(transitPlanet: transitPlanet, natalPlanet: natalPlanet, aspectType: aspectType, sunSign: sunSign)
+            if isHarsh {
+                return "Challenging period requiring patience and adaptability. Work through obstacles. This strengthens you. Don't make hasty decisions."
+            } else {
+                return "Favorable period for growth. Take advantage of opportunities. Things flow more easily now. Make progress on goals."
+            }
         }
     }
     

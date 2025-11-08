@@ -274,10 +274,10 @@ struct AstrologicalCycle {
         
         var color: String {
             switch self {
-            case .positive: return "#4CAF50"
-            case .challenging: return "#FF9800"
-            case .transformative: return "#9C27B0"
-            case .neutral: return "#607D8B"
+            case .positive: return "#FF6B6B"        // coral red - matches fire element
+            case .challenging: return "#FF6B6B"     // same coral red for consistency
+            case .transformative: return "#FF6B6B"  // same coral red for consistency
+            case .neutral: return "#FF6B6B"         // same coral red for consistency
             }
         }
     }

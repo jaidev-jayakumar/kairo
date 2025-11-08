@@ -15,12 +15,14 @@ struct MainTabView: View {
                     .tag(1)
                     .id("week-\(selectedTab)")
                 
-                VoiceAssistantView()
-                    .tag(2)
-                    .id("kaira-\(selectedTab)")
+                if FeatureFlags.enableVoiceAssistant {
+                    VoiceAssistantView()
+                        .tag(2)
+                        .id("kaira-\(selectedTab)")
+                }
                 
                 ProfileView()
-                    .tag(3)
+                    .tag(FeatureFlags.enableVoiceAssistant ? 3 : 2)
                     .id("profile-\(selectedTab)")
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -39,16 +41,18 @@ struct MainTabView: View {
                         changeTab(to: 1)
                     }
                 
-                TabBarButton(icon: "waveform", title: "kaira", isSelected: selectedTab == 2)
-                    .onTapGesture {
-                        guard !isTransitioning else { return }
-                        changeTab(to: 2)
-                    }
+                if FeatureFlags.enableVoiceAssistant {
+                    TabBarButton(icon: "waveform", title: "kaira", isSelected: selectedTab == 2)
+                        .onTapGesture {
+                            guard !isTransitioning else { return }
+                            changeTab(to: 2)
+                        }
+                }
                 
-                TabBarButton(icon: "person", title: "profile", isSelected: selectedTab == 3)
+                TabBarButton(icon: "person", title: "profile", isSelected: selectedTab == (FeatureFlags.enableVoiceAssistant ? 3 : 2))
                     .onTapGesture {
                         guard !isTransitioning else { return }
-                        changeTab(to: 3)
+                        changeTab(to: FeatureFlags.enableVoiceAssistant ? 3 : 2)
                     }
             }
             .padding(.horizontal, 16)

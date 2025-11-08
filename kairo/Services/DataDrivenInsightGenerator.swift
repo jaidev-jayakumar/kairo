@@ -299,43 +299,43 @@ class DataDrivenInsightGenerator {
         // Moon aspects change daily - give specific daily guidance
         switch (aspect.natalPlanet, aspect.type) {
         case ("Sun", .conjunction):
-            return "New emotional beginning today as the Moon aligns with your core identity. Your heart and mind are on the same page, making decisions feel clearer and more authentic. Trust what feels right—your intuition is especially accurate now. This is a good time to start something that matters to you."
+            return "Fresh emotional start today. Your heart and head agree, which makes decisions feel clearer and more authentic. Trust your gut—your intuition is sharp right now. Good time to start something that actually matters to you instead of just going through motions."
         case ("Sun", .square):
-            return "Internal tension between what you need emotionally and what you want to express. You might feel pulled in different directions, which can be uncomfortable but also illuminating. Give yourself space to feel conflicted without forcing resolution. Sometimes the friction reveals what actually matters."
+            return "Internal tension between what you need emotionally and what you want to do. You're pulled in different directions, which feels uncomfortable but shows you something important. Don't force a resolution—sit with the conflict for a bit. The friction is revealing what actually matters to you."
         case ("Sun", .opposition):
-            return "Your emotions are running high and demanding attention today. What you're feeling might contrast sharply with your usual composure or plans. Don't suppress what's coming up—this opposition is bringing important feelings to the surface. Others might push your buttons, but they're just reflecting something you need to acknowledge."
+            return "Emotions are high and won't be ignored. What you're feeling might clash with your usual composure or plans, but don't push it down. This tension is forcing important feelings to the surface. If people are pushing your buttons, they're probably reflecting something you need to acknowledge in yourself."
         case ("Sun", .trine):
-            return "You're in flow with yourself today. What you need emotionally and what you want to do are naturally aligned, making everything feel easier. This is one of those rare days where you don't have to choose between being true to yourself and being practical. Enjoy the harmony."
+            return "You're in flow with yourself today. What you need and what you want to do line up naturally. One of those rare days where you don't have to choose between being real and being practical. Just enjoy when things feel easy for once."
             
         case ("Moon", .conjunction):
-            return "Emotional reset happening today. Your inner world is being refreshed, bringing new awareness of what you actually need versus what you've been telling yourself you need. Pay attention to what you're feeling—it's showing you something important about where you're headed. This clarity doesn't come often."
+            return "Emotional reset today. You're getting clearer on what you actually need versus what you've been telling yourself you need. Pay attention to how you're feeling—it's showing you where you're actually headed, not just where you think you should go. This kind of clarity is rare."
         case ("Moon", .square):
-            return "Old emotional patterns are surfacing, probably through irritation or frustration with something today. What's bothering you isn't random—it's connected to a deeper habit or fear that's ready to shift. Instead of pushing the feeling away, get curious about what it's trying to teach you."
+            return "Old emotional patterns are bubbling up, probably as irritation or frustration. What's bothering you connects to something deeper—a habit or fear that's ready to change. Don't push it away. Get curious about what it's trying to show you. The annoyance is the entry point."
         case ("Moon", .opposition):
-            return "Emotions have peaked. Things that have been building internally are coming to a head, and you can't ignore them anymore. This might feel intense, but it's actually healthy—suppressed feelings eventually demand release. Let yourself feel what's there instead of analyzing it away."
+            return "Emotions have hit their peak. What's been building inside is coming to a head and you can't ignore it anymore. Feels intense, but it's actually healthy. Suppressed feelings demand release eventually. Let yourself feel what's there instead of trying to think it away."
         case ("Moon", .trine):
-            return "Emotionally harmonious day where you feel comfortable in your own skin. Your needs and your reality are working together instead of against each other. This is a good day to just be rather than do—you don't need to prove anything or push for anything right now."
+            return "Emotionally easy day where you feel good in your own skin. Your needs and your reality aren't fighting for once. Good day to just be instead of constantly doing. You don't need to prove anything or push for anything right now. Enjoy the break from inner conflict."
             
         case ("Venus", .conjunction):
-            return "What you love and what you need emotionally are perfectly aligned today. There's harmony between your values and your feelings, making relationships and creative expression feel natural and fulfilling. Good day for pleasure, connection, and doing things that bring you genuine joy rather than just checking boxes."
+            return "What you love and what you need are the same thing today. Your values and feelings aren't fighting—they actually agree for once. Good day to connect with people, make things, or just do stuff that genuinely brings you joy. Don't overthink it, just follow what feels right."
         case ("Venus", .square):
-            return "Tension between emotional security and what you desire. Part of you wants safety and comfort, while another part craves excitement or change. This conflict is actually revealing where you've been playing it too safe or, conversely, where you've been chasing excitement at the expense of stability. Both needs are valid."
+            return "You want safety but also excitement, comfort but also change. Part of you craves security while another part wants something new. This tension is showing you where you've been playing it too safe or where you've been chasing thrills at the cost of stability. Both needs matter—don't force yourself to pick one."
         case ("Venus", .trine):
-            return "Love, beauty, and emotional needs are flowing together effortlessly today. Relationships feel easy and fulfilling rather than complicated or demanding. This is a day to appreciate what's working instead of focusing on what needs fixing. Let yourself enjoy simple pleasures without guilt."
+            return "Your feelings and what you want are aligned today. Relationships feel natural and easy, not forced. This is one of those rare days where you don't have to overthink connection—just enjoy it. Appreciate what's working instead of picking at what isn't. Do something that feels good just because it feels good."
             
         case ("Mars", .conjunction):
-            return "Emotions are fueling action today—you're ready to fight for what you need. This can be powerful if channeled well, but watch for impulsive reactions that you'll regret later. The key is using this energy to take bold steps toward what matters, not just venting frustration at whoever's nearby. Direct the fire wisely."
+            return "Your emotions want action right now. You're ready to fight for what you need, which is powerful if you use it well. Watch for reacting impulsively and regretting it later. The goal is taking bold steps on what actually matters, not just snapping at whoever's nearby. Channel the intensity into something productive."
         case ("Mars", .square):
-            return "Emotional frustration is seeking an outlet, and you might find yourself more irritable or reactive than usual. The people around you aren't actually trying to provoke you—your emotions are just running hot. Before you snap at someone, pause and ask what you're really frustrated about. Channel this into productive action, not conflict."
+            return "You're more irritable than usual and looking for an outlet. People aren't trying to piss you off—you're just running hot emotionally. Before you snap, take a beat and figure out what's really bothering you. Then channel that frustration into action, not arguments. Hit the gym, clean aggressively, do something physical."
         case ("Mars", .trine):
-            return "Confident emotional expression comes naturally today. You know what you need and you're not afraid to go after it, but it doesn't feel aggressive or pushy—it feels right. This is the energy of healthy assertion where your actions align with your feelings. Good day to initiate difficult conversations or take bold moves."
+            return "You know what you need and you're not afraid to go for it. Your confidence doesn't feel aggressive or pushy—it just feels right. This is what healthy assertion looks like: your actions match your feelings. Good day for difficult conversations or bold moves you've been putting off. Trust your gut and act on it."
             
         case ("Mercury", .conjunction):
-            return "Your feelings and thoughts are perfectly synced today, making it easier than usual to understand what you're experiencing and put it into words. This is a good day to talk about what you've been processing internally. Whether it's journaling, therapy, or just a deep conversation with someone you trust, communication clarifies things now."
+            return "Your feelings and thoughts are on the same page today, which makes it way easier to understand what you're actually experiencing. Good day to talk about what's been on your mind—journal, therapy, or just a real conversation with someone you trust. Putting it into words helps it make sense."
         case ("Mercury", .square):
-            return "Head and heart are in conflict. Logic is telling you one thing while your feelings are saying something completely different. Don't try to force them to agree—sit with both perspectives. Sometimes the answer isn't choosing between them, but understanding why they're at odds in the first place."
+            return "Your head and heart are fighting. Logic says one thing, feelings say another. Don't force them to agree—just notice both perspectives exist. Sometimes the real answer isn't picking a side, but figuring out why they're arguing in the first place. Sit with the contradiction for now."
         case ("Mercury", .trine):
-            return "It's unusually easy to articulate what you're feeling today. Your emotions aren't overwhelming your thinking, and your thoughts aren't dismissing your feelings—they're working together. This is a good day for important conversations, especially ones where you need to be both clear and emotionally honest."
+            return "It's easier than usual to say what you actually feel. Your emotions aren't drowning out clear thinking, and your logic isn't dismissing your feelings. They're working together for once. Good day for conversations that need both clarity and honesty, especially the ones you've been avoiding."
             
         default:
             return interpretMoonSign(moon, chart: chart)
