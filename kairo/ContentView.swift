@@ -3,22 +3,24 @@ import SwiftUI
 struct ContentView: View {
     @State private var isLoading = true
     @State private var showOnboarding = false
-    @State private var onboardingComplete = false
     
     var body: some View {
         ZStack {
             if isLoading {
                 LaunchScreenView(isLoading: $isLoading)
-            } else if showOnboarding && !onboardingComplete {
-                OnboardingView(isComplete: $onboardingComplete)
-                    .transition(.opacity)
+            } else if showOnboarding {
+                OnboardingView(onComplete: {
+                    // When onboarding completes, hide it
+                    showOnboarding = false
+                })
+                .transition(.opacity)
             } else {
                 MainTabView()
                     .transition(.opacity)
             }
         }
         .animation(.easeOut(duration: 0.5), value: isLoading)
-        .animation(.easeOut(duration: 0.5), value: onboardingComplete)
+        .animation(.easeOut(duration: 0.5), value: showOnboarding)
         .onAppear {
             checkForFirstLaunch()
         }
@@ -29,7 +31,9 @@ struct ContentView: View {
             // Wait for launch screen
             try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
             
-            // Safely check birth data
+            // Check if user has completed onboarding (by checking if birth data exists)
+            isLoading = false
+            
             if !UserDataManager.shared.hasBirthData {
                 showOnboarding = true
             }

@@ -28,35 +28,51 @@ struct MainTabView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             
             // Custom tab bar with individual floating pills
-            HStack(spacing: 10) {
-                TabBarButton(icon: "sun.max", title: "today", isSelected: selectedTab == 0)
-                    .onTapGesture {
-                        guard !isTransitioning else { return }
-                        changeTab(to: 0)
-                    }
+            VStack(spacing: 0) {
+                // Gradient fade at top of tab bar
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0),
+                        Color.black.opacity(0.8),
+                        Color.black
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 40)
                 
-                TabBarButton(icon: "calendar", title: "week", isSelected: selectedTab == 1)
-                    .onTapGesture {
-                        guard !isTransitioning else { return }
-                        changeTab(to: 1)
-                    }
-                
-                if FeatureFlags.enableVoiceAssistant {
-                    TabBarButton(icon: "waveform", title: "kaira", isSelected: selectedTab == 2)
+                // Tab bar buttons
+                HStack(spacing: 10) {
+                    TabBarButton(icon: "sun.max", title: "today", isSelected: selectedTab == 0)
                         .onTapGesture {
                             guard !isTransitioning else { return }
-                            changeTab(to: 2)
+                            changeTab(to: 0)
+                        }
+                    
+                    TabBarButton(icon: "calendar", title: "week", isSelected: selectedTab == 1)
+                        .onTapGesture {
+                            guard !isTransitioning else { return }
+                            changeTab(to: 1)
+                        }
+                    
+                    if FeatureFlags.enableVoiceAssistant {
+                        TabBarButton(icon: "waveform", title: "kaira", isSelected: selectedTab == 2)
+                            .onTapGesture {
+                                guard !isTransitioning else { return }
+                                changeTab(to: 2)
+                            }
+                    }
+                    
+                    TabBarButton(icon: "person", title: "profile", isSelected: selectedTab == (FeatureFlags.enableVoiceAssistant ? 3 : 2))
+                        .onTapGesture {
+                            guard !isTransitioning else { return }
+                            changeTab(to: FeatureFlags.enableVoiceAssistant ? 3 : 2)
                         }
                 }
-                
-                TabBarButton(icon: "person", title: "profile", isSelected: selectedTab == (FeatureFlags.enableVoiceAssistant ? 3 : 2))
-                    .onTapGesture {
-                        guard !isTransitioning else { return }
-                        changeTab(to: FeatureFlags.enableVoiceAssistant ? 3 : 2)
-                    }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 20)
+                .background(Color.black)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 20)
         }
         .preferredColorScheme(.dark)
     }

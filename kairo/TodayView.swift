@@ -66,6 +66,7 @@ struct TodayView: View {
                     Spacer(minLength: 120)
                 }
                 .padding(.horizontal, 30)
+                .padding(.bottom, 20)
             }
         }
         .onAppear {

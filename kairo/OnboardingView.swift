@@ -3,7 +3,7 @@ import UserNotifications
 
 struct OnboardingView: View {
     @State private var currentPage = 0
-    @Binding var isComplete: Bool
+    let onComplete: () -> Void
     
     var body: some View {
         ZStack {
@@ -20,7 +20,7 @@ struct OnboardingView: View {
                 PermissionsPage()
                     .tag(2)
                 
-                BirthDataIntroPage(isComplete: $isComplete)
+                BirthDataIntroPage(onComplete: onComplete)
                     .tag(3)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -204,7 +204,7 @@ struct PermissionsPage: View {
 struct BirthDataIntroPage: View {
     @State private var showContent = false
     @State private var showBirthDataInput = false
-    @Binding var isComplete: Bool
+    let onComplete: () -> Void
     
     var body: some View {
         VStack(spacing: 40) {
@@ -269,12 +269,13 @@ struct BirthDataIntroPage: View {
         .sheet(isPresented: $showBirthDataInput) {
             BirthDataInputView { birthData in
                 UserDataManager.shared.saveBirthData(birthData)
-                isComplete = true
+                showBirthDataInput = false
+                onComplete()
             }
         }
     }
 }
 
 #Preview {
-    OnboardingView(isComplete: .constant(false))
+    OnboardingView(onComplete: {})
 }
