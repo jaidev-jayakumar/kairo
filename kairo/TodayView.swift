@@ -7,6 +7,7 @@ struct TodayView: View {
     @State private var dailyInsight: String = ""
     @State private var currentTransits: [CelestialBody] = []
     @State private var userBirthData: BirthData? = nil
+    @State private var userBirthChart: BirthChart? = nil
     @State private var horoscopeScores: HoroscopeScores? = nil
     @State private var currentCycles: [AstrologicalCycle] = []
     @State private var selectedDate: Date = Date()
@@ -57,7 +58,7 @@ struct TodayView: View {
                     }
                     
                     // Energy manifestations
-                    EnergyManifestations()
+                    EnergyManifestations(chart: userBirthChart, transits: currentTransits)
                         .padding(.top, 60)
                         .opacity(showContent ? 1 : 0)
                         .animation(.easeOut(duration: 1.0).delay(0.9), value: showContent)
@@ -98,6 +99,9 @@ struct TodayView: View {
             return
         }
         
+        // Store the birth chart
+        userBirthChart = chart
+        
         // Calculate transits for the SELECTED date, not today
         currentTransits = AstrologyService.shared.calculateCurrentTransits(for: date)
         
@@ -126,7 +130,7 @@ struct TodayView: View {
 struct PhilosophicalHeader: View {
     var body: some View {
         VStack(spacing: 8) {
-            Text("TODAY YOU ASKED")
+            Text("today's question")
                 .font(.system(size: 11, weight: .medium))
                 .tracking(2)
                 .foregroundColor(.white.opacity(0.4))
@@ -153,7 +157,7 @@ struct MainCosmicMessage: View {
                     .tracking(1.5)
                     .foregroundColor(.white.opacity(0.7))
                 
-                Text(dailyInsight.isEmpty ? "The cosmos is calculating your guidance..." : dailyInsight)
+                Text(dailyInsight.isEmpty ? "reading your chart..." : dailyInsight)
                     .font(.system(size: 16, weight: .light))
                     .foregroundColor(.white.opacity(0.85))
                     .lineHeight(1.6)
@@ -165,47 +169,76 @@ struct MainCosmicMessage: View {
     
     func getCurrentTransitTitle() -> String {
         guard let moon = currentTransits.first(where: { $0.name == "Moon" }) else {
-            return "COSMIC ALIGNMENT IN PROGRESS"
+            return "calculating your chart"
         }
         
         let moonSign = moon.position.sign
-        return "MOON IN \(moonSign.rawValue.uppercased())"
+        return "moon in \(moonSign.rawValue.lowercased())"
     }
 }
 
 // MARK: - Energy Manifestations
 struct EnergyManifestations: View {
-    @State private var manifestations: [(String, String)] = []
+    let chart: BirthChart?
+    let transits: [CelestialBody]
     
     private var todaysManifestations: [(String, String)] {
-        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
-        
-        let allManifestations = [
-            ("Your intuition is louder than your anxiety today", "brain.head.profile"),
-            ("Stop explaining yourself to people who won't listen anyway", "bubble.left.and.bubble.right"),
-            ("The thing you're avoiding is the thing that will set you free", "key"),
-            ("Your boundaries are love letters to your future self", "heart.shield"),
-            ("What feels like falling apart is actually falling together", "sparkles"),
-            ("Your sensitivity is a superpower, not a weakness", "wand.and.stars"),
-            ("The person you're becoming is worth the discomfort", "figure.walk"),
-            ("Trust the process even when you can't see the outcome", "eye"),
-            ("Your weirdness is your authenticity trying to escape", "star"),
-            ("The resistance you feel is just fear dressed up as logic", "flame"),
-            ("Your gut knows things your brain hasn't figured out yet", "brain"),
-            ("Dreams carry more weight than facts when you're changing", "moon.zzz"),
-            ("Clarity arrives through confusion, not around it", "lightbulb"),
-            ("Your body keeps the score your mind tries to forget", "figure.mind.and.body"),
-            ("Sometimes the answer is to stop asking the question", "questionmark.diamond")
-        ]
-        
-        // Select 3 deterministic manifestations based on day of year
-        var selected: [(String, String)] = []
-        for i in 0..<3 {
-            let index = (dayOfYear + i * 7) % allManifestations.count
-            selected.append(allManifestations[index])
+        guard let chart = chart else {
+            // Fallback icons for loading state
+            return [
+                ("loading your personalized themes...", "sparkles"),
+                ("calculating today's transits...", "moon.stars"),
+                ("reading your chart...", "star")
+            ]
         }
         
-        return selected
+        // Generate personalized themes based on actual transits
+        let themes = PersonalizedThemeGenerator.shared.generateDailyThemes(
+            chart: chart,
+            transits: transits,
+            count: 3
+        )
+        
+        // Assign contextual icons based on theme content
+        return themes.map { theme in
+            (theme, iconForTheme(theme))
+        }
+    }
+    
+    private func iconForTheme(_ theme: String) -> String {
+        let lower = theme.lowercased()
+        
+        // Smart icon matching based on theme content
+        if lower.contains("gut") || lower.contains("intuition") || lower.contains("instinct") {
+            return "brain.head.profile"
+        } else if lower.contains("boundary") || lower.contains("boundaries") {
+            return "heart.shield"
+        } else if lower.contains("change") || lower.contains("changing") || lower.contains("growth") {
+            return "arrow.triangle.2.circlepath"
+        } else if lower.contains("truth") || lower.contains("authentic") || lower.contains("real") {
+            return "star"
+        } else if lower.contains("emotion") || lower.contains("feel") || lower.contains("heart") {
+            return "heart"
+        } else if lower.contains("think") || lower.contains("mind") || lower.contains("clarity") {
+            return "lightbulb"
+        } else if lower.contains("people") || lower.contains("relationship") || lower.contains("connection") {
+            return "person.2"
+        } else if lower.contains("energy") || lower.contains("power") || lower.contains("strength") {
+            return "bolt"
+        } else if lower.contains("past") || lower.contains("time") || lower.contains("timing") {
+            return "clock"
+        } else if lower.contains("fear") || lower.contains("anxiety") || lower.contains("scared") {
+            return "flame"
+        } else if lower.contains("trust") || lower.contains("faith") {
+            return "hand.raised"
+        } else if lower.contains("anger") || lower.contains("frustration") {
+            return "exclamationmark.triangle"
+        } else if lower.contains("love") || lower.contains("connection") {
+            return "heart.circle"
+        } else {
+            // Default cosmic icon
+            return "sparkles"
+        }
     }
     
     var body: some View {
@@ -240,7 +273,7 @@ struct CosmicTiming: View {
                 .frame(maxWidth: 200)
             
             VStack(spacing: 16) {
-                Text("PEAK INTUITION")
+                Text("peak intuition")
                     .font(.system(size: 11, weight: .medium))
                     .tracking(2)
                     .foregroundColor(.white.opacity(0.4))
@@ -249,7 +282,7 @@ struct CosmicTiming: View {
                     .font(.system(size: 32, weight: .ultraLight))
                     .foregroundColor(.white)
                 
-                Text("Trust what emerges in silence")
+                Text("trust what comes up in quiet moments")
                     .font(.system(size: 14, weight: .light))
                     .foregroundColor(.white.opacity(0.6))
             }

@@ -85,7 +85,7 @@ struct VoiceAssistantView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: 8) {
-            Text("KAIRA")
+            Text("kaira")
                 .font(.headline)
                 .fontWeight(.medium)
                 .foregroundColor(.white)
@@ -93,7 +93,7 @@ struct VoiceAssistantView: View {
             
             // Show last transcription when processing
             if !lastTranscription.isEmpty && isProcessing {
-                Text("You asked: \"\(lastTranscription)\"")
+                Text("you asked: \"\(lastTranscription)\"")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.6))
                     .italic()
@@ -116,7 +116,7 @@ struct VoiceAssistantView: View {
                 
                 // Show Kaira description when idle
                 if !isRecording && !isProcessing && !elevenLabsService.isPlaying && !elevenLabsService.isSynthesizing {
-                    Text("Your personal astrology companion")
+                    Text("your personal astrologer")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.5))
                         .multilineTextAlignment(.center)
@@ -178,17 +178,17 @@ struct VoiceAssistantView: View {
     // MARK: - Status Text
     private var currentStatus: String {
         if elevenLabsService.isSynthesizing {
-            return "Preparing response..."
+            return "thinking..."
         } else if elevenLabsService.isPlaying {
-            return "Kaira is speaking..."
+            return "speaking..."
         } else if isProcessing {
-            return "Analyzing your question..."
+            return "reading your chart..."
         } else if isRecording {
-            return "Listening..."
+            return "listening..."
         } else if !speechService.isAuthorized {
-            return "Microphone permissions required"
+            return "need mic permissions to talk"
         } else {
-            return "Tap to speak with Kaira"
+            return "tap to talk"
         }
     }
     

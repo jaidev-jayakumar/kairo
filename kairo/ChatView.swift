@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ChatView: View {
     @State private var messages: [ChatMessage] = [
-        ChatMessage(text: "Ask the cosmos.", isUser: false)
+        ChatMessage(text: "What's on your mind?", isUser: false)
     ]
     @State private var inputText = ""
     @State private var isTyping = false
@@ -16,7 +16,7 @@ struct ChatView: View {
             VStack(spacing: 0) {
                 // Minimal header
                 VStack(spacing: 8) {
-                    Text("COSMIC ORACLE")
+                    Text("ask me anything")
                         .font(.system(size: 11, weight: .medium))
                         .tracking(2)
                         .foregroundColor(.white.opacity(0.4))
@@ -69,7 +69,7 @@ struct ChatView: View {
                             .accentColor(.white)
                         
                         Button(action: sendMessage) {
-                            Text("ASK")
+                            Text("send")
                                 .font(.system(size: 12, weight: .medium))
                                 .tracking(1)
                                 .foregroundColor(inputText.isEmpty ? .white.opacity(0.2) : .white.opacity(0.8))
@@ -111,7 +111,7 @@ struct ChatView: View {
     
     func generateCosmicResponseAI(to question: String) async -> String {
         guard let chart = userBirthChart else {
-            return "The cosmos is aligning your chart. Ask again in a moment."
+            return "I'm still loading your chart. Give me a sec."
         }
         
         return await AIInsightService.shared.generateChatResponse(question: question, chart: chart)
@@ -119,7 +119,7 @@ struct ChatView: View {
     
     func generateCosmicResponse(to question: String) -> String {
         guard let chart = userBirthChart else {
-            return "The cosmos is aligning your chart. Ask again in a moment."
+            return "I'm still loading your chart. Give me a sec."
         }
         
         let currentTransits = AstrologyService.shared.calculateCurrentTransits()
@@ -292,7 +292,7 @@ struct CosmicMessage: View {
             if message.isUser {
                 // User question
                 VStack(alignment: .trailing, spacing: 8) {
-                    Text("YOU ASKED")
+                    Text("you")
                         .font(.system(size: 10, weight: .medium))
                         .tracking(1.5)
                         .foregroundColor(.white.opacity(0.4))
@@ -311,7 +311,7 @@ struct CosmicMessage: View {
                             .fill(Color.white.opacity(0.3))
                             .frame(width: 3, height: 3)
                         
-                        Text("ORACLE")
+                        Text("kaira")
                             .font(.system(size: 10, weight: .medium))
                             .tracking(1.5)
                             .foregroundColor(.white.opacity(0.4))
@@ -337,7 +337,7 @@ struct OracleTyping: View {
                 .fill(Color.white.opacity(0.3))
                 .frame(width: 3, height: 3)
             
-            Text("ORACLE IS CONSULTING THE COSMOS")
+            Text("thinking...")
                 .font(.system(size: 10, weight: .medium))
                 .tracking(1.5)
                 .foregroundColor(.white.opacity(opacity))

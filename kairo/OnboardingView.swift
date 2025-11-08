@@ -68,7 +68,7 @@ struct WelcomePage: View {
             }
             
             // Tagline
-            Text("Your cosmic companion")
+            Text("your personal astrologer")
                 .font(.system(size: 18, weight: .light))
                 .foregroundColor(.white.opacity(0.8))
                 .opacity(showContent ? 1 : 0)
@@ -76,7 +76,7 @@ struct WelcomePage: View {
             
             Spacer()
             
-            Text("Swipe to begin")
+            Text("swipe to start")
                 .font(.system(size: 14))
                 .foregroundColor(.white.opacity(0.5))
                 .padding(.bottom, 20)
@@ -114,11 +114,11 @@ struct AstrologyExplanationPage: View {
             .frame(width: 120, height: 120)
             
             VStack(spacing: 20) {
-                Text("Personalized astrology")
+                Text("Real astrology, for you")
                     .font(.system(size: 24, weight: .light))
                     .foregroundColor(.white)
                 
-                Text("Based on your exact birth time and location, we calculate your unique cosmic blueprint and daily guidance.")
+                Text("Using your exact birth time and location, we calculate your personal chart and give you daily insights based on what's actually happening in the sky.")
                     .font(.system(size: 16, weight: .light))
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
@@ -152,11 +152,11 @@ struct PermissionsPage: View {
                 .animation(.easeOut(duration: 1.0), value: showContent)
             
             VStack(spacing: 20) {
-                Text("Daily cosmic insights")
+                Text("Daily insights")
                     .font(.system(size: 24, weight: .light))
                     .foregroundColor(.white)
                 
-                Text("Get personalized daily horoscopes delivered at your preferred time.")
+                Text("Get your personalized daily horoscope delivered when you want it.")
                     .font(.system(size: 16, weight: .light))
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
@@ -175,7 +175,7 @@ struct PermissionsPage: View {
                     // Handle permission result
                 }
             }) {
-                Text("Enable notifications")
+                Text("turn on notifications")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.black)
                     .padding(.horizontal, 40)
@@ -187,7 +187,7 @@ struct PermissionsPage: View {
             .animation(.easeOut(duration: 1.0).delay(0.6), value: showContent)
             
             Button(action: {}) {
-                Text("Maybe later")
+                Text("not now")
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.5))
             }
@@ -232,11 +232,11 @@ struct BirthDataIntroPage: View {
             .animation(.easeOut(duration: 1.0), value: showContent)
             
             VStack(spacing: 20) {
-                Text("Your cosmic blueprint")
+                Text("Your birth chart")
                     .font(.system(size: 24, weight: .light))
                     .foregroundColor(.white)
                 
-                Text("To calculate your birth chart and provide accurate daily insights, we need your birth details.")
+                Text("To calculate your chart and give you accurate insights, we need your birth details.")
                     .font(.system(size: 16, weight: .light))
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
@@ -252,7 +252,7 @@ struct BirthDataIntroPage: View {
             Button(action: {
                 showBirthDataInput = true
             }) {
-                Text("Enter birth details")
+                Text("add my birth info")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.black)
                     .padding(.horizontal, 40)

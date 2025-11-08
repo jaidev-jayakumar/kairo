@@ -30,7 +30,7 @@ struct WeekMonthView: View {
             VStack(spacing: 24) {
                 // Header with toggle
                 VStack(spacing: 20) {
-                    Text("Cosmic Forecast")
+                    Text("your forecast")
                         .font(.system(size: 28, weight: .light))
                         .foregroundColor(.white)
                     
@@ -42,7 +42,7 @@ struct WeekMonthView: View {
                                     selectedTimeframe = timeframe
                                 }
                             }) {
-                                Text(timeframe == .week ? "Week" : timeframe == .month ? "Month" : "Year")
+                                Text(timeframe == .week ? "week" : timeframe == .month ? "month" : "year")
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(selectedTimeframe == timeframe ? .black : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
@@ -353,58 +353,31 @@ struct WeekMonthView: View {
     
     private func getWeeklyThemes() -> [String] {
         guard let chart = userBirthChart else {
-            return ["Preparing your cosmic insights...", "Aligning with your birth chart...", "Calculating your weekly themes..."]
+            return ["reading your chart...", "calculating transits...", "preparing your themes..."]
         }
         
-        let sunSign = chart.sunSign
-        let moonSign = chart.moonSign
-        
-        // Generate relatable, Co-Star style themes
-        let universalThemes = [
-            "Stop explaining yourself to people who are determined to misunderstand you",
-            "Your intuition is louder than your anxiety this week",
-            "The thing you're avoiding is the thing that will set you free",
-            "Your past self would be proud of how far you've come",
-            "Trust the process even when you can't see the outcome",
-            "Your sensitivity is a superpower, not a weakness",
-            "The person you're becoming is worth the discomfort",
-            "Your boundaries are love letters to your future self"
-        ]
-        
-        // Add sign-specific themes
-        let signSpecificThemes = [
-            getThemeForSun(sunSign),
-            getThemeForMoon(moonSign),
-            getThemeForCurrentEnergy()
-        ]
-        
-        let allThemes = universalThemes + signSpecificThemes
-        
-        // Use deterministic selection instead of shuffle to prevent threading issues
-        let weekOfYear = Calendar.current.component(.weekOfYear, from: Date())
-        let seed = weekOfYear % allThemes.count
-        var selectedThemes: [String] = []
-        for i in 0..<min(3, allThemes.count) {
-            let index = (seed + i) % allThemes.count
-            selectedThemes.append(allThemes[index])
-        }
-        return selectedThemes
+        // Generate personalized weekly themes based on actual transits
+        return PersonalizedThemeGenerator.shared.generateWeeklyThemes(
+            chart: chart,
+            transits: currentTransits,
+            count: 3
+        )
     }
     
     private func getThemeForSun(_ sunSign: ZodiacSign) -> String {
         switch sunSign {
-        case .aries: return "Your impatience is just excitement with nowhere to go"
-        case .taurus: return "Comfort zones are only comfortable until they become cages"
-        case .gemini: return "Your scattered thoughts are connecting dots others can't see"
-        case .cancer: return "Creating home in your heart before anywhere else"
-        case .leo: return "The spotlight is already on you - step into it"
-        case .virgo: return "Good enough is actually perfect timing"
-        case .libra: return "Peace isn't about avoiding conflict - it's about choosing your battles"
-        case .scorpio: return "Your intensity isn't too much - the world is just too small"
-        case .sagittarius: return "The adventure you seek is hiding in your daily routine"
-        case .capricorn: return "Ambition without self-compassion is just elaborate self-harm"
-        case .aquarius: return "Your weirdness is your superpower in disguise"
-        case .pisces: return "Your emotions are teaching you to swim, not drowning you"
+        case .aries: return "your impatience is just excitement with nowhere to go"
+        case .taurus: return "comfort zones eventually become cages"
+        case .gemini: return "your scattered thoughts are connecting dots others miss"
+        case .cancer: return "home is a feeling you create inside first"
+        case .leo: return "the spotlight's already on you, just step into it"
+        case .virgo: return "good enough is sometimes exactly right"
+        case .libra: return "peace isn't avoiding conflict, it's picking your battles"
+        case .scorpio: return "your intensity isn't too much, most people just can't match it"
+        case .sagittarius: return "the adventure you want is probably in your routine"
+        case .capricorn: return "ambition without kindness to yourself is just harm"
+        case .aquarius: return "your weirdness is actually your edge"
+        case .pisces: return "your feelings are teaching you something, not drowning you"
         }
     }
     
@@ -624,8 +597,8 @@ struct WeeklyInsightSections: View {
             VStack(spacing: 16) {
                 // Main weekly insight
                 WeeklyInsightCard(
-                    title: "Overall Energy",
-                    content: weeklyInsight.isEmpty ? "The cosmos is aligning your weekly insights..." : weeklyInsight,
+                    title: "overall energy",
+                    content: weeklyInsight.isEmpty ? "calculating your week..." : weeklyInsight,
                     icon: "waveform"
                 )
                 
@@ -777,7 +750,7 @@ struct WeekView: View {
             
             // Week themes
             VStack(alignment: .leading, spacing: 16) {
-                Text("This Week's Themes")
+                Text("this week's themes")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.white.opacity(0.9))
                 
@@ -830,8 +803,8 @@ struct MonthlyInsightSections: View {
             VStack(spacing: 16) {
                 // Main monthly insight
                 MonthlyInsightCard(
-                    title: "Overall Energy",
-                    content: monthlyInsight.isEmpty ? "The cosmic currents are aligning your monthly insights..." : monthlyInsight,
+                    title: "overall energy",
+                    content: monthlyInsight.isEmpty ? "reading your month..." : monthlyInsight,
                     icon: "sparkles"
                 )
 
@@ -995,7 +968,7 @@ struct MonthView: View {
             
             // Monthly themes
                 VStack(alignment: .leading, spacing: 16) {
-                Text("This Month's Themes")
+                Text("this month's themes")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.white.opacity(0.9))
                 
@@ -1139,8 +1112,8 @@ struct YearlyInsightSections: View {
             VStack(spacing: 16) {
                 // Main yearly insight
                 YearlyInsightCard(
-                    title: "Overall Year Energy",
-                    content: yearlyInsight.isEmpty ? "The universe is weaving your yearly tapestry..." : yearlyInsight,
+                    title: "overall energy",
+                    content: yearlyInsight.isEmpty ? "mapping your year..." : yearlyInsight,
                     icon: "sun.max"
                 )
 
@@ -1311,7 +1284,7 @@ struct YearView: View {
             
             // Yearly themes
             VStack(alignment: .leading, spacing: 16) {
-                Text("This Year's Major Themes")
+                Text("this year's major themes")
                     .font(.system(size: 18, weight: .medium))
                                 .foregroundColor(.white.opacity(0.9))
                 

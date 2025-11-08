@@ -27,25 +27,25 @@ struct MainTabView: View {
             
             // Custom tab bar with individual floating pills
             HStack(spacing: 10) {
-                TabBarButton(icon: "sun.max", title: "Today", isSelected: selectedTab == 0)
+                TabBarButton(icon: "sun.max", title: "today", isSelected: selectedTab == 0)
                     .onTapGesture {
                         guard !isTransitioning else { return }
                         changeTab(to: 0)
                     }
                 
-                TabBarButton(icon: "calendar", title: "Week", isSelected: selectedTab == 1)
+                TabBarButton(icon: "calendar", title: "week", isSelected: selectedTab == 1)
                     .onTapGesture {
                         guard !isTransitioning else { return }
                         changeTab(to: 1)
                     }
                 
-                TabBarButton(icon: "waveform", title: "Kaira", isSelected: selectedTab == 2)
+                TabBarButton(icon: "waveform", title: "kaira", isSelected: selectedTab == 2)
                     .onTapGesture {
                         guard !isTransitioning else { return }
                         changeTab(to: 2)
                     }
                 
-                TabBarButton(icon: "person", title: "Profile", isSelected: selectedTab == 3)
+                TabBarButton(icon: "person", title: "profile", isSelected: selectedTab == 3)
                     .onTapGesture {
                         guard !isTransitioning else { return }
                         changeTab(to: 3)

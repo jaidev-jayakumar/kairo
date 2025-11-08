@@ -383,7 +383,7 @@ struct CyclesView: View {
         VStack(spacing: 20) {
             // Cycles header
             HStack {
-                Text("Cycles")
+                Text("cycles")
                     .font(.system(size: 24, weight: .light))
                     .foregroundColor(.white)
                 

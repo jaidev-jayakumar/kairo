@@ -26,7 +26,7 @@ struct PhilosophicalCard: View {
         VStack(spacing: 40) {
             // Question
             VStack(spacing: 8) {
-                Text("YOU ASKED")
+                Text("you asked")
                     .font(.system(size: 11, weight: .medium))
                     .tracking(2)
                     .foregroundColor(.white.opacity(0.4))
@@ -60,7 +60,7 @@ struct PhilosophicalCard: View {
                     .frame(height: 1)
                     .frame(maxWidth: 100)
                 
-                Text("DISMISS")
+                Text("dismiss")
                     .font(.system(size: 12, weight: .medium))
                     .tracking(1)
                     .foregroundColor(.white.opacity(0.6))
@@ -177,12 +177,12 @@ struct EnergyIndicator: View {
             }
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(label.uppercased())
+                Text(label.lowercased())
                     .font(.system(size: 10, weight: .medium))
                     .tracking(1)
                     .foregroundColor(.white.opacity(0.4))
                 
-                Text(isActive ? "ACTIVE" : "DORMANT")
+                Text(isActive ? "active" : "dormant")
                     .font(.system(size: 12, weight: .light))
                     .foregroundColor(isActive ? .white.opacity(0.8) : .white.opacity(0.3))
             }
@@ -200,7 +200,7 @@ struct CosmicTimeDisplay: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text(label.uppercased())
+            Text(label.lowercased())
                 .font(.system(size: 11, weight: .medium))
                 .tracking(2)
                 .foregroundColor(.white.opacity(0.4))
