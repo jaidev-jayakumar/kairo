@@ -39,9 +39,10 @@ struct ProfileView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
                 // Header
-                Text("Profile")
-                    .font(.system(size: 28, weight: .light))
-                    .foregroundColor(.white)
+                Text("profile")
+                    .font(.system(size: 26, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                     .shadow(color: .white.opacity(0.08), radius: 12, x: 0, y: 0)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 20)

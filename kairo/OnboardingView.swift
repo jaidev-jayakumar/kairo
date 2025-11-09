@@ -142,16 +142,18 @@ struct WelcomePage: View {
             // Text content
             VStack(spacing: 24) {
                 Text("welcome to kaira")
-                    .font(.system(size: 36, weight: .light, design: .serif))
-                    .foregroundColor(.white)
+                    .font(.system(size: 32, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                     .opacity(showContent ? 1 : 0)
-                    .offset(y: showContent ? 0 : 20)
+                    .offset(y: showContent ? 0 : 16)
                 
                 Text("your personal astrologer")
-                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .font(.system(size: 15, weight: .regular, design: .monospaced))
                     .foregroundColor(.white.opacity(0.7))
+                    .kerning(0.3)
                     .opacity(showContent ? 1 : 0)
-                    .offset(y: showContent ? 0 : 20)
+                    .offset(y: showContent ? 0 : 16)
             }
             
             Spacer()
@@ -204,15 +206,17 @@ struct AstrologyExplanationPage: View {
             .frame(width: 120, height: 120)
             
             VStack(spacing: 20) {
-                Text("Real astrology, for you")
-                    .font(.system(size: 24, weight: .light))
-                    .foregroundColor(.white)
+                Text("real astrology, for you")
+                    .font(.system(size: 22, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                 
-                Text("Using your exact birth time and location, we calculate your personal chart and give you daily insights based on what's actually happening in the sky.")
-                    .font(.system(size: 16, weight: .light))
-                    .foregroundColor(.white.opacity(0.7))
+                Text("using your exact birth time and location, we calculate your personal chart and give you daily insights based on what's actually happening in the sky.")
+                    .font(.system(size: 14, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.75))
+                    .kerning(0.2)
                     .multilineTextAlignment(.center)
-                    .lineHeight(1.6)
+                    .lineHeight(1.7)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 40)
@@ -242,15 +246,17 @@ struct PermissionsPage: View {
                 .animation(.easeOut(duration: 1.0), value: showContent)
             
             VStack(spacing: 20) {
-                Text("Daily insights")
-                    .font(.system(size: 24, weight: .light))
-                    .foregroundColor(.white)
+                Text("daily insights")
+                    .font(.system(size: 22, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                 
-                Text("Get your personalized daily horoscope delivered when you want it.")
-                    .font(.system(size: 16, weight: .light))
-                    .foregroundColor(.white.opacity(0.7))
+                Text("get your personalized daily horoscope delivered when you want it.")
+                    .font(.system(size: 14, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.75))
+                    .kerning(0.2)
                     .multilineTextAlignment(.center)
-                    .lineHeight(1.6)
+                    .lineHeight(1.7)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 40)
@@ -322,15 +328,17 @@ struct BirthDataIntroPage: View {
             .animation(.easeOut(duration: 1.0), value: showContent)
             
             VStack(spacing: 20) {
-                Text("Your birth chart")
-                    .font(.system(size: 24, weight: .light))
-                    .foregroundColor(.white)
+                Text("your birth chart")
+                    .font(.system(size: 22, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                 
-                Text("To calculate your chart and give you accurate insights, we need your birth details.")
-                    .font(.system(size: 16, weight: .light))
-                    .foregroundColor(.white.opacity(0.7))
+                Text("to calculate your chart and give you accurate insights, we need your birth details.")
+                    .font(.system(size: 14, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.75))
+                    .kerning(0.2)
                     .multilineTextAlignment(.center)
-                    .lineHeight(1.6)
+                    .lineHeight(1.7)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 40)

@@ -71,8 +71,9 @@ struct WeekMonthView: View {
                 // Header with toggle
                 VStack(spacing: 20) {
                     Text("your forecast")
-                        .font(.system(size: 28, weight: .light))
-                        .foregroundColor(.white)
+                        .font(.system(size: 26, weight: .regular, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.92))
+                        .kerning(0.3)
                         .shadow(color: .white.opacity(0.08), radius: 12, x: 0, y: 0)
                     
                     // Week/Month/Year Toggle
