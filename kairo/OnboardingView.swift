@@ -13,30 +13,19 @@ struct OnboardingView: View {
             // Ambient gradient overlays for depth
             RadialGradient(
                 colors: [
-                    Color.purple.opacity(0.25),
-                    Color.pink.opacity(0.15),
+                    Color.purple.opacity(0.06),
+                    Color.blue.opacity(0.04),
                     Color.black.opacity(0)
                 ],
                 center: .topTrailing,
-                startRadius: 50,
-                endRadius: 500
-            )
-            .ignoresSafeArea()
-            
-            RadialGradient(
-                colors: [
-                    Color.pink.opacity(0.12),
-                    Color.black.opacity(0)
-                ],
-                center: .topLeading,
-                startRadius: 50,
-                endRadius: 400
+                startRadius: 100,
+                endRadius: 700
             )
             .ignoresSafeArea()
             
             LinearGradient(
                 colors: [
-                    Color.purple.opacity(0.08),
+                    Color.indigo.opacity(0.03),
                     Color.black.opacity(0)
                 ],
                 startPoint: .top,
