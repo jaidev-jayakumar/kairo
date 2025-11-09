@@ -174,8 +174,8 @@ struct PhilosophicalHeader: View {
                 .tracking(2)
                 .foregroundColor(.white.opacity(0.4))
             
-            Text("What truth am I avoiding?")
-                .font(.system(size: 24, weight: .light))
+            Text("tiny gains, everyday...")
+                .font(.system(size: 28, weight: .light, design: .serif))
                 .foregroundColor(.white)
                 .shadow(color: .white.opacity(0.08), radius: 12, x: 0, y: 0)
                 .multilineTextAlignment(.center)
@@ -204,8 +204,8 @@ struct MainCosmicMessage: View {
                     .foregroundColor(.white.opacity(0.7))
                 
                 Text(dailyInsight.isEmpty ? "reading your chart..." : dailyInsight)
-                    .font(.system(size: 16, weight: .light))
-                    .foregroundColor(.white.opacity(0.85))
+                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .foregroundColor(.white.opacity(0.9))
                     .shadow(color: .white.opacity(0.05), radius: 8, x: 0, y: 0)
                     .lineHeight(1.6)
                     .multilineTextAlignment(.center)
