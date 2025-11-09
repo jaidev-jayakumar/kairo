@@ -93,6 +93,7 @@ struct TabBarButton: View {
     let icon: String
     let title: String
     let isSelected: Bool
+    @State private var isPressed = false
     
     var body: some View {
         VStack(spacing: 6) {
@@ -147,7 +148,18 @@ struct TabBarButton: View {
             }
         )
         .scaleEffect(isSelected ? 1.0 : 0.96)
+        .scaleEffect(isPressed ? 0.94 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isSelected)
+        .animation(.easeOut(duration: 0.1), value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    isPressed = true
+                }
+                .onEnded { _ in
+                    isPressed = false
+                }
+        )
     }
 }
 

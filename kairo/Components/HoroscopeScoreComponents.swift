@@ -332,6 +332,7 @@ struct ProgressCircle: View {
     let score: Int
     let color: Color
     let animate: Bool
+    @State private var glowPulse: Bool = false
     
     private var progress: Double {
         animate ? Double(score) / 100.0 : 0.0
@@ -345,18 +346,23 @@ struct ProgressCircle: View {
                     .stroke(Color.white.opacity(0.15), lineWidth: 6)
                     .frame(width: 70, height: 70)
                 
-                // Progress circle
+                // Progress circle with color
                 Circle()
                     .trim(from: 0, to: progress)
                     .stroke(
-                        color,
+                        LinearGradient(
+                            colors: [Color.pink, Color.purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
                         style: StrokeStyle(lineWidth: 6, lineCap: .round)
                     )
                     .frame(width: 70, height: 70)
                     .rotationEffect(.degrees(-90))
                     .animation(.easeOut(duration: 1.2), value: progress)
-                    .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 0)
-                    .shadow(color: color.opacity(0.15), radius: 16, x: 0, y: 0)
+                    .shadow(color: Color.pink.opacity(glowPulse ? 0.7 : 0.5), radius: glowPulse ? 14 : 12, x: 0, y: 0)
+                    .shadow(color: Color.purple.opacity(glowPulse ? 0.6 : 0.4), radius: glowPulse ? 22 : 20, x: 0, y: 0)
+                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: glowPulse)
                 
                 // Score text
                 Text("\(score)")
@@ -370,6 +376,9 @@ struct ProgressCircle: View {
             Text(title)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.white.opacity(0.8))
+        }
+        .onAppear {
+            glowPulse = true
         }
     }
 }
@@ -470,8 +479,8 @@ struct CycleCard: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.06),
-                            Color.white.opacity(0.04)
+                            Color.purple.opacity(0.12),
+                            Color.pink.opacity(0.08)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -482,16 +491,16 @@ struct CycleCard: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    Color.white.opacity(0.15),
-                                    Color.white.opacity(0.05)
+                                    Color.purple.opacity(0.35),
+                                    Color.pink.opacity(0.18)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1
+                            lineWidth: 1.5
                         )
                 )
-                .shadow(color: Color.white.opacity(0.01), radius: 6, x: 0, y: 3)
+                .shadow(color: Color.purple.opacity(0.1), radius: 12, x: 0, y: 4)
         )
     }
 }

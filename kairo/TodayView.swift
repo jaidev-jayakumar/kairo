@@ -24,19 +24,34 @@ struct TodayView: View {
             // Ambient gradient overlays for depth
             RadialGradient(
                 colors: [
-                    Color.purple.opacity(0.06),
-                    Color.blue.opacity(0.04),
+                    Color.purple.opacity(0.25),
+                    Color.pink.opacity(0.15),
                     Color.black.opacity(0)
                 ],
                 center: .topTrailing,
-                startRadius: 100,
-                endRadius: 700
+                startRadius: 50,
+                endRadius: 500
             )
             .ignoresSafeArea()
+            .hueRotation(.degrees(constellationPhase * 2))
+            .animation(.easeInOut(duration: 8).repeatForever(autoreverses: true), value: constellationPhase)
+            
+            RadialGradient(
+                colors: [
+                    Color.pink.opacity(0.12),
+                    Color.black.opacity(0)
+                ],
+                center: .topLeading,
+                startRadius: 50,
+                endRadius: 400
+            )
+            .ignoresSafeArea()
+            .hueRotation(.degrees(-constellationPhase * 2))
+            .animation(.easeInOut(duration: 10).repeatForever(autoreverses: true), value: constellationPhase)
             
             LinearGradient(
                 colors: [
-                    Color.indigo.opacity(0.03),
+                    Color.purple.opacity(0.08),
                     Color.black.opacity(0)
                 ],
                 startPoint: .top,

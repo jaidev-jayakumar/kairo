@@ -33,19 +33,30 @@ struct WeekMonthView: View {
             // Ambient gradient overlays for depth
             RadialGradient(
                 colors: [
-                    Color.purple.opacity(0.06),
-                    Color.blue.opacity(0.04),
+                    Color.purple.opacity(0.25),
+                    Color.pink.opacity(0.15),
                     Color.black.opacity(0)
                 ],
                 center: .topTrailing,
-                startRadius: 100,
-                endRadius: 700
+                startRadius: 50,
+                endRadius: 500
+            )
+            .ignoresSafeArea()
+            
+            RadialGradient(
+                colors: [
+                    Color.pink.opacity(0.12),
+                    Color.black.opacity(0)
+                ],
+                center: .topLeading,
+                startRadius: 50,
+                endRadius: 400
             )
             .ignoresSafeArea()
             
             LinearGradient(
                 colors: [
-                    Color.indigo.opacity(0.03),
+                    Color.purple.opacity(0.08),
                     Color.black.opacity(0)
                 ],
                 startPoint: .top,
@@ -675,6 +686,8 @@ struct WeeklyInsightCard: View {
     let content: String
     let icon: String
     let isHighlighted: Bool
+    @State private var appeared = false
+    @State private var isPressed = false
     
     init(title: String, subtitle: String? = nil, content: String, icon: String, isHighlighted: Bool = false) {
         self.title = title
@@ -722,9 +735,12 @@ struct WeeklyInsightCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(isHighlighted ? 0.09 : 0.06),
-                            Color.white.opacity(isHighlighted ? 0.06 : 0.04)
+                        colors: isHighlighted ? [
+                            Color.pink.opacity(0.18),
+                            Color.purple.opacity(0.12)
+                        ] : [
+                            Color.white.opacity(0.10),
+                            Color.purple.opacity(0.06)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -734,17 +750,42 @@ struct WeeklyInsightCard: View {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(
                             LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.15),
-                                    Color.white.opacity(0.05)
+                                colors: isHighlighted ? [
+                                    Color.pink.opacity(0.4),
+                                    Color.purple.opacity(0.25)
+                                ] : [
+                                    Color.white.opacity(0.2),
+                                    Color.purple.opacity(0.1)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1
+                            lineWidth: 1.5
                         )
                 )
-                .shadow(color: Color.white.opacity(isHighlighted ? 0.03 : 0.01), radius: 8, x: 0, y: 4)
+                .shadow(color: isHighlighted ? Color.pink.opacity(0.2) : Color.purple.opacity(0.05), radius: 16, x: 0, y: 6)
+        )
+        .scaleEffect(appeared ? 1.0 : 0.95)
+        .opacity(appeared ? 1.0 : 0)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isPressed)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+                appeared = true
+            }
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    withAnimation(.easeOut(duration: 0.1)) {
+                        isPressed = true
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        isPressed = false
+                    }
+                }
         )
     }
 }
@@ -908,7 +949,9 @@ struct MonthlyInsightCard: View {
     let content: String
     let icon: String
     let isHighlighted: Bool
-
+    @State private var appeared = false
+    @State private var isPressed = false
+    
     init(title: String, subtitle: String? = nil, content: String, icon: String, isHighlighted: Bool = false) {
         self.title = title
         self.subtitle = subtitle
@@ -916,7 +959,7 @@ struct MonthlyInsightCard: View {
         self.icon = icon
         self.isHighlighted = isHighlighted
     }
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header with title and icon
@@ -961,9 +1004,12 @@ struct MonthlyInsightCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(isHighlighted ? 0.09 : 0.06),
-                            Color.white.opacity(isHighlighted ? 0.06 : 0.04)
+                        colors: isHighlighted ? [
+                            Color.pink.opacity(0.18),
+                            Color.purple.opacity(0.12)
+                        ] : [
+                            Color.white.opacity(0.10),
+                            Color.purple.opacity(0.06)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -973,17 +1019,42 @@ struct MonthlyInsightCard: View {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(
                             LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.15),
-                                    Color.white.opacity(0.05)
+                                colors: isHighlighted ? [
+                                    Color.pink.opacity(0.4),
+                                    Color.purple.opacity(0.25)
+                                ] : [
+                                    Color.white.opacity(0.2),
+                                    Color.purple.opacity(0.1)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1
+                            lineWidth: 1.5
                         )
                 )
-                .shadow(color: Color.white.opacity(isHighlighted ? 0.03 : 0.01), radius: 8, x: 0, y: 4)
+                .shadow(color: isHighlighted ? Color.pink.opacity(0.2) : Color.purple.opacity(0.05), radius: 16, x: 0, y: 6)
+        )
+        .scaleEffect(appeared ? 1.0 : 0.95)
+        .opacity(appeared ? 1.0 : 0)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isPressed)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.15)) {
+                appeared = true
+            }
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    withAnimation(.easeOut(duration: 0.1)) {
+                        isPressed = true
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        isPressed = false
+                    }
+                }
         )
     }
 }
@@ -1244,7 +1315,9 @@ struct YearlyInsightCard: View {
     let content: String
     let icon: String
     let isHighlighted: Bool
-
+    @State private var appeared = false
+    @State private var isPressed = false
+    
     init(title: String, subtitle: String? = nil, content: String, icon: String, isHighlighted: Bool = false) {
         self.title = title
         self.subtitle = subtitle
@@ -1252,7 +1325,7 @@ struct YearlyInsightCard: View {
         self.icon = icon
         self.isHighlighted = isHighlighted
     }
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header with title and icon
@@ -1297,9 +1370,12 @@ struct YearlyInsightCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(isHighlighted ? 0.09 : 0.06),
-                            Color.white.opacity(isHighlighted ? 0.06 : 0.04)
+                        colors: isHighlighted ? [
+                            Color.pink.opacity(0.18),
+                            Color.purple.opacity(0.12)
+                        ] : [
+                            Color.white.opacity(0.10),
+                            Color.purple.opacity(0.06)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -1309,17 +1385,42 @@ struct YearlyInsightCard: View {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(
                             LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.15),
-                                    Color.white.opacity(0.05)
+                                colors: isHighlighted ? [
+                                    Color.pink.opacity(0.4),
+                                    Color.purple.opacity(0.25)
+                                ] : [
+                                    Color.white.opacity(0.2),
+                                    Color.purple.opacity(0.1)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1
+                            lineWidth: 1.5
                         )
                 )
-                .shadow(color: Color.white.opacity(isHighlighted ? 0.03 : 0.01), radius: 8, x: 0, y: 4)
+                .shadow(color: isHighlighted ? Color.pink.opacity(0.2) : Color.purple.opacity(0.05), radius: 16, x: 0, y: 6)
+        )
+        .scaleEffect(appeared ? 1.0 : 0.95)
+        .opacity(appeared ? 1.0 : 0)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isPressed)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
+                appeared = true
+            }
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    withAnimation(.easeOut(duration: 0.1)) {
+                        isPressed = true
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        isPressed = false
+                    }
+                }
         )
     }
 }
