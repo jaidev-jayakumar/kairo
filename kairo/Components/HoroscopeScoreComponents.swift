@@ -355,6 +355,8 @@ struct ProgressCircle: View {
                     .frame(width: 70, height: 70)
                     .rotationEffect(.degrees(-90))
                     .animation(.easeOut(duration: 1.2), value: progress)
+                    .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 0)
+                    .shadow(color: color.opacity(0.15), radius: 16, x: 0, y: 0)
                 
                 // Score text
                 Text("\(score)")
@@ -465,11 +467,31 @@ struct CycleCard: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.05))
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.06),
+                            Color.white.opacity(0.04)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.15),
+                                    Color.white.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.white.opacity(0.01), radius: 6, x: 0, y: 3)
         )
     }
 }

@@ -21,6 +21,29 @@ struct TodayView: View {
             Color.black
                 .ignoresSafeArea()
             
+            // Ambient gradient overlays for depth
+            RadialGradient(
+                colors: [
+                    Color.purple.opacity(0.06),
+                    Color.blue.opacity(0.04),
+                    Color.black.opacity(0)
+                ],
+                center: .topTrailing,
+                startRadius: 100,
+                endRadius: 700
+            )
+            .ignoresSafeArea()
+            
+            LinearGradient(
+                colors: [
+                    Color.indigo.opacity(0.03),
+                    Color.black.opacity(0)
+                ],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+            
             // Constellation lines in background
             ConstellationBackground(phase: constellationPhase)
                 .opacity(0.15)
@@ -129,6 +152,8 @@ struct TodayView: View {
 
 // MARK: - Philosophical Header
 struct PhilosophicalHeader: View {
+    @State private var breathingScale: CGFloat = 1.0
+    
     var body: some View {
         VStack(spacing: 8) {
             Text("today's question")
@@ -139,8 +164,15 @@ struct PhilosophicalHeader: View {
             Text("What truth am I avoiding?")
                 .font(.system(size: 24, weight: .light))
                 .foregroundColor(.white)
+                .shadow(color: .white.opacity(0.08), radius: 12, x: 0, y: 0)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
+                .scaleEffect(breathingScale)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                breathingScale = 1.015
+            }
         }
     }
 }
@@ -161,6 +193,7 @@ struct MainCosmicMessage: View {
                 Text(dailyInsight.isEmpty ? "reading your chart..." : dailyInsight)
                     .font(.system(size: 16, weight: .light))
                     .foregroundColor(.white.opacity(0.85))
+                    .shadow(color: .white.opacity(0.05), radius: 8, x: 0, y: 0)
                     .lineHeight(1.6)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)

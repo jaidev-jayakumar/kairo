@@ -10,6 +10,29 @@ struct OnboardingView: View {
             Color.black
                 .ignoresSafeArea()
             
+            // Ambient gradient overlays for depth
+            RadialGradient(
+                colors: [
+                    Color.purple.opacity(0.06),
+                    Color.blue.opacity(0.04),
+                    Color.black.opacity(0)
+                ],
+                center: .topTrailing,
+                startRadius: 100,
+                endRadius: 700
+            )
+            .ignoresSafeArea()
+            
+            LinearGradient(
+                colors: [
+                    Color.indigo.opacity(0.03),
+                    Color.black.opacity(0)
+                ],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+            
             TabView(selection: $currentPage) {
                 WelcomePage()
                     .tag(0)
@@ -63,6 +86,7 @@ struct WelcomePage: View {
                 Text("kairo")
                     .font(.system(size: 42, weight: .ultraLight))
                     .foregroundColor(.white)
+                    .shadow(color: .white.opacity(0.1), radius: 16, x: 0, y: 0)
                     .opacity(showContent ? 1 : 0)
                     .animation(.easeOut(duration: 1.0).delay(0.3), value: showContent)
             }

@@ -136,6 +136,7 @@ struct TabBarButton: View {
                                     lineWidth: 0.8
                                 )
                         )
+                        .shadow(color: Color.white.opacity(0.05), radius: 8, x: 0, y: 0)
                         .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 6)
                         .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
                 } else {

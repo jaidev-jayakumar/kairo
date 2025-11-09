@@ -8,12 +8,40 @@ struct ProfileView: View {
     @State private var birthChart: BirthChart? = nil
     
     var body: some View {
+        ZStack {
+            // Background
+            Color.black.ignoresSafeArea()
+            
+            // Ambient gradient overlays for depth
+            RadialGradient(
+                colors: [
+                    Color.purple.opacity(0.06),
+                    Color.blue.opacity(0.04),
+                    Color.black.opacity(0)
+                ],
+                center: .topTrailing,
+                startRadius: 100,
+                endRadius: 700
+            )
+            .ignoresSafeArea()
+            
+            LinearGradient(
+                colors: [
+                    Color.indigo.opacity(0.03),
+                    Color.black.opacity(0)
+                ],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+            
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
                 // Header
                 Text("Profile")
                     .font(.system(size: 28, weight: .light))
                     .foregroundColor(.white)
+                    .shadow(color: .white.opacity(0.08), radius: 12, x: 0, y: 0)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 20)
                 
@@ -146,7 +174,7 @@ struct ProfileView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 100)
         }
-        .background(Color.black)
+        }
         .onAppear {
             loadUserData()
         }

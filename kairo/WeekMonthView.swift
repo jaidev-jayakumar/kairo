@@ -26,6 +26,33 @@ struct WeekMonthView: View {
     }
     
     var body: some View {
+        ZStack {
+            // Background
+            Color.black.ignoresSafeArea()
+            
+            // Ambient gradient overlays for depth
+            RadialGradient(
+                colors: [
+                    Color.purple.opacity(0.06),
+                    Color.blue.opacity(0.04),
+                    Color.black.opacity(0)
+                ],
+                center: .topTrailing,
+                startRadius: 100,
+                endRadius: 700
+            )
+            .ignoresSafeArea()
+            
+            LinearGradient(
+                colors: [
+                    Color.indigo.opacity(0.03),
+                    Color.black.opacity(0)
+                ],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+            
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
                 // Header with toggle
@@ -33,6 +60,7 @@ struct WeekMonthView: View {
                     Text("your forecast")
                         .font(.system(size: 28, weight: .light))
                         .foregroundColor(.white)
+                        .shadow(color: .white.opacity(0.08), radius: 12, x: 0, y: 0)
                     
                     // Week/Month/Year Toggle
                     HStack(spacing: 0) {
@@ -91,7 +119,7 @@ struct WeekMonthView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 120)
         }
-        .background(Color.black)
+        }
         .onAppear {
             initializeSelectedPeriods()
             loadAstrologicalData()
@@ -692,11 +720,31 @@ struct WeeklyInsightCard: View {
         .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(isHighlighted ? 0.08 : 0.05))
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(isHighlighted ? 0.09 : 0.06),
+                            Color.white.opacity(isHighlighted ? 0.06 : 0.04)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.15),
+                                    Color.white.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.white.opacity(isHighlighted ? 0.03 : 0.01), radius: 8, x: 0, y: 4)
         )
     }
 }
@@ -909,13 +957,33 @@ struct MonthlyInsightCard: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(24)
-                        .background(
+        .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(isHighlighted ? 0.08 : 0.05))
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(isHighlighted ? 0.09 : 0.06),
+                            Color.white.opacity(isHighlighted ? 0.06 : 0.04)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.15),
+                                    Color.white.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.white.opacity(isHighlighted ? 0.03 : 0.01), radius: 8, x: 0, y: 4)
         )
     }
 }
@@ -1227,11 +1295,31 @@ struct YearlyInsightCard: View {
         .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(isHighlighted ? 0.08 : 0.05))
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(isHighlighted ? 0.09 : 0.06),
+                            Color.white.opacity(isHighlighted ? 0.06 : 0.04)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.15),
+                                    Color.white.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.white.opacity(isHighlighted ? 0.03 : 0.01), radius: 8, x: 0, y: 4)
         )
     }
 }
