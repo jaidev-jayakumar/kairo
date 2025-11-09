@@ -72,6 +72,10 @@ struct WelcomePage: View {
     @State private var showContent = false
     @State private var orbScale: CGFloat = 0.98
     @State private var floatOffset: CGFloat = 0
+    @State private var driftOffset: CGFloat = 0
+    @State private var rotationAngle: Double = 0
+    @State private var innerRotation: Double = 0
+    @State private var glowPulse: Double = 1.0
     
     var body: some View {
         VStack(spacing: 50) {
@@ -95,7 +99,8 @@ struct WelcomePage: View {
                     )
                     .frame(width: 320, height: 320)
                     .blur(radius: 60)
-                    .scaleEffect(orbScale)
+                    .scaleEffect(orbScale * glowPulse)
+                    .rotationEffect(.degrees(rotationAngle))
                 
                 // Main glowing blob
                 Circle()
@@ -115,6 +120,7 @@ struct WelcomePage: View {
                     .frame(width: 200, height: 200)
                     .blur(radius: 25)
                     .scaleEffect(orbScale * 1.02)
+                    .rotationEffect(.degrees(rotationAngle * 0.5))
                 
                 // Smaller intense center
                 Circle()
@@ -133,8 +139,9 @@ struct WelcomePage: View {
                     .frame(width: 120, height: 120)
                     .blur(radius: 15)
                     .scaleEffect(orbScale)
+                    .rotationEffect(.degrees(innerRotation))
             }
-            .offset(y: floatOffset)
+            .offset(x: driftOffset, y: floatOffset)
             .opacity(showContent ? 1 : 0)
             
             Spacer().frame(height: 60)
@@ -169,13 +176,29 @@ struct WelcomePage: View {
             withAnimation(.easeOut(duration: 1.2)) {
                 showContent = true
             }
-            // Gentle breathing animation
-            withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
-                orbScale = 1.04
+            // Gentle breathing animation - more noticeable
+            withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+                orbScale = 1.1
             }
-            // Subtle floating up and down
-            withAnimation(.easeInOut(duration: 5.0).repeatForever(autoreverses: true).delay(0.5)) {
-                floatOffset = -8
+            // Floating up and down - more pronounced
+            withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true).delay(0.5)) {
+                floatOffset = -15
+            }
+            // Horizontal drift - more visible
+            withAnimation(.easeInOut(duration: 5.5).repeatForever(autoreverses: true).delay(1.0)) {
+                driftOffset = 12
+            }
+            // Slow rotation - faster
+            withAnimation(.linear(duration: 12.0).repeatForever(autoreverses: false)) {
+                rotationAngle = 360
+            }
+            // Counter-rotation for inner circle - faster
+            withAnimation(.linear(duration: 9.0).repeatForever(autoreverses: false)) {
+                innerRotation = -360
+            }
+            // Glow pulse - more noticeable
+            withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true).delay(0.3)) {
+                glowPulse = 1.12
             }
         }
     }
