@@ -21,11 +21,11 @@ struct TodayView: View {
             Color.black
                 .ignoresSafeArea()
             
-            // Ambient gradient overlays for depth
+            // Ambient coral/pink gradient overlays
             RadialGradient(
                 colors: [
-                    Color.purple.opacity(0.06),
-                    Color.blue.opacity(0.04),
+                    Color(hex: "FF8A8A")?.opacity(0.08) ?? .pink.opacity(0.08),
+                    Color(hex: "FF6B6B")?.opacity(0.04) ?? .red.opacity(0.04),
                     Color.black.opacity(0)
                 ],
                 center: .topTrailing,
@@ -34,13 +34,26 @@ struct TodayView: View {
             )
             .ignoresSafeArea()
             
+            // Subtle top glow
             LinearGradient(
                 colors: [
-                    Color.indigo.opacity(0.03),
+                    Color(hex: "FFBABA")?.opacity(0.04) ?? .pink.opacity(0.04),
                     Color.black.opacity(0)
                 ],
                 startPoint: .top,
                 endPoint: .center
+            )
+            .ignoresSafeArea()
+            
+            // Bottom accent glow
+            RadialGradient(
+                colors: [
+                    Color(hex: "FF6B6B")?.opacity(0.06) ?? .red.opacity(0.06),
+                    Color.black.opacity(0)
+                ],
+                center: .bottom,
+                startRadius: 50,
+                endRadius: 500
             )
             .ignoresSafeArea()
             

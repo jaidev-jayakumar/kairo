@@ -30,26 +30,39 @@ struct WeekMonthView: View {
             // Background
             Color.black.ignoresSafeArea()
             
-            // Ambient gradient overlays for depth
+            // Ambient coral/pink gradient overlays
             RadialGradient(
                 colors: [
-                    Color.purple.opacity(0.06),
-                    Color.blue.opacity(0.04),
+                    Color(hex: "FF8A8A")?.opacity(0.08) ?? .pink.opacity(0.08),
+                    Color(hex: "FF6B6B")?.opacity(0.04) ?? .red.opacity(0.04),
                     Color.black.opacity(0)
                 ],
-                center: .topTrailing,
+                center: .topLeading,
                 startRadius: 100,
                 endRadius: 700
             )
             .ignoresSafeArea()
             
+            // Subtle top glow
             LinearGradient(
                 colors: [
-                    Color.indigo.opacity(0.03),
+                    Color(hex: "FFBABA")?.opacity(0.04) ?? .pink.opacity(0.04),
                     Color.black.opacity(0)
                 ],
                 startPoint: .top,
                 endPoint: .center
+            )
+            .ignoresSafeArea()
+            
+            // Bottom right accent
+            RadialGradient(
+                colors: [
+                    Color(hex: "FF9999")?.opacity(0.05) ?? .pink.opacity(0.05),
+                    Color.black.opacity(0)
+                ],
+                center: .bottomTrailing,
+                startRadius: 80,
+                endRadius: 600
             )
             .ignoresSafeArea()
             
