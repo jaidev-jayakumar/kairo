@@ -70,45 +70,111 @@ struct OnboardingView: View {
 // MARK: - Welcome Page
 struct WelcomePage: View {
     @State private var showContent = false
+    @State private var orbScale: CGFloat = 0.98
+    @State private var floatOffset: CGFloat = 0
     
     var body: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 50) {
             Spacer()
             
-            // Logo or App Name
-            VStack(spacing: 16) {
-                Image(systemName: "moon.stars")
-                    .font(.system(size: 60))
-                    .foregroundColor(.white)
-                    .rotationEffect(.degrees(showContent ? 0 : -180))
-                    .animation(.easeOut(duration: 1.0), value: showContent)
+            // Glowing orb - organic, soft shape
+            ZStack {
+                // Large soft glow
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(hex: "FF6B6B")?.opacity(0.3) ?? .red.opacity(0.3),
+                                Color(hex: "FF6B6B")?.opacity(0.15) ?? .red.opacity(0.15),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 40,
+                            endRadius: 160
+                        )
+                    )
+                    .frame(width: 320, height: 320)
+                    .blur(radius: 60)
+                    .scaleEffect(orbScale)
                 
-                Text("kairo")
-                    .font(.system(size: 42, weight: .ultraLight))
+                // Main glowing blob
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(hex: "FFBABA") ?? .pink,
+                                Color(hex: "FF8A8A") ?? .red.opacity(0.9),
+                                Color(hex: "FF6B6B") ?? .red,
+                                Color(hex: "CC5555")?.opacity(0.4) ?? .red.opacity(0.4)
+                            ],
+                            center: .center,
+                            startRadius: 5,
+                            endRadius: 110
+                        )
+                    )
+                    .frame(width: 200, height: 200)
+                    .blur(radius: 25)
+                    .scaleEffect(orbScale * 1.02)
+                
+                // Smaller intense center
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(hex: "FFD4D4")?.opacity(0.9) ?? .pink.opacity(0.9),
+                                Color(hex: "FF9999") ?? .red.opacity(0.8),
+                                Color.clear
+                            ],
+                            center: UnitPoint(x: 0.48, y: 0.48),
+                            startRadius: 1,
+                            endRadius: 60
+                        )
+                    )
+                    .frame(width: 120, height: 120)
+                    .blur(radius: 15)
+                    .scaleEffect(orbScale)
+            }
+            .offset(y: floatOffset)
+            .opacity(showContent ? 1 : 0)
+            
+            Spacer().frame(height: 60)
+            
+            // Text content
+            VStack(spacing: 24) {
+                Text("welcome to kaira")
+                    .font(.system(size: 32, weight: .light))
                     .foregroundColor(.white)
-                    .shadow(color: .white.opacity(0.1), radius: 16, x: 0, y: 0)
                     .opacity(showContent ? 1 : 0)
-                    .animation(.easeOut(duration: 1.0).delay(0.3), value: showContent)
+                    .offset(y: showContent ? 0 : 20)
+                
+                Text("your personal astrologer")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundColor(.white.opacity(0.7))
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 20)
             }
             
-            // Tagline
-            Text("your personal astrologer")
-                .font(.system(size: 18, weight: .light))
-                .foregroundColor(.white.opacity(0.8))
-                .opacity(showContent ? 1 : 0)
-                .animation(.easeOut(duration: 1.0).delay(0.6), value: showContent)
-            
             Spacer()
             
+            // Call to action
             Text("swipe to start")
-                .font(.system(size: 14))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.white.opacity(0.5))
                 .padding(.bottom, 20)
                 .opacity(showContent ? 1 : 0)
-                .animation(.easeOut(duration: 1.0).delay(1.0), value: showContent)
         }
         .onAppear {
-            showContent = true
+            withAnimation(.easeOut(duration: 1.2)) {
+                showContent = true
+            }
+            // Gentle breathing animation
+            withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
+                orbScale = 1.04
+            }
+            // Subtle floating up and down
+            withAnimation(.easeInOut(duration: 5.0).repeatForever(autoreverses: true).delay(0.5)) {
+                floatOffset = -8
+            }
         }
     }
 }
