@@ -31,7 +31,7 @@ struct OnboardingView: View {
                 startPoint: .top,
                 endPoint: .center
             )
-            .ignoresSafeArea()
+                .ignoresSafeArea()
             
             TabView(selection: $currentPage) {
                 WelcomePage()
@@ -174,7 +174,7 @@ struct WelcomePage: View {
         }
         .onAppear {
             withAnimation(.easeOut(duration: 1.2)) {
-                showContent = true
+            showContent = true
             }
             // Gentle breathing animation - more noticeable
             withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
@@ -323,29 +323,101 @@ struct PermissionsPage: View {
 struct BirthDataIntroPage: View {
     @State private var showContent = false
     @State private var showBirthDataInput = false
+    @State private var orbPulse: CGFloat = 1.0
     let onComplete: () -> Void
     
     var body: some View {
         VStack(spacing: 40) {
             Spacer()
             
-            // Birth chart visualization
+            // Birth chart visualization - hollow glowing orb with edges
             ZStack {
+                // Massive soft outer glow
                 Circle()
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                    .frame(width: 150, height: 150)
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(hex: "FFBABA")?.opacity(0.1) ?? .pink.opacity(0.1),
+                                Color(hex: "FF9999")?.opacity(0.05) ?? .red.opacity(0.05),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 80,
+                            endRadius: 200
+                        )
+                    )
+                    .frame(width: 400, height: 400)
+                    .blur(radius: 70)
+                    .scaleEffect(orbPulse)
                 
-                ForEach(0..<12) { index in
-                    Rectangle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1, height: 75)
-                        .offset(y: -37.5)
-                        .rotationEffect(.degrees(Double(index) * 30))
-                }
-                
+                // Outer ring glow
                 Circle()
-                    .fill(Color.white)
-                    .frame(width: 8, height: 8)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "FFBABA")?.opacity(0.6) ?? .pink.opacity(0.6),
+                                Color(hex: "FF9999")?.opacity(0.5) ?? .red.opacity(0.5)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 40
+                    )
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 35)
+                    .scaleEffect(orbPulse * 0.98)
+                
+                // Distinct edge ring
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "FFD4D4")?.opacity(0.8) ?? .pink.opacity(0.8),
+                                Color(hex: "FFBABA")?.opacity(0.7) ?? .pink.opacity(0.7)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 3
+                    )
+                    .frame(width: 160, height: 160)
+                    .blur(radius: 1)
+                    .scaleEffect(orbPulse)
+                
+                // Inner glow
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.4),
+                                Color(hex: "FFF0F0")?.opacity(0.3) ?? .pink.opacity(0.3)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 25
+                    )
+                    .frame(width: 140, height: 140)
+                    .blur(radius: 20)
+                    .scaleEffect(orbPulse * 1.01)
+                
+                // Bright center
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.white.opacity(0.8),
+                                Color(hex: "FFF5F5")?.opacity(0.6) ?? .pink.opacity(0.6),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 1,
+                            endRadius: 40
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .blur(radius: 25)
+                    .scaleEffect(orbPulse * 1.03)
             }
             .opacity(showContent ? 1 : 0)
             .animation(.easeOut(duration: 1.0), value: showContent)
@@ -386,6 +458,11 @@ struct BirthDataIntroPage: View {
         }
         .onAppear {
             showContent = true
+            
+            // Gentle pulsing - soft breathing effect
+            withAnimation(.easeInOut(duration: 3.5).repeatForever(autoreverses: true)) {
+                orbPulse = 1.06
+            }
         }
         .sheet(isPresented: $showBirthDataInput) {
             BirthDataInputView { birthData in
