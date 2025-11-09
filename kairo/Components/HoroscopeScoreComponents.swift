@@ -360,16 +360,18 @@ struct ProgressCircle: View {
                 
                 // Score text
                 Text("\(score)")
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 20, weight: .regular, design: .monospaced))
                     .foregroundColor(.white)
+                    .kerning(0.3)
                     .scaleEffect(animate ? 1.0 : 0.8)
                     .opacity(animate ? 1.0 : 0.0)
                     .animation(.easeOut(duration: 0.8).delay(0.8), value: animate)
             }
             
             Text(title)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 14, weight: .regular, design: .monospaced))
                 .foregroundColor(.white.opacity(0.8))
+                .kerning(0.2)
         }
     }
 }
@@ -386,8 +388,9 @@ struct CyclesView: View {
             // Cycles header
             HStack {
                 Text("cycles")
-                    .font(.system(size: 24, weight: .light))
-                    .foregroundColor(.white)
+                    .font(.system(size: 22, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                 
                 Spacer()
             }
@@ -419,13 +422,15 @@ struct CycleCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(cycle.title)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .regular, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.92))
+                        .kerning(0.2)
                     
                     HStack(spacing: 4) {
                         Text(cycle.planetaryAspect)
-                            .font(.system(size: 13, weight: .regular))
+                            .font(.system(size: 12, weight: .regular, design: .monospaced))
                             .foregroundColor(.white.opacity(0.6))
+                            .kerning(0.2)
                     }
                     
                     // Progress bar
@@ -459,9 +464,10 @@ struct CycleCard: View {
             }
             
             Text(cycle.description)
-                .font(.system(size: 14, weight: .regular))
-                .foregroundColor(.white.opacity(0.85))
-                .lineSpacing(6)
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
+                .foregroundColor(.white.opacity(0.8))
+                .kerning(0.2)
+                .lineSpacing(7)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(20)

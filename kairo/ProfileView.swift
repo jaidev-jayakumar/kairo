@@ -69,16 +69,19 @@ struct ProfileView: View {
                         
                         VStack(spacing: 8) {
                             Text(getInitials())
-                                .font(.system(size: 20, weight: .medium))
+                                .font(.system(size: 20, weight: .regular, design: .monospaced))
                                 .foregroundColor(.white)
+                                .kerning(0.3)
                             
                             Text(formatBirthDate())
-                                .font(.system(size: 14))
+                                .font(.system(size: 14, weight: .regular, design: .monospaced))
                                 .foregroundColor(.white.opacity(0.6))
+                                .kerning(0.2)
                             
                             Text(formatBirthLocation())
-                                .font(.system(size: 14))
+                                .font(.system(size: 14, weight: .regular, design: .monospaced))
                                 .foregroundColor(.white.opacity(0.6))
+                                .kerning(0.2)
                         }
                         
                         // Zodiac summary
@@ -93,8 +96,9 @@ struct ProfileView: View {
                         
                         Button(action: { showEditProfile = true }) {
                             Text("Edit Profile")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(.system(size: 14, weight: .regular, design: .monospaced))
                                 .foregroundColor(.black)
+                                .kerning(0.2)
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 10)
                                 .background(Capsule().fill(Color.white))
@@ -105,8 +109,9 @@ struct ProfileView: View {
                 // Settings section
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Settings")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 18, weight: .regular, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.92))
+                        .kerning(0.3)
                     
                     // Notifications
                     SettingRow(
@@ -124,8 +129,9 @@ struct ProfileView: View {
                                 .frame(width: 28)
                             
                             Text("Delivery Time")
-                                .font(.system(size: 16))
-                                .foregroundColor(.white.opacity(0.9))
+                                .font(.system(size: 15, weight: .regular, design: .monospaced))
+                                .foregroundColor(.white.opacity(0.88))
+                                .kerning(0.2)
                             
                             Spacer()
                             
@@ -155,7 +161,8 @@ struct ProfileView: View {
                             .font(.system(size: 20))
                         
                         Text("Sign Out")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.system(size: 15, weight: .regular, design: .monospaced))
+                            .kerning(0.2)
                     }
                     .foregroundColor(.red.opacity(0.8))
                     .frame(maxWidth: .infinity)
@@ -169,8 +176,9 @@ struct ProfileView: View {
                 
                 // App version
                 Text("Kairo v1.0.0")
-                    .font(.system(size: 12))
+                    .font(.system(size: 12, weight: .regular, design: .monospaced))
                     .foregroundColor(.white.opacity(0.3))
+                    .kerning(0.2)
                     .padding(.top, 10)
             }
             .padding(.horizontal, 20)
@@ -236,14 +244,15 @@ struct ZodiacInfo: View {
             contextualIcon
             
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 11, weight: .regular, design: .monospaced))
                 .foregroundColor(.white.opacity(0.6))
                 .textCase(.uppercase)
-                .tracking(0.5)
+                .kerning(0.3)
             
             Text(sign.rawValue)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
                 .foregroundColor(.white.opacity(0.9))
+                .kerning(0.2)
         }
         .frame(maxWidth: .infinity)
     }
@@ -277,8 +286,9 @@ struct SettingRow: View {
                 .frame(width: 28)
             
             Text(title)
-                .font(.system(size: 16))
-                .foregroundColor(.white.opacity(0.9))
+                .font(.system(size: 15, weight: .regular, design: .monospaced))
+                .foregroundColor(.white.opacity(0.88))
+                .kerning(0.2)
             
             Spacer()
             
@@ -306,8 +316,9 @@ struct SettingLink: View {
                 .frame(width: 28)
             
             Text(title)
-                .font(.system(size: 16))
-                .foregroundColor(.white.opacity(0.9))
+                .font(.system(size: 15, weight: .regular, design: .monospaced))
+                .foregroundColor(.white.opacity(0.88))
+                .kerning(0.2)
             
             Spacer()
             

@@ -704,14 +704,15 @@ struct WeeklyInsightCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.white)
+                        .font(.system(size: 18, weight: .regular, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.92))
+                        .kerning(0.2)
                     
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.system(size: 16, weight: .light))
-                            .foregroundColor(.white.opacity(0.8))
-                            .italic()
+                            .font(.system(size: 14, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.7))
+                            .kerning(0.2)
                     }
                 }
                 
@@ -726,9 +727,10 @@ struct WeeklyInsightCard: View {
             
             // Content with proper spacing and formatting
             Text(content)
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(.white.opacity(0.85))
-                .lineSpacing(8)
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
+                .foregroundColor(.white.opacity(0.8))
+                .kerning(0.2)
+                .lineSpacing(7)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(24)
@@ -825,8 +827,9 @@ struct WeekView: View {
             // Week themes
             VStack(alignment: .leading, spacing: 16) {
                 Text("this week's themes")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
+                    .font(.system(size: 18, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                 
                 ForEach(weeklyThemes, id: \.self) { theme in
                     HStack {
@@ -835,8 +838,9 @@ struct WeekView: View {
                             .frame(width: 4, height: 4)
                         
                         Text(theme)
-                            .font(.system(size: 15))
-                            .foregroundColor(.white.opacity(0.7))
+                            .font(.system(size: 14, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.75))
+                            .kerning(0.2)
                     }
                 }
             }
@@ -942,15 +946,16 @@ struct MonthlyInsightCard: View {
                             .foregroundColor(.white.opacity(0.8))
                         
                         Text(title)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.92))
+                            .kerning(0.2)
                     }
                     
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.system(size: 16, weight: .light))
-                            .foregroundColor(.white.opacity(0.8))
-                            .italic()
+                            .font(.system(size: 14, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.7))
+                            .kerning(0.2)
                     }
                 }
                 
@@ -965,9 +970,10 @@ struct MonthlyInsightCard: View {
             
             // Content with proper spacing and formatting
             Text(content)
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(.white.opacity(0.85))
-                .lineSpacing(8)
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
+                .foregroundColor(.white.opacity(0.8))
+                .kerning(0.2)
+                .lineSpacing(7)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(24)
@@ -1063,8 +1069,9 @@ struct MonthView: View {
             // Monthly themes
                 VStack(alignment: .leading, spacing: 16) {
                 Text("this month's themes")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
+                    .font(.system(size: 18, weight: .regular, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.92))
+                    .kerning(0.3)
                 
                 ForEach(getMonthlyThemes(), id: \.self) { theme in
                     HStack {
@@ -1073,8 +1080,9 @@ struct MonthView: View {
                             .frame(width: 4, height: 4)
                         
                         Text(theme)
-                        .font(.system(size: 15))
-                            .foregroundColor(.white.opacity(0.7))
+                        .font(.system(size: 14, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.75))
+                            .kerning(0.2)
                     }
                 }
             }
@@ -1278,15 +1286,16 @@ struct YearlyInsightCard: View {
                             .foregroundColor(.white.opacity(0.8))
                         
                         Text(title)
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.92))
+                            .kerning(0.2)
                     }
                     
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.system(size: 16, weight: .light))
-                            .foregroundColor(.white.opacity(0.8))
-                            .italic()
+                            .font(.system(size: 14, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.7))
+                            .kerning(0.2)
                     }
                 }
                 
@@ -1301,9 +1310,10 @@ struct YearlyInsightCard: View {
             
             // Content with proper spacing and formatting
             Text(content)
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(.white.opacity(0.85))
-                .lineSpacing(8)
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
+                .foregroundColor(.white.opacity(0.8))
+                .kerning(0.2)
+                .lineSpacing(7)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(24)
@@ -1399,8 +1409,9 @@ struct YearView: View {
             // Yearly themes
             VStack(alignment: .leading, spacing: 16) {
                 Text("this year's major themes")
-                    .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(.white.opacity(0.9))
+                    .font(.system(size: 18, weight: .regular, design: .monospaced))
+                                .foregroundColor(.white.opacity(0.92))
+                                .kerning(0.3)
                 
                 ForEach(getYearlyThemes(), id: \.self) { theme in
                     HStack {
@@ -1409,8 +1420,9 @@ struct YearView: View {
                             .frame(width: 4, height: 4)
                         
                         Text(theme)
-                            .font(.system(size: 15))
-                            .foregroundColor(.white.opacity(0.7))
+                            .font(.system(size: 14, weight: .regular, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.75))
+                            .kerning(0.2)
                     }
                 }
             }
