@@ -148,14 +148,14 @@ struct WelcomePage: View {
             
             // Text content
             VStack(spacing: 24) {
-                Text("welcome to kaira")
+                Text("hi, i’m kairo")
                     .font(.system(size: 32, weight: .regular, design: .monospaced))
                     .foregroundColor(.white.opacity(0.92))
                     .kerning(0.3)
                     .opacity(showContent ? 1 : 0)
                     .offset(y: showContent ? 0 : 16)
                 
-                Text("your personal astrologer")
+                Text("ready when you are...")
                     .font(.system(size: 15, weight: .regular, design: .monospaced))
                     .foregroundColor(.white.opacity(0.7))
                     .kerning(0.3)
