@@ -1,6 +1,6 @@
 # Privacy Policy for kaira
 
-**Last Updated:** November 8, 2024
+**Last Updated:** November 15, 2024
 
 ## Overview
 
@@ -67,8 +67,8 @@ We may update this Privacy Policy from time to time. Any changes will be reflect
 
 If you have any questions about this Privacy Policy, please contact us at:
 
-- Email: [your-email@example.com]
-- GitHub: [your-github-username]
+- Email: kairomanifest@gmail.com
+- GitHub: https://github.com/jaidev-jayakumar/kairo
 
 ## California Privacy Rights (CCPA)
 

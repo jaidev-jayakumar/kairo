@@ -1,6 +1,6 @@
 # Terms of Service for kaira
 
-**Last Updated:** November 8, 2024
+**Last Updated:** November 15, 2024
 
 ## Agreement to Terms
 
@@ -88,7 +88,7 @@ You must be at least 13 years old to use kaira. If you are under 18, you should 
 
 ## Governing Law
 
-These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.
+These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to its conflict of law provisions.
 
 ## Dispute Resolution
 
@@ -110,8 +110,8 @@ These Terms of Service, together with our Privacy Policy, constitute the entire 
 
 For questions about these Terms of Service:
 
-- Email: [your-email@example.com]
-- GitHub: [your-github-username]
+- Email: kairomanifest@gmail.com
+- GitHub: https://github.com/jaidev-jayakumar/kairo
 
 ## Acknowledgment
 

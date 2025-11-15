@@ -73,16 +73,15 @@ astrology,horoscope,birth chart,zodiac,natal chart,transits,daily horoscope,astr
 
 ## Support URL
 
-https://github.com/[your-username]/kairo (or your website)
+https://github.com/jaidev-jayakumar/kairo
 
 ## Marketing URL (optional)
 
-https://github.com/[your-username]/kairo
+https://github.com/jaidev-jayakumar/kairo
 
 ## Privacy Policy URL
 
-https://[your-username].github.io/kairo/PRIVACY_POLICY.html
-(You'll need to host the PRIVACY_POLICY.md file - see instructions below)
+https://jaidev-jayakumar.github.io/kairo/PRIVACY_POLICY.html
 
 ## Category
 
@@ -95,7 +94,7 @@ https://[your-username].github.io/kairo/PRIVACY_POLICY.html
 
 ## Copyright
 
-© 2024 [Your Name]
+© 2024 Jaidev Jayakumar
 
 ---
 
