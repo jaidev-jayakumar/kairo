@@ -148,7 +148,7 @@ struct WelcomePage: View {
             
             // Text content
             VStack(spacing: 24) {
-                Text("hi, i’m kairo")
+                Text("hi, i’m kaira")
                     .font(.system(size: 32, weight: .regular, design: .monospaced))
                     .foregroundColor(.white.opacity(0.92))
                     .kerning(0.3)
