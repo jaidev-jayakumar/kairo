@@ -1,10 +1,10 @@
-# Privacy Policy for kaira
+# Privacy Policy for kairo
 
 **Last Updated:** November 15, 2024
 
 ## Overview
 
-kaira ("we", "our", or "the app") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information.
+kairo ("we", "our", or "the app") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information.
 
 ## Information We Collect
 
@@ -53,11 +53,11 @@ You have the right to:
 
 ## Third-Party Services
 
-kaira does not integrate with any third-party analytics, advertising, or tracking services. The app functions entirely offline using locally stored data.
+kairo does not integrate with any third-party analytics, advertising, or tracking services. The app functions entirely offline using locally stored data.
 
 ## Children's Privacy
 
-kaira does not knowingly collect information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately.
+kairo does not knowingly collect information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately.
 
 ## Changes to This Privacy Policy
 
@@ -72,7 +72,7 @@ If you have any questions about this Privacy Policy, please contact us at:
 
 ## California Privacy Rights (CCPA)
 
-California residents have specific rights regarding their personal information. Since kaira stores all data locally on your device and does not transmit any data to servers, we do not "sell" personal information as defined by the CCPA.
+California residents have specific rights regarding their personal information. Since kairo stores all data locally on your device and does not transmit any data to servers, we do not "sell" personal information as defined by the CCPA.
 
 ## European Privacy Rights (GDPR)
 
@@ -84,4 +84,4 @@ For users in the European Economic Area:
 
 ---
 
-**Summary**: kaira is a privacy-first application. Your birth information stays on your device, is never uploaded to any servers, and is used solely to provide you with personalized astrological insights.
+**Summary**: kairo is a privacy-first application. Your birth information stays on your device, is never uploaded to any servers, and is used solely to provide you with personalized astrological insights.

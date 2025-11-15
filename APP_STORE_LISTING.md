@@ -1,8 +1,8 @@
-# App Store Connect Listing Content for kaira
+# App Store Connect Listing Content for kairo
 
 ## App Name
 
-**kaira** (or **kaira - personal astrology** if "kaira" is taken)
+**kairo** (or **kairo - personal astrology** if "kairo" is taken)
 
 ## Subtitle (30 characters max)
 
@@ -14,16 +14,16 @@ Real astrology, calculated from your exact birth chart. Get daily insights based
 
 ## Description (4000 characters max)
 
-kaira is your personal astrologer—giving you real, personalized astrology based on your exact birth chart and what's actually happening in the sky.
+kairo is your personal astrologer—giving you real, personalized astrology based on your exact birth chart and what's actually happening in the sky.
 
 **REAL ASTROLOGY, FOR YOU**
-Using your exact birth time and location, kaira calculates your personal birth chart and gives you daily insights based on current planetary transits. This isn't generic sun sign horoscopes—it's astrology tailored specifically to you.
+Using your exact birth time and location, kairo calculates your personal birth chart and gives you daily insights based on current planetary transits. This isn't generic sun sign horoscopes—it's astrology tailored specifically to you.
 
 **DAILY INSIGHTS**
-Every day, kaira analyzes how current planetary movements are affecting your personal chart and translates that into clear, actionable insights you can actually use. Know when to push forward, when to pause, and what energies are at play in your life.
+Every day, kairo analyzes how current planetary movements are affecting your personal chart and translates that into clear, actionable insights you can actually use. Know when to push forward, when to pause, and what energies are at play in your life.
 
 **UNDERSTAND YOUR CYCLES**
-See which astrological cycles are active in your life right now. From Venus transits affecting your relationships to Mars transits energizing your ambitions—kaira breaks down the cosmic weather and what it means for you personally.
+See which astrological cycles are active in your life right now. From Venus transits affecting your relationships to Mars transits energizing your ambitions—kairo breaks down the cosmic weather and what it means for you personally.
 
 **HOROSCOPE SCORES**
 Get daily scores for love, career, wellness, and personal growth. See at a glance which areas are flowing and which might need extra attention. Based on actual transit calculations, not randomized content.
@@ -32,9 +32,9 @@ Get daily scores for love, career, wellness, and personal growth. See at a glanc
 Plan ahead with personalized weekly and monthly forecasts. See what themes are emerging and prepare for the cosmic weather ahead.
 
 **PRIVACY FIRST**
-Your birth data stays on your device. No servers, no tracking, no data collection. kaira is astrology that respects your privacy.
+Your birth data stays on your device. No servers, no tracking, no data collection. kairo is astrology that respects your privacy.
 
-**WHAT MAKES KAIRA DIFFERENT**
+**WHAT MAKES KAIRO DIFFERENT**
 • Personalized to YOUR birth chart, not just your sun sign
 • Based on real astronomical calculations and current transits
 • Clear, modern language—no robotic cosmic speak
@@ -61,11 +61,11 @@ Your birth data stays on your device. No servers, no tracking, no data collectio
 • Anyone seeking self-reflection tools
 • Astrology enthusiasts who value accuracy
 
-kaira combines ancient wisdom with modern calculations to help you understand yourself better and navigate life with more awareness. Your personal astrologer, always in your pocket.
+kairo combines ancient wisdom with modern calculations to help you understand yourself better and navigate life with more awareness. Your personal astrologer, always in your pocket.
 
 ---
 
-**NOTE:** kaira provides astrological interpretations for entertainment and self-reflection purposes. Always use common sense and consult qualified professionals for important life decisions.
+**NOTE:** kairo provides astrological interpretations for entertainment and self-reflection purposes. Always use common sense and consult qualified professionals for important life decisions.
 
 ## Keywords (100 characters max, separated by commas)
 
@@ -134,7 +134,7 @@ You'll need screenshots for different iPhone sizes. Apple requires:
 ```
 Version 1.0 - Initial Release
 
-Welcome to kaira - your personal astrologer!
+Welcome to kairo - your personal astrologer!
 
 • Real astrology calculated from your exact birth chart
 • Daily insights based on current planetary transits
@@ -144,7 +144,7 @@ Welcome to kaira - your personal astrologer!
 • Privacy-first: your data stays on your device
 • No ads, no tracking, completely offline
 
-We'd love to hear your feedback! Please rate kaira if you enjoy using it.
+We'd love to hear your feedback! Please rate kairo if you enjoy using it.
 ```
 
 ---
@@ -166,7 +166,7 @@ You need to host PRIVACY_POLICY.md online. Easiest options:
 <!DOCTYPE html>
 <html>
   <head>
-    <title>kaira Privacy Policy</title>
+    <title>kairo Privacy Policy</title>
     <meta charset="utf-8" />
     <style>
       body {

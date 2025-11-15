@@ -1,14 +1,14 @@
-# Terms of Service for kaira
+# Terms of Service for kairo
 
 **Last Updated:** November 15, 2024
 
 ## Agreement to Terms
 
-By downloading, installing, or using kaira ("the app"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the app.
+By downloading, installing, or using kairo ("the app"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the app.
 
 ## Description of Service
 
-kaira is a personalized astrology application that:
+kairo is a personalized astrology application that:
 
 - Calculates your astrological birth chart based on your birth date, time, and location
 - Provides daily, weekly, and monthly horoscope insights
@@ -84,7 +84,7 @@ You may stop using the app at any time by deleting it from your device. We reser
 
 ## Age Restrictions
 
-You must be at least 13 years old to use kaira. If you are under 18, you should use the app with parental guidance.
+You must be at least 13 years old to use kairo. If you are under 18, you should use the app with parental guidance.
 
 ## Governing Law
 
@@ -104,7 +104,7 @@ If any provision of these Terms is found to be unenforceable, the remaining prov
 
 ## Entire Agreement
 
-These Terms of Service, together with our Privacy Policy, constitute the entire agreement between you and kaira regarding the use of the app.
+These Terms of Service, together with our Privacy Policy, constitute the entire agreement between you and kairo regarding the use of the app.
 
 ## Contact Information
 
@@ -115,8 +115,8 @@ For questions about these Terms of Service:
 
 ## Acknowledgment
 
-By using kaira, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+By using kairo, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
 
 ---
 
-**Important Reminder**: kaira is designed for entertainment and self-reflection. Always use common sense and consult qualified professionals for important life decisions.
+**Important Reminder**: kairo is designed for entertainment and self-reflection. Always use common sense and consult qualified professionals for important life decisions.
